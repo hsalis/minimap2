@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <stdint.h>
+#include <string.h>
 #if defined(WIN32) || defined(_WIN32)
 #include <io.h> // for open(2)
 #else
@@ -47,6 +49,83 @@ typedef struct mm_idx_jjump_s {
 	mm_idx_jjump1_t *a;
 } mm_idx_jjump_t;
 
+#define MM_MTS_MAGIC "MTS1"
+#define MM_MTS_ALIGN 64
+
+typedef struct {
+	uint64_t offset;
+	uint32_t len, pad;
+} mm_many_targets_seq_t;
+
+typedef struct {
+	uint32_t n_seq;
+	uint64_t total_bytes;
+	mm_many_targets_seq_t *seq;
+	uint8_t *forward, *reverse;
+} mm_many_targets_t;
+
+static void *mm_aligned_calloc(size_t alignment, size_t size)
+{
+	uintptr_t addr;
+	void *raw, *aligned;
+	size_t extra = alignment - 1 + sizeof(void*);
+	raw = calloc(1, size + extra);
+	if (raw == 0) return 0;
+	addr = (uintptr_t)raw + sizeof(void*);
+	aligned = (void*)((addr + alignment - 1) & ~(uintptr_t)(alignment - 1));
+	((void**)aligned)[-1] = raw;
+	return aligned;
+}
+
+static void mm_aligned_free(void *aligned)
+{
+	if (aligned) free(((void**)aligned)[-1]);
+}
+
+static uint64_t mm_many_targets_layout(const mm_idx_t *mi, mm_many_targets_seq_t *seq)
+{
+	uint32_t i;
+	uint64_t off = 0;
+	for (i = 0; i < mi->n_seq; ++i) {
+		off = (off + MM_MTS_ALIGN - 1) / MM_MTS_ALIGN * MM_MTS_ALIGN;
+		if (seq) {
+			seq[i].offset = off;
+			seq[i].len = mi->seq[i].len;
+			seq[i].pad = 0;
+		}
+		off += mi->seq[i].len;
+	}
+	return off;
+}
+
+static int mm_idx_getseq_packed(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
+{
+	uint64_t i, st1, en1;
+	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
+	if (en > mi->seq[rid].len) en = mi->seq[rid].len;
+	st1 = mi->seq[rid].offset + st;
+	en1 = mi->seq[rid].offset + en;
+	for (i = st1; i < en1; ++i)
+		seq[i - st1] = mm_seq4_get(mi->S, i);
+	return en - st;
+}
+
+static int mm_idx_getseq_rev_packed(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
+{
+	uint64_t i, st1, en1;
+	const mm_idx_seq_t *s;
+	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
+	s = &mi->seq[rid];
+	if (en > s->len) en = s->len;
+	st1 = s->offset + (s->len - en);
+	en1 = s->offset + (s->len - st);
+	for (i = st1; i < en1; ++i) {
+		uint8_t c = mm_seq4_get(mi->S, i);
+		seq[en1 - i - 1] = c < 4? 3 - c : c;
+	}
+	return en - st;
+}
+
 mm_idx_t *mm_idx_init(int w, int k, int b, int flag)
 {
 	mm_idx_t *mi;
@@ -63,6 +142,7 @@ void mm_idx_destroy(mm_idx_t *mi)
 {
 	uint32_t i;
 	if (mi == 0) return;
+	mm_many_targets_sidecar_destroy(mi);
 	if (mi->h) kh_destroy(str, (khash_t(str)*)mi->h);
 	if (mi->B) {
 		for (i = 0; i < 1U<<mi->b; ++i) {
@@ -163,36 +243,138 @@ int mm_idx_name2id(const mm_idx_t *mi, const char *name)
 
 int mm_idx_getseq(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
 {
-	uint64_t i, st1, en1;
-	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
-	if (en > mi->seq[rid].len) en = mi->seq[rid].len;
-	st1 = mi->seq[rid].offset + st;
-	en1 = mi->seq[rid].offset + en;
-	for (i = st1; i < en1; ++i)
-		seq[i - st1] = mm_seq4_get(mi->S, i);
-	return en - st;
+	mm_many_targets_t *mt = (mm_many_targets_t*)mi->mt;
+	if (mt) {
+		const mm_many_targets_seq_t *s;
+		if (rid >= mt->n_seq || st >= mt->seq[rid].len) return -1;
+		s = &mt->seq[rid];
+		if (en > s->len) en = s->len;
+		memcpy(seq, &mt->forward[s->offset + st], en - st);
+		return en - st;
+	}
+	return mm_idx_getseq_packed(mi, rid, st, en, seq);
 }
 
 int mm_idx_getseq_rev(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
 {
-	uint64_t i, st1, en1;
-	const mm_idx_seq_t *s;
-	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
-	s = &mi->seq[rid];
-	if (en > s->len) en = s->len;
-	st1 = s->offset + (s->len - en);
-	en1 = s->offset + (s->len - st);
-	for (i = st1; i < en1; ++i) {
-		uint8_t c = mm_seq4_get(mi->S, i);
-		seq[en1 - i - 1] = c < 4? 3 - c : c;
+	mm_many_targets_t *mt = (mm_many_targets_t*)mi->mt;
+	if (mt) {
+		const mm_many_targets_seq_t *s;
+		if (rid >= mt->n_seq || st >= mt->seq[rid].len) return -1;
+		s = &mt->seq[rid];
+		if (en > s->len) en = s->len;
+		memcpy(seq, &mt->reverse[s->offset + (s->len - en)], en - st);
+		return en - st;
 	}
-	return en - st;
+	return mm_idx_getseq_rev_packed(mi, rid, st, en, seq);
 }
 
 int mm_idx_getseq2(const mm_idx_t *mi, int is_rev, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
 {
 	if (is_rev) return mm_idx_getseq_rev(mi, rid, st, en, seq);
 	else return mm_idx_getseq(mi, rid, st, en, seq);
+}
+
+void mm_many_targets_sidecar_destroy(mm_idx_t *mi)
+{
+	mm_many_targets_t *mt;
+	if (mi == 0 || mi->mt == 0) return;
+	mt = (mm_many_targets_t*)mi->mt;
+	free(mt->seq);
+	mm_aligned_free(mt->forward);
+	mm_aligned_free(mt->reverse);
+	free(mt);
+	mi->mt = 0;
+}
+
+int mm_many_targets_sidecar_build(mm_idx_t *mi, const char *fn)
+{
+	FILE *fp = 0;
+	mm_many_targets_t *mt;
+	uint32_t i;
+	uint64_t total;
+	if (mi == 0) return -1;
+	mm_many_targets_sidecar_destroy(mi);
+	mt = (mm_many_targets_t*)calloc(1, sizeof(*mt));
+	if (mt == 0) return -1;
+	mt->n_seq = mi->n_seq;
+	mt->seq = (mm_many_targets_seq_t*)calloc(mi->n_seq, sizeof(*mt->seq));
+	if (mt->seq == 0) {
+		free(mt);
+		return -1;
+	}
+	total = mm_many_targets_layout(mi, mt->seq);
+	mt->total_bytes = total;
+	mt->forward = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
+	mt->reverse = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
+	if (mt->forward == 0 || mt->reverse == 0) {
+		free(mt->seq);
+		mm_aligned_free(mt->forward);
+		mm_aligned_free(mt->reverse);
+		free(mt);
+		return -1;
+	}
+	for (i = 0; i < mi->n_seq; ++i) {
+		mm_idx_getseq_packed(mi, i, 0, mi->seq[i].len, &mt->forward[mt->seq[i].offset]);
+		mm_idx_getseq_rev_packed(mi, i, 0, mi->seq[i].len, &mt->reverse[mt->seq[i].offset]);
+	}
+	mi->mt = mt;
+	if (fn == 0) return 0;
+	fp = fopen(fn, "wb");
+	if (fp == 0) return -1;
+	if (fwrite(MM_MTS_MAGIC, 1, 4, fp) != 4) goto fail;
+	if (fwrite(&mt->n_seq, 4, 1, fp) != 1) goto fail;
+	if (fwrite(&mt->total_bytes, 8, 1, fp) != 1) goto fail;
+	if (fwrite(mt->seq, sizeof(*mt->seq), mt->n_seq, fp) != mt->n_seq) goto fail;
+	if (mt->total_bytes && fwrite(mt->forward, 1, mt->total_bytes, fp) != mt->total_bytes) goto fail;
+	if (mt->total_bytes && fwrite(mt->reverse, 1, mt->total_bytes, fp) != mt->total_bytes) goto fail;
+	fclose(fp);
+	return 0;
+fail:
+	fclose(fp);
+	return -1;
+}
+
+int mm_many_targets_sidecar_load(mm_idx_t *mi, const char *fn)
+{
+	FILE *fp;
+	char magic[4];
+	mm_many_targets_t *mt;
+	uint32_t n_seq, i;
+	uint64_t total;
+	if (mi == 0 || fn == 0) return -1;
+	fp = fopen(fn, "rb");
+	if (fp == 0) return -1;
+	if (fread(magic, 1, 4, fp) != 4 || strncmp(magic, MM_MTS_MAGIC, 4) != 0) goto fail;
+	if (fread(&n_seq, 4, 1, fp) != 1) goto fail;
+	if (fread(&total, 8, 1, fp) != 1) goto fail;
+	if (n_seq != mi->n_seq) goto fail;
+	mt = (mm_many_targets_t*)calloc(1, sizeof(*mt));
+	if (mt == 0) goto fail;
+	mt->n_seq = n_seq;
+	mt->total_bytes = total;
+	mt->seq = (mm_many_targets_seq_t*)calloc(n_seq, sizeof(*mt->seq));
+	mt->forward = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
+	mt->reverse = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
+	if (mt->seq == 0 || mt->forward == 0 || mt->reverse == 0) goto fail_mt;
+	if (fread(mt->seq, sizeof(*mt->seq), n_seq, fp) != n_seq) goto fail_mt;
+	for (i = 0; i < n_seq; ++i)
+		if (mt->seq[i].len != mi->seq[i].len)
+			goto fail_mt;
+	if (total && fread(mt->forward, 1, total, fp) != total) goto fail_mt;
+	if (total && fread(mt->reverse, 1, total, fp) != total) goto fail_mt;
+	fclose(fp);
+	mm_many_targets_sidecar_destroy(mi);
+	mi->mt = mt;
+	return 0;
+fail_mt:
+	free(mt->seq);
+	mm_aligned_free(mt->forward);
+	mm_aligned_free(mt->reverse);
+	free(mt);
+fail:
+	fclose(fp);
+	return -1;
 }
 
 int32_t mm_idx_cal_max_occ(const mm_idx_t *mi, float f)
@@ -592,6 +774,29 @@ int64_t mm_idx_is_idx(const char *fn)
 	return is_idx? off_end : 0;
 }
 
+static char *mm_many_targets_path_dup(const char *base)
+{
+	char *s;
+	size_t l;
+	if (base == 0) return 0;
+	l = strlen(base);
+	s = (char*)malloc(l + 5);
+	if (s == 0) return 0;
+	memcpy(s, base, l);
+	memcpy(s + l, ".mts", 5);
+	return s;
+}
+
+static int mm_file_exists(const char *fn)
+{
+	FILE *fp;
+	if (fn == 0) return 0;
+	fp = fopen(fn, "rb");
+	if (fp == 0) return 0;
+	fclose(fp);
+	return 1;
+}
+
 mm_idx_reader_t *mm_idx_reader_open(const char *fn, const mm_idxopt_t *opt, const char *fn_out)
 {
 	int64_t is_idx;
@@ -607,6 +812,16 @@ mm_idx_reader_t *mm_idx_reader_open(const char *fn, const mm_idxopt_t *opt, cons
 		r->idx_size = is_idx;
 	} else r->fp.seq = mm_bseq_open(fn);
 	if (fn_out) r->fp_out = fopen(fn_out, "wb");
+	if (r->opt.many_targets_sidecar)
+		r->many_targets_sidecar = strdup(r->opt.many_targets_sidecar);
+	else if ((r->opt.flag & MM_I_WRITE_MTS) && fn_out)
+		r->many_targets_sidecar = mm_many_targets_path_dup(fn_out);
+	else if ((r->opt.flag & MM_I_MANY_TARGETS) || (r->opt.flag & MM_I_WRITE_MTS)) {
+		char *candidate = mm_many_targets_path_dup(fn);
+		if ((r->opt.flag & MM_I_WRITE_MTS) || mm_file_exists(candidate))
+			r->many_targets_sidecar = candidate;
+		else free(candidate);
+	}
 	return r;
 }
 
@@ -615,6 +830,7 @@ void mm_idx_reader_close(mm_idx_reader_t *r)
 	if (r->is_idx) fclose(r->fp.idx);
 	else mm_bseq_close(r->fp.seq);
 	if (r->fp_out) fclose(r->fp_out);
+	free(r->many_targets_sidecar);
 	free(r);
 }
 
@@ -629,6 +845,15 @@ mm_idx_t *mm_idx_reader_read(mm_idx_reader_t *r, int n_threads)
 		mi = mm_idx_gen(r->fp.seq, r->opt.w, r->opt.k, r->opt.bucket_bits, r->opt.flag, r->opt.mini_batch_size, n_threads, r->opt.batch_size);
 	if (mi) {
 		if (r->fp_out) mm_idx_dump(r->fp_out, mi);
+		if (r->opt.flag & MM_I_MANY_TARGETS) {
+			int loaded = -1;
+			if (r->many_targets_sidecar)
+				loaded = mm_many_targets_sidecar_load(mi, r->many_targets_sidecar);
+			if (loaded != 0)
+				mm_many_targets_sidecar_build(mi, (r->opt.flag & MM_I_WRITE_MTS)? r->many_targets_sidecar : 0);
+		} else if ((r->opt.flag & MM_I_WRITE_MTS) && r->many_targets_sidecar) {
+			mm_many_targets_sidecar_build(mi, r->many_targets_sidecar);
+		}
 		mi->index = r->n_parts++;
 	}
 	return mi;

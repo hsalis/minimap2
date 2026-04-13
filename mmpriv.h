@@ -2,6 +2,7 @@
 #define MMPRIV2_H
 
 #include <assert.h>
+#include <stdlib.h>
 #include "minimap.h"
 #include "bseq.h"
 #include "kseq.h"
@@ -116,7 +117,7 @@ void mm_set_mapq2(void *km, int n_regs, mm_reg1_t *regs, int min_chain_sc, int m
 void mm_update_dp_max(int qlen, int n_regs, mm_reg1_t *regs, float frac, int a, int b);
 void mm_jump_split(void *km, const mm_idx_t *mi, const mm_mapopt_t *opt, int32_t qlen, const uint8_t *qseq, mm_reg1_t *r, int32_t ts_strand);
 
-mm_reg1_t *mm_align_skeleton(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, const char *qstr, int *n_regs_, mm_reg1_t *regs, mm128_t *a);
+mm_reg1_t *mm_align_skeleton(void *km, mm_tbuf_t *b, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, const char *qstr, int *n_regs_, mm_reg1_t *regs, mm128_t *a);
 void mm_enlarge_cigar(mm_reg1_t *r, uint32_t n_cigar);
 
 void mm_est_err(const mm_idx_t *mi, int qlen, int n_regs, mm_reg1_t *regs, const mm128_t *a, int32_t n, const uint64_t *mini_pos);
@@ -135,6 +136,21 @@ void mm_split_rm_tmp(const char *prefix, int n_splits);
 void mm_err_puts(const char *str);
 void mm_err_fwrite(const void *p, size_t size, size_t nitems, FILE *fp);
 void mm_err_fread(void *p, size_t size, size_t nitems, FILE *fp);
+
+static inline void *mm_tbuf_reserve(void **buf, size_t *cap, size_t need, size_t unit_size)
+{
+	size_t bytes;
+	if (need == 0) return *buf;
+	if (*cap >= need) return *buf;
+	bytes = need * unit_size;
+	*buf = realloc(*buf, bytes);
+	if (*buf == 0) {
+		fprintf(stderr, "[ERROR] failed to allocate %zu bytes for thread buffer scratch\n", bytes);
+		abort();
+	}
+	*cap = need;
+	return *buf;
+}
 
 static inline float mg_log2(float x) // NB: this doesn't work when x<2
 {

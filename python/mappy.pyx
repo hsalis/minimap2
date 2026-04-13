@@ -3,7 +3,10 @@ from libc.stdlib cimport free
 cimport cmappy
 import sys
 
-__version__ = '2.30'
+__version__ = '2.3.1'
+
+cdef long long MM_F_MANY_TARGETS = 0x20000000000
+cdef int MM_I_MANY_TARGETS = 0x10
 
 cmappy.mm_reset_timer()
 
@@ -118,7 +121,7 @@ cdef class Aligner:
 	cdef cmappy.mm_idxopt_t idx_opt
 	cdef cmappy.mm_mapopt_t map_opt
 
-	def __cinit__(self, fn_idx_in=None, preset=None, k=None, w=None, min_cnt=None, min_chain_score=None, min_dp_score=None, bw=None, bw_long=None, best_n=None, n_threads=3, fn_idx_out=None, max_frag_len=None, extra_flags=None, seq=None, scoring=None, sc_ambi=None, max_chain_skip=None):
+	def __cinit__(self, fn_idx_in=None, preset=None, k=None, w=None, min_cnt=None, min_chain_score=None, min_dp_score=None, bw=None, bw_long=None, best_n=None, n_threads=3, fn_idx_out=None, max_frag_len=None, extra_flags=None, seq=None, scoring=None, sc_ambi=None, max_chain_skip=None, many_targets=False, many_targets_sidecar=None):
 		self._idx = NULL
 		cmappy.mm_set_opt(NULL, &self.idx_opt, &self.map_opt) # set the default options
 		if preset is not None:
@@ -145,6 +148,12 @@ cdef class Aligner:
 					self.map_opt.sc_ambi = scoring[6]
 		if sc_ambi is not None: self.map_opt.sc_ambi = sc_ambi
 		if max_chain_skip is not None: self.map_opt.max_chain_skip = max_chain_skip
+		if many_targets:
+			self.map_opt.flag |= MM_F_MANY_TARGETS
+			self.idx_opt.flag |= MM_I_MANY_TARGETS
+		if many_targets_sidecar is not None:
+			many_targets_sidecar_b = many_targets_sidecar if isinstance(many_targets_sidecar, bytes) else many_targets_sidecar.encode()
+			self.idx_opt.many_targets_sidecar = many_targets_sidecar_b
 
 		cdef cmappy.mm_idx_reader_t *r;
 

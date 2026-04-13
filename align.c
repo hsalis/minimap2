@@ -336,6 +336,7 @@ static void mm_append_cigar(mm_reg1_t *r, uint32_t n_cigar, const uint32_t *ciga
 static void mm_align_pair(void *km, const mm_mapopt_t *opt, int qlen, const uint8_t *qseq, int tlen, const uint8_t *tseq, const uint8_t *junc,
 						  const int8_t *mat, int w, int end_bonus, int zdrop, int ksw_flag, ksw_extz_t *ez)
 {
+	mm_bench_add_dp();
 	if (mm_dbg_flag & MM_DBG_PRINT_ALN_SEQ) {
 		int i;
 		fprintf(stderr, "===> q=(%d,%d), e=(%d,%d), bw=%d, ksw_flag=%d, zdrop=%d, end_bonus=%d <===\n", opt->q, opt->q2, opt->e, opt->e2, w, ksw_flag, opt->zdrop, end_bonus);
@@ -642,7 +643,7 @@ static inline void mm_get_junc(const mm_idx_t *mi, int32_t ctg, int32_t st, int3
 	else memset(junc, 0, en - st);
 }
 
-static void mm_align1(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, uint8_t *qseq0[2], mm_reg1_t *r, mm_reg1_t *r2, int n_a, mm128_t *a, ksw_extz_t *ez, int splice_flag)
+static void mm_align1(void *km, mm_tbuf_t *b, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, uint8_t *qseq0[2], mm_reg1_t *r, mm_reg1_t *r2, int n_a, mm128_t *a, ksw_extz_t *ez, int splice_flag)
 {
 	int is_sr = !!(opt->flag & MM_F_SR), is_splice = !!(opt->flag & MM_F_SPLICE), is_sr_rna = (!!(opt->flag & MM_F_SR_RNA) && is_splice);
 	int32_t rid = a[r->as].x<<1>>33, rev = a[r->as].x>>63, as1, cnt1;
@@ -651,6 +652,7 @@ static void mm_align1(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int 
 	int32_t rs, re, qs, qe;
 	int32_t rs1, qs1, re1, qe1;
 	int8_t mat[25];
+	int use_tbuf = b != 0;
 
 	if (is_sr) assert(!(mi->flag & MM_I_HPC)); // HPC won't work with SR because with HPC we can't easily tell if there is a gap
 
@@ -767,12 +769,19 @@ static void mm_align1(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int 
 	}
 
 	assert(re0 > rs0);
-	tseq = (uint8_t*)kmalloc(km, re0 - rs0);
-	junc = (uint8_t*)kmalloc(km, re0 - rs0);
+	if (use_tbuf) {
+		tseq = (uint8_t*)mm_tbuf_reserve((void**)&b->tseq, &b->tseq_cap, re0 - rs0, 1);
+		junc = (uint8_t*)mm_tbuf_reserve((void**)&b->junc, &b->junc_cap, re0 - rs0, 1);
+	} else {
+		tseq = (uint8_t*)kmalloc(km, re0 - rs0);
+		junc = (uint8_t*)kmalloc(km, re0 - rs0);
+	}
 
 	if (is_sr_rna) {
 		int32_t max_tlen2 = MM_MAX_QLEN_FLANK * 2 + opt->q2 * 2;
-		tseq2 = Kmalloc(km, uint8_t, max_tlen2 * 2);
+		if (use_tbuf)
+			tseq2 = (uint8_t*)mm_tbuf_reserve((void**)&b->aux, &b->aux_cap, max_tlen2 * 2, 1);
+		else tseq2 = Kmalloc(km, uint8_t, max_tlen2 * 2);
 		junc2 = tseq2 + max_tlen2;
 	}
 
@@ -908,12 +917,14 @@ static void mm_align1(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int 
 			r->p->trans_strand ^= 3; // flip to the read strand
 	}
 
-	if (tseq2) kfree(km, tseq2);
-	kfree(km, tseq);
-	kfree(km, junc);
+	if (!use_tbuf) {
+		if (tseq2) kfree(km, tseq2);
+		kfree(km, tseq);
+		kfree(km, junc);
+	}
 }
 
-static int mm_align1_inv(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, uint8_t *qseq0[2], const mm_reg1_t *r1, const mm_reg1_t *r2, mm_reg1_t *r_inv, ksw_extz_t *ez)
+static int mm_align1_inv(void *km, mm_tbuf_t *b, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, uint8_t *qseq0[2], const mm_reg1_t *r1, const mm_reg1_t *r2, mm_reg1_t *r_inv, ksw_extz_t *ez)
 { // NB: this doesn't work with the qstrand mode
 	int tl, ql, score, ret = 0, q_off, t_off;
 	uint8_t *tseq, *qseq;
@@ -931,7 +942,8 @@ static int mm_align1_inv(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, i
 	if (tl < opt->min_chain_score || tl > opt->max_gap) return 0;
 
 	ksw_gen_ts_mat(5, mat, opt->a, opt->b, opt->transition, opt->sc_ambi);
-	tseq = (uint8_t*)kmalloc(km, tl);
+	if (b) tseq = (uint8_t*)mm_tbuf_reserve((void**)&b->aux, &b->aux_cap, tl, 1);
+	else tseq = (uint8_t*)kmalloc(km, tl);
 	mm_idx_getseq(mi, r1->rid, r1->re, r2->rs, tseq);
 	qseq = r1->rev? &qseq0[0][r2->qe] : &qseq0[1][qlen - r2->qs];
 
@@ -966,7 +978,7 @@ static int mm_align1_inv(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, i
 	mm_update_extra(r_inv, &qseq[q_off], &tseq[t_off], mat, opt->q, opt->e, opt->flag & MM_F_EQX, !(opt->flag & (MM_F_SR|MM_F_SR_RNA)));
 	ret = 1;
 end_align1_inv:
-	kfree(km, tseq);
+	if (!b) kfree(km, tseq);
 	return ret;
 }
 
@@ -1045,7 +1057,7 @@ void mm_update_dp_max(int qlen, int n_regs, mm_reg1_t *regs, float frac, int a, 
 	}
 }
 
-mm_reg1_t *mm_align_skeleton(void *km, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, const char *qstr, int *n_regs_, mm_reg1_t *regs, mm128_t *a)
+mm_reg1_t *mm_align_skeleton(void *km, mm_tbuf_t *b, const mm_mapopt_t *opt, const mm_idx_t *mi, int qlen, const char *qstr, int *n_regs_, mm_reg1_t *regs, mm128_t *a)
 {
 	extern unsigned char seq_nt4_table[256];
 	int32_t i, n_regs = *n_regs_, n_a;
@@ -1053,7 +1065,8 @@ mm_reg1_t *mm_align_skeleton(void *km, const mm_mapopt_t *opt, const mm_idx_t *m
 	ksw_extz_t ez;
 
 	// encode the query sequence
-	qseq0[0] = (uint8_t*)kmalloc(km, qlen * 2);
+	if (b) qseq0[0] = (uint8_t*)mm_tbuf_reserve((void**)&b->qseq, &b->qseq_cap, qlen * 2, 1);
+	else qseq0[0] = (uint8_t*)kmalloc(km, qlen * 2);
 	qseq0[1] = qseq0[0] + qlen;
 	for (i = 0; i < qlen; ++i) {
 		qseq0[0][i] = seq_nt4_table[(uint8_t)qstr[i]];
@@ -1068,13 +1081,13 @@ mm_reg1_t *mm_align_skeleton(void *km, const mm_mapopt_t *opt, const mm_idx_t *m
 		if ((opt->flag&MM_F_SPLICE) && (opt->flag&MM_F_SPLICE_FOR) && (opt->flag&MM_F_SPLICE_REV)) { // then do two rounds of alignments for both strands
 			mm_reg1_t s[2], s2[2], *r;
 			s[0] = s[1] = regs[i];
-			mm_align1(km, opt, mi, qlen, qseq0, &s[0], &s2[0], n_a, a, &ez, MM_F_SPLICE_FOR); // assume the transcript is on the + strand of the genome
+			mm_align1(km, b, opt, mi, qlen, qseq0, &s[0], &s2[0], n_a, a, &ez, MM_F_SPLICE_FOR); // assume the transcript is on the + strand of the genome
 			if ((opt->flag&MM_F_SR_RNA) && regs[i].qe - regs[i].qs == regs[i].re - regs[i].rs && s[0].qe - s[0].qs == s[0].re - s[0].rs && s[0].qs == 0 && s[0].qe == qlen) {
 				regs[i] = s[0], r2 = s2[0];
 				regs[i].p->trans_strand = 0;
 			} else {
 				int which, trans_strand;
-				mm_align1(km, opt, mi, qlen, qseq0, &s[1], &s2[1], n_a, a, &ez, MM_F_SPLICE_REV); // assume the transcript on the - strand
+				mm_align1(km, b, opt, mi, qlen, qseq0, &s[1], &s2[1], n_a, a, &ez, MM_F_SPLICE_REV); // assume the transcript on the - strand
 				if (s[0].p->dp_score > s[1].p->dp_score) which = 0, trans_strand = 1;
 				else if (s[0].p->dp_score < s[1].p->dp_score) which = 1, trans_strand = 2;
 				else trans_strand = 3, which = (qlen + s[0].p->dp_score) & 1; // randomly choose a strand, effectively
@@ -1095,20 +1108,20 @@ mm_reg1_t *mm_align_skeleton(void *km, const mm_mapopt_t *opt, const mm_idx_t *m
 				}
 			}
 		} else { // one round of alignment
-			mm_align1(km, opt, mi, qlen, qseq0, &regs[i], &r2, n_a, a, &ez, opt->flag);
+			mm_align1(km, b, opt, mi, qlen, qseq0, &regs[i], &r2, n_a, a, &ez, opt->flag);
 			if (opt->flag&MM_F_SPLICE)
 				regs[i].p->trans_strand = opt->flag&MM_F_SPLICE_FOR? 1 : 2;
 		}
 		if (r2.cnt > 0) regs = mm_insert_reg(&r2, i, &n_regs, regs);
 		if (i > 0 && regs[i].split_inv && !(opt->flag & MM_F_NO_INV)) {
-			if (mm_align1_inv(km, opt, mi, qlen, qseq0, &regs[i-1], &regs[i], &r2, &ez)) {
+			if (mm_align1_inv(km, b, opt, mi, qlen, qseq0, &regs[i-1], &regs[i], &r2, &ez)) {
 				regs = mm_insert_reg(&r2, i, &n_regs, regs);
 				++i; // skip the inserted INV alignment
 			}
 		}
 	}
 	*n_regs_ = n_regs;
-	kfree(km, qseq0[0]);
+	if (!b) kfree(km, qseq0[0]);
 	kfree(km, ez.cigar);
 	mm_filter_regs(opt, qlen, n_regs_, regs);
 	if (!(opt->flag&(MM_F_SR|MM_F_SR_RNA|MM_F_ALL_CHAINS)) && !opt->split_prefix && qlen >= opt->rank_min_len) {

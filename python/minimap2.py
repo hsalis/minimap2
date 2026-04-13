@@ -5,7 +5,7 @@ import getopt
 import mappy as mp
 
 def main(argv):
-	opts, args = getopt.getopt(argv[1:], "x:n:m:k:w:r:cdM")
+	opts, args = getopt.getopt(argv[1:], "x:n:m:k:w:r:cdM", ["many-targets", "many-targets-sidecar="])
 	if len(args) < 2:
 		print("Usage: minimap2.py [options] <ref.fa>|<ref.mmi> <query.fq>")
 		print("Options:")
@@ -18,22 +18,29 @@ def main(argv):
 		print("  -c          output the cs tag")
 		print("  -d          output the ds tag")
 		print("  -M          output the MD tag")
+		print("  --many-targets           enable the many-target exact cache path")
+		print("  --many-targets-sidecar   load/write the many-target sidecar")
 		sys.exit(1)
 
 	preset = min_cnt = min_sc = k = w = bw = None
 	out_cs = out_ds = out_MD = False
+	many_targets = False
+	many_targets_sidecar = None
 	for opt, arg in opts:
 		if opt == '-x': preset = arg
 		elif opt == '-n': min_cnt = int(arg)
-		elif opt == '-m': min_chain_score = int(arg)
+		elif opt == '-m': min_sc = int(arg)
 		elif opt == '-r': bw = int(arg)
 		elif opt == '-k': k = int(arg)
 		elif opt == '-w': w = int(arg)
 		elif opt == '-c': out_cs = True
 		elif opt == '-d': out_ds = True
 		elif opt == '-M': out_MD = True
+		elif opt == '--many-targets': many_targets = True
+		elif opt == '--many-targets-sidecar': many_targets_sidecar = arg
 
-	a = mp.Aligner(args[0], preset=preset, min_cnt=min_cnt, min_chain_score=min_sc, k=k, w=w, bw=bw)
+	a = mp.Aligner(args[0], preset=preset, min_cnt=min_cnt, min_chain_score=min_sc, k=k, w=w, bw=bw,
+		many_targets=many_targets, many_targets_sidecar=many_targets_sidecar)
 	if not a: raise Exception("ERROR: failed to load/build index file '{}'".format(args[0]))
 	for name, seq, qual in mp.fastx_read(args[1]): # read one sequence
 		for h in a.map(seq, cs=out_cs, ds=out_ds, MD=out_MD): # traverse hits

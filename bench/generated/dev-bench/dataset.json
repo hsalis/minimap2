@@ -1,0 +1,7 @@
+{
+  "references": 64,
+  "reads": 16,
+  "seed": 17,
+  "reference_path": "/Users/howardsalis/minimap2/bench/generated/dev-bench/references.fa",
+  "reads_path": "/Users/howardsalis/minimap2/bench/generated/dev-bench/reads.fq"
+}

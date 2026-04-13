@@ -8,6 +8,7 @@ cdef extern from "minimap.h":
 		short k, w, flag, bucket_bits
 		int64_t mini_batch_size
 		uint64_t batch_size
+		const char *many_targets_sidecar
 
 	ctypedef struct mm_mapopt_t:
 		int64_t flag

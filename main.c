@@ -87,9 +87,9 @@ static ko_longopt_t long_options[] = {
 	{ "pass1",          ko_required_argument, 362 },
 	{ "spsc-scale",     ko_required_argument, 363 },
 	{ "spsc0",          ko_required_argument, 364 },
-	{ "many-targets",   ko_optional_argument, 365 },
-	{ "many-targets-sidecar", ko_required_argument, 366 },
-	{ "write-many-targets-sidecar", ko_optional_argument, 367 },
+	{ "compact-repeats",ko_optional_argument, 365 },
+	{ "compact-k",      ko_required_argument, 366 },
+	{ "compact-ratio",  ko_required_argument, 367 },
 	{ "dbg-seed-occ",   ko_no_argument,       501 },
 	{ "help",           ko_no_argument,       'h' },
 	{ "max-intron-len", ko_required_argument, 'G' },
@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
 	mm_verbose = 3;
 	liftrlimit();
 	mm_realtime0 = realtime();
-	mm_bench_reset();
 	mm_set_opt(0, &ipt, &opt);
 
 	while ((c = ketopt(&o, argc, argv, 1, opt_str, long_options)) >= 0) { // test command line options and apply option -x/preset first
@@ -268,27 +267,19 @@ int main(int argc, char *argv[])
 		else if (c == 501) mm_dbg_flag |= MM_DBG_SEED_FREQ; // --dbg-seed-occ
 		else if (c == 363) spsc_scale = atof(o.arg); // --spsc-scale
 		else if (c == 358 || c == 364) opt.junc_pen = atoi(o.arg); // --junc-pen or --spsc0
-		else if (c == 365) {
-			if (o.arg == 0 || strcmp(o.arg, "yes") == 0 || strcmp(o.arg, "y") == 0) {
-				opt.flag |= MM_F_MANY_TARGETS;
-				ipt.flag |= MM_I_MANY_TARGETS;
-			} else if (strcmp(o.arg, "no") == 0 || strcmp(o.arg, "n") == 0) {
-				opt.flag &= ~MM_F_MANY_TARGETS;
-				ipt.flag &= ~MM_I_MANY_TARGETS;
-			} else if (mm_verbose >= 2) {
-				fprintf(stderr, "[WARNING]\033[1;31m --many-targets only accepts 'yes' or 'no'. Invalid values are assumed to be 'yes'.\033[0m\n");
-				opt.flag |= MM_F_MANY_TARGETS;
-				ipt.flag |= MM_I_MANY_TARGETS;
-			}
-		} else if (c == 366) {
-			ipt.many_targets_sidecar = o.arg;
-		} else if (c == 367) {
-			if (o.arg == 0 || strcmp(o.arg, "yes") == 0 || strcmp(o.arg, "y") == 0) ipt.flag |= MM_I_WRITE_MTS;
-			else if (strcmp(o.arg, "no") == 0 || strcmp(o.arg, "n") == 0) ipt.flag &= ~MM_I_WRITE_MTS;
-			else if (mm_verbose >= 2) {
-				fprintf(stderr, "[WARNING]\033[1;31m --write-many-targets-sidecar only accepts 'yes' or 'no'. Invalid values are assumed to be 'yes'.\033[0m\n");
-				ipt.flag |= MM_I_WRITE_MTS;
-			}
+		else if (c == 365) { // --compact-repeats
+			if (o.arg) {
+				if (strcmp(o.arg, "yes") == 0 || strcmp(o.arg, "y") == 0) ipt.flag |= MM_I_COMPACT_REFS;
+				else if (strcmp(o.arg, "no") == 0 || strcmp(o.arg, "n") == 0) ipt.flag &= ~MM_I_COMPACT_REFS;
+				else if (mm_verbose >= 2) {
+					fprintf(stderr, "[WARNING]\033[1;31m --compact-repeats only accepts 'yes' or 'no'. Invalid values are assumed to be 'yes'.\033[0m\n");
+					ipt.flag |= MM_I_COMPACT_REFS;
+				}
+			} else ipt.flag |= MM_I_COMPACT_REFS;
+		} else if (c == 366) { // --compact-k
+			ipt.compact_k = atoi(o.arg);
+		} else if (c == 367) { // --compact-ratio
+			ipt.compact_ratio = atof(o.arg);
 		}
 		else if (c == 330) {
 			fprintf(stderr, "[WARNING] \033[1;31m --lj-min-ratio has been deprecated.\033[0m\n");
@@ -377,8 +368,6 @@ int main(int argc, char *argv[])
 	}
 	if (!fnw && !(opt.flag&MM_F_CIGAR))
 		ipt.flag |= MM_I_NO_SEQ;
-	if (opt.flag & MM_F_MANY_TARGETS)
-		ipt.flag |= MM_I_MANY_TARGETS;
 	if (mm_check_opt(&ipt, &opt) < 0)
 		return 1;
 	if (opt.best_n == 0) {
@@ -395,6 +384,9 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -w INT       minimizer window size [%d]\n", ipt.w);
 		fprintf(fp_help, "    -I NUM       split index for every ~NUM input bases [8G]\n");
 		fprintf(fp_help, "    -d FILE      dump index to FILE []\n");
+		fprintf(fp_help, "    --compact-repeats[=yes|no] build the index from compactified reference sequences [no]\n");
+		fprintf(fp_help, "    --compact-k INT       k-mer size used for compactification [%d]\n", ipt.compact_k);
+		fprintf(fp_help, "    --compact-ratio FLOAT remove k-mers with counts > int(FLOAT*n_seq)+1 [%.2f]\n", ipt.compact_ratio);
 		fprintf(fp_help, "  Mapping:\n");
 		fprintf(fp_help, "    -f FLOAT     filter out top FLOAT fraction of repetitive minimizers [%g]\n", opt.mid_occ_frac);
 		fprintf(fp_help, "    -g NUM       stop chain enlongation if there are no minimizers in INT-bp [%d]\n", opt.max_gap);
@@ -433,9 +425,6 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 //		fprintf(fp_help, "    -v INT       verbose level [%d]\n", mm_verbose);
 		fprintf(fp_help, "    --version    show version number\n");
-		fprintf(fp_help, "    --many-targets[=yes|no] enable exact many-target cache path [no]\n");
-		fprintf(fp_help, "    --many-targets-sidecar FILE load or write many-target sidecar data []\n");
-		fprintf(fp_help, "    --write-many-targets-sidecar[=yes|no] write the sidecar during indexing [no]\n");
 		fprintf(fp_help, "  Preset:\n");
 		fprintf(fp_help, "    -x STR       preset (always applied before other options; see minimap2.1 for details) []\n");
 		fprintf(fp_help, "                 - lr:hq - accurate long reads (error rate <1%%) against a reference genome\n");
@@ -553,6 +542,5 @@ int main(int argc, char *argv[])
 			fprintf(stderr, " %s", argv[i]);
 		fprintf(stderr, "\n[M::%s] Real time: %.3f sec; CPU: %.3f sec; Peak RSS: %.3f GB\n", __func__, realtime() - mm_realtime0, cputime(), peakrss() / 1024.0 / 1024.0 / 1024.0);
 	}
-	mm_bench_report();
 	return 0;
 }

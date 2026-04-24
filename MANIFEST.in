@@ -1,10 +1,17 @@
 include *.h
+include *.c
 include Makefile
-include ksw2_dispatch.c
-include main.c
 include README.md
+include LICENSE.txt
+include MANIFEST.in
+include pyproject.toml
 include sse2neon/emmintrin.h
 include python/cmappy.h
 include python/cmappy.pxd
 include python/mappy.pyx
+include python/mappy.c
+include python/minimap2.py
 include python/README.rst
+recursive-include test *
+recursive-include bench *
+prune python/mappy.egg-info

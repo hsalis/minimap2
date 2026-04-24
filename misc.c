@@ -1,47 +1,9 @@
 #include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include "mmpriv.h"
 
 int mm_verbose = 1;
 int mm_dbg_flag = 0;
 double mm_realtime0;
-int mm_bench_stats = 0;
-static uint64_t mm_bench_n_anchors = 0;
-static uint64_t mm_bench_n_reads = 0;
-static uint64_t mm_bench_n_dp = 0;
-
-void mm_bench_reset(void)
-{
-	const char *s = getenv("MINIMAP2_BENCH_STATS");
-	mm_bench_stats = s && *s && strcmp(s, "0") != 0;
-	mm_bench_n_anchors = mm_bench_n_reads = mm_bench_n_dp = 0;
-}
-
-void mm_bench_add_anchors(uint64_t n)
-{
-	if (mm_bench_stats) __sync_fetch_and_add(&mm_bench_n_anchors, n);
-}
-
-void mm_bench_add_read(void)
-{
-	if (mm_bench_stats) __sync_fetch_and_add(&mm_bench_n_reads, 1);
-}
-
-void mm_bench_add_dp(void)
-{
-	if (mm_bench_stats) __sync_fetch_and_add(&mm_bench_n_dp, 1);
-}
-
-void mm_bench_report(void)
-{
-	if (mm_bench_stats) {
-		double avg = mm_bench_n_reads? (double)mm_bench_n_anchors / mm_bench_n_reads : 0.0;
-		fprintf(stderr, "[M::bench] reads=%llu anchors=%llu avg_anchors_per_read=%.6f dp_invocations=%llu\n",
-				(unsigned long long)mm_bench_n_reads, (unsigned long long)mm_bench_n_anchors,
-				avg, (unsigned long long)mm_bench_n_dp);
-	}
-}
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>

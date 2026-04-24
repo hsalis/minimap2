@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#define MM_VERSION "2.30-r1290-dirty"
+#define MM_VERSION "2.30-r1287"
 
 #define MM_F_NO_DIAG       (0x001LL) // no exact diagonal hit
 #define MM_F_NO_DUAL       (0x002LL) // skip pairs where query name is lexicographically larger than target name
@@ -48,13 +48,11 @@
 #define MM_F_WEAK_PAIRING  (0x4000000000LL)
 #define MM_F_SR_RNA        (0x8000000000LL)
 #define MM_F_OUT_JUNC      (0x10000000000LL)
-#define MM_F_MANY_TARGETS  (0x20000000000LL)
 
 #define MM_I_HPC          0x1
 #define MM_I_NO_SEQ       0x2
 #define MM_I_NO_NAME      0x4
-#define MM_I_WRITE_MTS    0x8
-#define MM_I_MANY_TARGETS 0x10
+#define MM_I_COMPACT_REFS 0x8
 
 #define MM_IDX_MAGIC   "MMI\2"
 
@@ -99,7 +97,6 @@ typedef struct {
 	struct mm_idx_intv_s *I;   // intervals (hidden)
 	struct mm_idx_spsc_s *spsc;// splice score (hidden)
 	struct mm_idx_jjump_s *J;  // junctions to create jumps (hidden)
-	void *mt;                  // many-targets sidecar cache (hidden)
 	void *km, *h;
 } mm_idx_t;
 
@@ -135,7 +132,8 @@ typedef struct {
 	short k, w, flag, bucket_bits;
 	int64_t mini_batch_size;
 	uint64_t batch_size;
-	const char *many_targets_sidecar;
+	int32_t compact_k;
+	float compact_ratio;
 } mm_idxopt_t;
 
 typedef struct {
@@ -202,7 +200,6 @@ typedef struct {
 	int64_t idx_size;
 	mm_idxopt_t opt;
 	FILE *fp_out;
-	char *many_targets_sidecar;
 	union {
 		struct mm_bseq_file_s *seq;
 		FILE *idx;
@@ -213,20 +210,6 @@ typedef struct {
 struct mm_tbuf_s {
 	void *km;
 	int rep_len, frag_gap;
-	uint8_t *qseq;
-	size_t qseq_cap;
-	uint8_t *tseq;
-	size_t tseq_cap;
-	uint8_t *junc;
-	size_t junc_cap;
-	uint8_t *aux;
-	size_t aux_cap;
-	uint32_t *cigar;
-	size_t cigar_cap, cigar_n;
-	mm128_t *anchors;
-	size_t anchors_cap;
-	uint64_t *mini_pos;
-	size_t mini_pos_cap;
 };
 
 typedef struct mm_tbuf_s mm_tbuf_t;
@@ -234,13 +217,6 @@ typedef struct mm_tbuf_s mm_tbuf_t;
 // global variables
 extern int mm_verbose, mm_dbg_flag; // verbose level: 0 for no info, 1 for error, 2 for warning, 3 for message (default); debugging flag
 extern double mm_realtime0; // wall-clock timer
-extern int mm_bench_stats;
-
-void mm_bench_reset(void);
-void mm_bench_add_anchors(uint64_t n);
-void mm_bench_add_read(void);
-void mm_bench_add_dp(void);
-void mm_bench_report(void);
 
 /**
  * Set default or preset parameters
@@ -334,9 +310,6 @@ mm_idx_t *mm_idx_load(FILE *fp);
  * @param mi         minimap2 index
  */
 void mm_idx_dump(FILE *fp, const mm_idx_t *mi);
-int mm_many_targets_sidecar_build(mm_idx_t *mi, const char *fn);
-int mm_many_targets_sidecar_load(mm_idx_t *mi, const char *fn);
-void mm_many_targets_sidecar_destroy(mm_idx_t *mi);
 
 /**
  * Create an index from strings in memory
@@ -438,7 +411,6 @@ int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_
  * @return the length of cs
  */
 int mm_gen_cs(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq, int no_iden);
-int mm_gen_ds(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq, int no_iden);
 int mm_gen_MD(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq);
 
 // query sequence name and sequence in the minimap2 index

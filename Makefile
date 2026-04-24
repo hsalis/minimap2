@@ -38,7 +38,7 @@ ifneq ($(tsan),)
 	LIBS+=-fsanitize=thread -ldl
 endif
 
-.PHONY:all extra clean depend test test-many-targets bench-many-targets
+.PHONY:all extra clean depend test test-compact bench-compact bench-combinatorial
 .SUFFIXES:.c .o
 
 .c.o:
@@ -102,25 +102,22 @@ ksw2_exts2_neon.o:ksw2_exts2_sse.c ksw2.h kalloc.h
 # other non-file targets
 
 clean:
-		rm -fr gmon.out *.o a.out $(PROG) $(PROG_EXTRA) *~ *.a *.dSYM build dist mappy*.so mappy.c python/mappy.c mappy.egg* .eggs
+		rm -fr gmon.out *.o a.out $(PROG) $(PROG_EXTRA) *~ *.a *.dSYM build dist mappy*.so mappy.c python/mappy.c mappy.egg*
 
 depend:
 		(LC_ALL=C; export LC_ALL; makedepend -Y -- $(CFLAGS) $(CPPFLAGS) -- *.c)
 
-test: all
-		python3 bench/many_targets_regress.py --minimap2 ./minimap2 --smoke-only
+test: minimap2
+		python3 bench/compact_regress.py --minimap2 ./minimap2 --threads 1 2
 
-test-many-targets: all
-		python3 bench/many_targets_regress.py --minimap2 ./minimap2 --dataset-dir bench/generated/test --refs 2048 --reads 256
-		if python3 -c "import Cython.Build" >/dev/null 2>&1 || test -f python/mappy.c; then \
-			python3 setup.py build_ext --inplace && \
-			python3 bench/many_targets_regress.py --minimap2 ./minimap2 --dataset-dir bench/generated/test --refs 256 --reads 64 --python; \
-		else \
-			echo "Skipping Python regression: Cython.Build is unavailable and python/mappy.c is not present."; \
-		fi
+test-compact: minimap2
+		python3 bench/compact_regress.py --minimap2 ./minimap2 --dataset-dir bench/generated/compact-regression --refs 128 --reads 48 --threads 1 2
 
-bench-many-targets: all
-		python3 bench/many_targets_bench.py --minimap2 ./minimap2 --dataset-dir bench/generated/bench --output bench/results/many_targets_bench.json
+bench-compact: minimap2
+		python3 bench/compact_bench.py --minimap2 ./minimap2 --dataset-dir bench/generated/compact-bench --refs 256 --reads 128 --threads 1 --repeats 3 --output bench/results/compact-bench.json
+
+bench-combinatorial: minimap2
+		python3 bench/combinatorial_bench.py --minimap2 ./minimap2 --dataset-dir bench/generated/combinatorial-bench --threads 16 --reads 1600 --output-dir bench/results/combinatorial-bench --force-generate
 
 # DO NOT DELETE
 

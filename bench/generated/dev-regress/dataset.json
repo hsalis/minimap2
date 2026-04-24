@@ -1,7 +1,0 @@
-{
-  "references": 128,
-  "reads": 32,
-  "seed": 17,
-  "reference_path": "/Users/howardsalis/minimap2/bench/generated/dev-regress/references.fa",
-  "reads_path": "/Users/howardsalis/minimap2/bench/generated/dev-regress/reads.fq"
-}

@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <stdint.h>
-#include <string.h>
 #if defined(WIN32) || defined(_WIN32)
 #include <io.h> // for open(2)
 #else
@@ -24,6 +22,7 @@ KHASH_INIT(idx, uint64_t, uint64_t, 1, idx_hash, idx_eq)
 typedef khash_t(idx) idxhash_t;
 
 KHASH_MAP_INIT_STR(str, uint32_t)
+KHASH_MAP_INIT_INT64(kmer64, uint32_t)
 
 #define kroundup64(x) (--(x), (x)|=(x)>>1, (x)|=(x)>>2, (x)|=(x)>>4, (x)|=(x)>>8, (x)|=(x)>>16, (x)|=(x)>>32, ++(x))
 
@@ -49,81 +48,175 @@ typedef struct mm_idx_jjump_s {
 	mm_idx_jjump1_t *a;
 } mm_idx_jjump_t;
 
-#define MM_MTS_MAGIC "MTS1"
-#define MM_MTS_ALIGN 64
 
 typedef struct {
-	uint64_t offset;
-	uint32_t len, pad;
-} mm_many_targets_seq_t;
+	int32_t compact_len;
+	char *compact_seq;
+	uint32_t *compact_to_orig;
+	int used_compact;
+} mm_compact_seq_t;
 
-typedef struct {
-	uint32_t n_seq;
-	uint64_t total_bytes;
-	mm_many_targets_seq_t *seq;
-	uint8_t *forward, *reverse;
-} mm_many_targets_t;
+static void mm_idx_post(mm_idx_t *mi, int n_threads);
+static void mm_idx_add(mm_idx_t *mi, int n, const mm128_t *a);
 
-static void *mm_aligned_calloc(size_t alignment, size_t size)
+static void mm_str_hash_destroy(khash_t(str) *h)
 {
-	uintptr_t addr;
-	void *raw, *aligned;
-	size_t extra = alignment - 1 + sizeof(void*);
-	raw = calloc(1, size + extra);
-	if (raw == 0) return 0;
-	addr = (uintptr_t)raw + sizeof(void*);
-	aligned = (void*)((addr + alignment - 1) & ~(uintptr_t)(alignment - 1));
-	((void**)aligned)[-1] = raw;
-	return aligned;
+	khint_t k;
+	if (h == 0) return;
+	for (k = 0; k < kh_end(h); ++k)
+		if (kh_exist(h, k)) free((char*)kh_key(h, k));
+	kh_destroy(str, h);
 }
 
-static void mm_aligned_free(void *aligned)
+static void mm_bseq_free_all(mm_bseq1_t *seq, int n)
 {
-	if (aligned) free(((void**)aligned)[-1]);
+	int i;
+	for (i = 0; i < n; ++i) {
+		free(seq[i].name);
+		free(seq[i].seq);
+		free(seq[i].qual);
+		free(seq[i].comment);
+	}
+	free(seq);
 }
 
-static uint64_t mm_many_targets_layout(const mm_idx_t *mi, mm_many_targets_seq_t *seq)
+static void mm_kmer64_inc(khash_t(kmer64) *h, uint64_t key)
 {
-	uint32_t i;
-	uint64_t off = 0;
-	for (i = 0; i < mi->n_seq; ++i) {
-		off = (off + MM_MTS_ALIGN - 1) / MM_MTS_ALIGN * MM_MTS_ALIGN;
-		if (seq) {
-			seq[i].offset = off;
-			seq[i].len = mi->seq[i].len;
-			seq[i].pad = 0;
+	khint_t k;
+	int absent;
+	k = kh_put(kmer64, h, key, &absent);
+	if (absent) kh_val(h, k) = 1;
+	else ++kh_val(h, k);
+}
+
+static void mm_kmerstr_inc(khash_t(str) *h, const char *key)
+{
+	khint_t k;
+	int absent;
+	char *dup = strdup(key);
+	k = kh_put(str, h, dup, &absent);
+	if (absent) kh_val(h, k) = 1;
+	else {
+		++kh_val(h, k);
+		free(dup);
+	}
+}
+
+static uint32_t mm_kmer64_count(const khash_t(kmer64) *h, uint64_t key)
+{
+	khint_t k;
+	if (h == 0) return 0;
+	k = kh_get(kmer64, h, key);
+	return k == kh_end(h)? 0 : kh_val(h, k);
+}
+
+static uint32_t mm_kmerstr_count(const khash_t(str) *h, const char *key)
+{
+	khint_t k;
+	if (h == 0) return 0;
+	k = kh_get(str, h, key);
+	return k == kh_end(h)? 0 : kh_val(h, k);
+}
+
+static int mm_compact_window_keys(const char *seq, int pos, int k, uint64_t *fwd, uint64_t *rev, char *fbuf, char *rbuf)
+{
+	int i;
+	uint64_t f = 0, r = 0, shift1, mask;
+	if (k <= 0 || k > 31) goto slow_path;
+	shift1 = (uint64_t)2 * (k - 1);
+	mask = (1ULL << (2 * k)) - 1;
+	for (i = 0; i < k; ++i) {
+		int c = seq_nt4_table[(uint8_t)seq[pos + i]];
+		if (c >= 4) goto slow_path;
+		f = (f << 2 | c) & mask;
+		r = (r >> 2) | (uint64_t)(3 ^ c) << shift1;
+	}
+	*fwd = f;
+	*rev = r;
+	return 1;
+slow_path:
+	for (i = 0; i < k; ++i) {
+		char c = seq[pos + i];
+		fbuf[i] = c;
+		rbuf[k - i - 1] = seq_comp_table[(uint8_t)c];
+	}
+	fbuf[k] = 0;
+	rbuf[k] = 0;
+	return 0;
+}
+
+static mm_bseq1_t *mm_bseq_read_all(mm_bseq_file_t *fp, int *n_seq_)
+{
+	int n_seq = 0, m_seq = 0, n_batch;
+	mm_bseq1_t *all = 0, *batch;
+	*n_seq_ = 0;
+	while ((batch = mm_bseq_read(fp, 1<<28, 0, &n_batch)) != 0) {
+		if (n_batch == 0) {
+			free(batch);
+			break;
 		}
-		off += mi->seq[i].len;
+		if (n_seq + n_batch > m_seq) {
+			m_seq = n_seq + n_batch;
+			kroundup32(m_seq);
+			all = (mm_bseq1_t*)realloc(all, m_seq * sizeof(mm_bseq1_t));
+		}
+		memcpy(&all[n_seq], batch, n_batch * sizeof(mm_bseq1_t));
+		n_seq += n_batch;
+		free(batch);
 	}
-	return off;
+	*n_seq_ = n_seq;
+	return all;
 }
 
-static int mm_idx_getseq_packed(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
+static mm_compact_seq_t mm_compact_make(const char *seq, int len, int compact_k, uint32_t max_counts, const khash_t(kmer64) *k64, const khash_t(str) *ks)
 {
-	uint64_t i, st1, en1;
-	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
-	if (en > mi->seq[rid].len) en = mi->seq[rid].len;
-	st1 = mi->seq[rid].offset + st;
-	en1 = mi->seq[rid].offset + en;
-	for (i = st1; i < en1; ++i)
-		seq[i - st1] = mm_seq4_get(mi->S, i);
-	return en - st;
-}
-
-static int mm_idx_getseq_rev_packed(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
-{
-	uint64_t i, st1, en1;
-	const mm_idx_seq_t *s;
-	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
-	s = &mi->seq[rid];
-	if (en > s->len) en = s->len;
-	st1 = s->offset + (s->len - en);
-	en1 = s->offset + (s->len - st);
-	for (i = st1; i < en1; ++i) {
-		uint8_t c = mm_seq4_get(mi->S, i);
-		seq[en1 - i - 1] = c < 4? 3 - c : c;
+	mm_compact_seq_t out;
+	int pos;
+	char *fbuf = 0, *rbuf = 0;
+	out.compact_len = 0;
+	out.compact_seq = 0;
+	out.compact_to_orig = 0;
+	out.used_compact = 0;
+	if (compact_k <= 0 || len <= compact_k) return out;
+	out.compact_seq = (char*)malloc((len - compact_k) + 1);
+	out.compact_to_orig = (uint32_t*)malloc((len - compact_k) * sizeof(uint32_t));
+	fbuf = (char*)malloc(compact_k + 1);
+	rbuf = (char*)malloc(compact_k + 1);
+	if (out.compact_seq == 0 || out.compact_to_orig == 0 || fbuf == 0 || rbuf == 0) goto fail;
+	for (pos = 0; pos < len - compact_k; ++pos) {
+		uint64_t fwd = 0, rev = 0;
+		uint32_t count;
+		if (mm_compact_window_keys(seq, pos, compact_k, &fwd, &rev, fbuf, rbuf))
+			count = mm_kmer64_count(k64, fwd);
+		else count = mm_kmerstr_count(ks, fbuf);
+		if (count <= max_counts) {
+			out.compact_seq[out.compact_len] = seq[pos];
+			out.compact_to_orig[out.compact_len] = pos;
+			++out.compact_len;
+		}
 	}
-	return en - st;
+	out.compact_seq[out.compact_len] = 0;
+	if (out.compact_len >= compact_k) out.used_compact = 1;
+	else {
+		free(out.compact_seq);
+		free(out.compact_to_orig);
+		out.compact_seq = 0;
+		out.compact_to_orig = 0;
+		out.compact_len = 0;
+	}
+	free(fbuf);
+	free(rbuf);
+	return out;
+fail:
+	free(out.compact_seq);
+	free(out.compact_to_orig);
+	free(fbuf);
+	free(rbuf);
+	out.compact_seq = 0;
+	out.compact_to_orig = 0;
+	out.compact_len = 0;
+	out.used_compact = 0;
+	return out;
 }
 
 mm_idx_t *mm_idx_init(int w, int k, int b, int flag)
@@ -142,7 +235,6 @@ void mm_idx_destroy(mm_idx_t *mi)
 {
 	uint32_t i;
 	if (mi == 0) return;
-	mm_many_targets_sidecar_destroy(mi);
 	if (mi->h) kh_destroy(str, (khash_t(str)*)mi->h);
 	if (mi->B) {
 		for (i = 0; i < 1U<<mi->b; ++i) {
@@ -243,30 +335,30 @@ int mm_idx_name2id(const mm_idx_t *mi, const char *name)
 
 int mm_idx_getseq(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
 {
-	mm_many_targets_t *mt = (mm_many_targets_t*)mi->mt;
-	if (mt) {
-		const mm_many_targets_seq_t *s;
-		if (rid >= mt->n_seq || st >= mt->seq[rid].len) return -1;
-		s = &mt->seq[rid];
-		if (en > s->len) en = s->len;
-		memcpy(seq, &mt->forward[s->offset + st], en - st);
-		return en - st;
-	}
-	return mm_idx_getseq_packed(mi, rid, st, en, seq);
+	uint64_t i, st1, en1;
+	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
+	if (en > mi->seq[rid].len) en = mi->seq[rid].len;
+	st1 = mi->seq[rid].offset + st;
+	en1 = mi->seq[rid].offset + en;
+	for (i = st1; i < en1; ++i)
+		seq[i - st1] = mm_seq4_get(mi->S, i);
+	return en - st;
 }
 
 int mm_idx_getseq_rev(const mm_idx_t *mi, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
 {
-	mm_many_targets_t *mt = (mm_many_targets_t*)mi->mt;
-	if (mt) {
-		const mm_many_targets_seq_t *s;
-		if (rid >= mt->n_seq || st >= mt->seq[rid].len) return -1;
-		s = &mt->seq[rid];
-		if (en > s->len) en = s->len;
-		memcpy(seq, &mt->reverse[s->offset + (s->len - en)], en - st);
-		return en - st;
+	uint64_t i, st1, en1;
+	const mm_idx_seq_t *s;
+	if (rid >= mi->n_seq || st >= mi->seq[rid].len) return -1;
+	s = &mi->seq[rid];
+	if (en > s->len) en = s->len;
+	st1 = s->offset + (s->len - en);
+	en1 = s->offset + (s->len - st);
+	for (i = st1; i < en1; ++i) {
+		uint8_t c = mm_seq4_get(mi->S, i);
+		seq[en1 - i - 1] = c < 4? 3 - c : c;
 	}
-	return mm_idx_getseq_rev_packed(mi, rid, st, en, seq);
+	return en - st;
 }
 
 int mm_idx_getseq2(const mm_idx_t *mi, int is_rev, uint32_t rid, uint32_t st, uint32_t en, uint8_t *seq)
@@ -275,106 +367,103 @@ int mm_idx_getseq2(const mm_idx_t *mi, int is_rev, uint32_t rid, uint32_t st, ui
 	else return mm_idx_getseq(mi, rid, st, en, seq);
 }
 
-void mm_many_targets_sidecar_destroy(mm_idx_t *mi)
+static mm_idx_t *mm_idx_gen_compact(mm_bseq_file_t *fp, int w, int k, int b, int flag, int n_threads, int compact_k, float compact_ratio)
 {
-	mm_many_targets_t *mt;
-	if (mi == 0 || mi->mt == 0) return;
-	mt = (mm_many_targets_t*)mi->mt;
-	free(mt->seq);
-	mm_aligned_free(mt->forward);
-	mm_aligned_free(mt->reverse);
-	free(mt);
-	mi->mt = 0;
-}
+	int i, j, n_seq = 0;
+	int64_t sum_len = 0;
+	mm_bseq1_t *seq = 0;
+	mm_idx_t *mi = 0;
+	mm128_v a = {0, 0, 0};
+	khash_t(kmer64) *k64 = 0;
+	khash_t(str) *ks = 0;
+	char *fbuf = 0, *rbuf = 0;
+	uint32_t max_counts;
+	int n_compacted = 0;
+	uint64_t compact_bases = 0, original_bases = 0;
 
-int mm_many_targets_sidecar_build(mm_idx_t *mi, const char *fn)
-{
-	FILE *fp = 0;
-	mm_many_targets_t *mt;
-	uint32_t i;
-	uint64_t total;
-	if (mi == 0) return -1;
-	mm_many_targets_sidecar_destroy(mi);
-	mt = (mm_many_targets_t*)calloc(1, sizeof(*mt));
-	if (mt == 0) return -1;
-	mt->n_seq = mi->n_seq;
-	mt->seq = (mm_many_targets_seq_t*)calloc(mi->n_seq, sizeof(*mt->seq));
-	if (mt->seq == 0) {
-		free(mt);
-		return -1;
-	}
-	total = mm_many_targets_layout(mi, mt->seq);
-	mt->total_bytes = total;
-	mt->forward = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
-	mt->reverse = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
-	if (mt->forward == 0 || mt->reverse == 0) {
-		free(mt->seq);
-		mm_aligned_free(mt->forward);
-		mm_aligned_free(mt->reverse);
-		free(mt);
-		return -1;
-	}
-	for (i = 0; i < mi->n_seq; ++i) {
-		mm_idx_getseq_packed(mi, i, 0, mi->seq[i].len, &mt->forward[mt->seq[i].offset]);
-		mm_idx_getseq_rev_packed(mi, i, 0, mi->seq[i].len, &mt->reverse[mt->seq[i].offset]);
-	}
-	mi->mt = mt;
-	if (fn == 0) return 0;
-	fp = fopen(fn, "wb");
-	if (fp == 0) return -1;
-	if (fwrite(MM_MTS_MAGIC, 1, 4, fp) != 4) goto fail;
-	if (fwrite(&mt->n_seq, 4, 1, fp) != 1) goto fail;
-	if (fwrite(&mt->total_bytes, 8, 1, fp) != 1) goto fail;
-	if (fwrite(mt->seq, sizeof(*mt->seq), mt->n_seq, fp) != mt->n_seq) goto fail;
-	if (mt->total_bytes && fwrite(mt->forward, 1, mt->total_bytes, fp) != mt->total_bytes) goto fail;
-	if (mt->total_bytes && fwrite(mt->reverse, 1, mt->total_bytes, fp) != mt->total_bytes) goto fail;
-	fclose(fp);
-	return 0;
-fail:
-	fclose(fp);
-	return -1;
-}
+	if (fp == 0 || mm_bseq_eof(fp)) return 0;
+	if (compact_k <= 0) compact_k = 27;
+	if (compact_ratio < 0.0f) compact_ratio = 0.0f;
+	seq = mm_bseq_read_all(fp, &n_seq);
+	if (n_seq <= 0) return 0;
+	for (i = 0; i < n_seq; ++i) sum_len += seq[i].l_seq;
+	mi = mm_idx_init(w, k, b, flag | MM_I_COMPACT_REFS);
+	mi->n_seq = n_seq;
+	mi->seq = (mm_idx_seq_t*)kcalloc(mi->km, n_seq, sizeof(mm_idx_seq_t));
+	if (!(mi->flag & MM_I_NO_SEQ)) mi->S = (uint32_t*)calloc((sum_len + 7) / 8, 4);
 
-int mm_many_targets_sidecar_load(mm_idx_t *mi, const char *fn)
-{
-	FILE *fp;
-	char magic[4];
-	mm_many_targets_t *mt;
-	uint32_t n_seq, i;
-	uint64_t total;
-	if (mi == 0 || fn == 0) return -1;
-	fp = fopen(fn, "rb");
-	if (fp == 0) return -1;
-	if (fread(magic, 1, 4, fp) != 4 || strncmp(magic, MM_MTS_MAGIC, 4) != 0) goto fail;
-	if (fread(&n_seq, 4, 1, fp) != 1) goto fail;
-	if (fread(&total, 8, 1, fp) != 1) goto fail;
-	if (n_seq != mi->n_seq) goto fail;
-	mt = (mm_many_targets_t*)calloc(1, sizeof(*mt));
-	if (mt == 0) goto fail;
-	mt->n_seq = n_seq;
-	mt->total_bytes = total;
-	mt->seq = (mm_many_targets_seq_t*)calloc(n_seq, sizeof(*mt->seq));
-	mt->forward = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
-	mt->reverse = (uint8_t*)mm_aligned_calloc(MM_MTS_ALIGN, total? total : 1);
-	if (mt->seq == 0 || mt->forward == 0 || mt->reverse == 0) goto fail_mt;
-	if (fread(mt->seq, sizeof(*mt->seq), n_seq, fp) != n_seq) goto fail_mt;
-	for (i = 0; i < n_seq; ++i)
-		if (mt->seq[i].len != mi->seq[i].len)
-			goto fail_mt;
-	if (total && fread(mt->forward, 1, total, fp) != total) goto fail_mt;
-	if (total && fread(mt->reverse, 1, total, fp) != total) goto fail_mt;
-	fclose(fp);
-	mm_many_targets_sidecar_destroy(mi);
-	mi->mt = mt;
-	return 0;
-fail_mt:
-	free(mt->seq);
-	mm_aligned_free(mt->forward);
-	mm_aligned_free(mt->reverse);
-	free(mt);
-fail:
-	fclose(fp);
-	return -1;
+	k64 = kh_init(kmer64);
+	ks = kh_init(str);
+	fbuf = (char*)malloc(compact_k + 1);
+	rbuf = (char*)malloc(compact_k + 1);
+	for (i = 0; i < n_seq; ++i) {
+		const char *s = seq[i].seq;
+		int len = seq[i].l_seq;
+		for (j = 0; j < len - compact_k; ++j) {
+			uint64_t fwd = 0, rev = 0;
+			if (mm_compact_window_keys(s, j, compact_k, &fwd, &rev, fbuf, rbuf)) {
+				mm_kmer64_inc(k64, fwd);
+				mm_kmer64_inc(k64, rev);
+			} else {
+				mm_kmerstr_inc(ks, fbuf);
+				mm_kmerstr_inc(ks, rbuf);
+			}
+		}
+	}
+	max_counts = (uint32_t)(compact_ratio * n_seq) + 1;
+
+	for (i = 0, sum_len = 0; i < n_seq; ++i) {
+		mm_idx_seq_t *p = &mi->seq[i];
+		const char *s = seq[i].seq;
+		int len = seq[i].l_seq;
+		mm_compact_seq_t compact;
+		if (!(mi->flag & MM_I_NO_NAME)) {
+			p->name = (char*)kmalloc(mi->km, strlen(seq[i].name) + 1);
+			strcpy(p->name, seq[i].name);
+		} else p->name = 0;
+		p->offset = sum_len;
+		p->len = len;
+		p->is_alt = 0;
+		if (!(mi->flag & MM_I_NO_SEQ)) {
+			for (j = 0; j < p->len; ++j) {
+				int c = seq_nt4_table[(uint8_t)s[j]];
+				uint64_t o = sum_len + j;
+				mm_seq4_set(mi->S, o, c);
+			}
+		}
+		sum_len += p->len;
+		if (p->len == 0) continue;
+		compact = mm_compact_make(s, len, compact_k, max_counts, k64, ks);
+		a.n = 0;
+		if (compact.used_compact) {
+			mm_sketch(0, compact.compact_seq, compact.compact_len, w, k, i, mi->flag&MM_I_HPC, &a);
+			for (j = 0; j < (int)a.n; ++j) {
+				uint64_t y = a.a[j].y;
+				uint32_t last_pos = (uint32_t)y >> 1;
+				assert(last_pos < (uint32_t)compact.compact_len);
+				a.a[j].y = (uint64_t)i << 32 | (uint64_t)compact.compact_to_orig[last_pos] << 1 | (y & 1);
+			}
+			mm_idx_add(mi, a.n, a.a);
+			++n_compacted;
+			compact_bases += compact.compact_len;
+			original_bases += len;
+		} else {
+			mm_sketch(0, s, p->len, w, k, i, mi->flag&MM_I_HPC, &a);
+			mm_idx_add(mi, a.n, a.a);
+		}
+		free(compact.compact_seq);
+		free(compact.compact_to_orig);
+	}
+	free(a.a);
+	free(fbuf);
+	free(rbuf);
+	mm_str_hash_destroy(ks);
+	kh_destroy(kmer64, k64);
+	mm_bseq_free_all(seq, n_seq);
+	mm_idx_post(mi, n_threads);
+	if (mm_verbose >= 3 && n_compacted > 0)
+		fprintf(stderr, "[M::%s] compactified %d/%d target sequences with k=%d and ratio=%.3f (retained %ld/%ld bases in compact references)\n", __func__, n_compacted, n_seq, compact_k, compact_ratio, (long)compact_bases, (long)original_bases);
+	return mi;
 }
 
 int32_t mm_idx_cal_max_occ(const mm_idx_t *mi, float f)
@@ -774,29 +863,6 @@ int64_t mm_idx_is_idx(const char *fn)
 	return is_idx? off_end : 0;
 }
 
-static char *mm_many_targets_path_dup(const char *base)
-{
-	char *s;
-	size_t l;
-	if (base == 0) return 0;
-	l = strlen(base);
-	s = (char*)malloc(l + 5);
-	if (s == 0) return 0;
-	memcpy(s, base, l);
-	memcpy(s + l, ".mts", 5);
-	return s;
-}
-
-static int mm_file_exists(const char *fn)
-{
-	FILE *fp;
-	if (fn == 0) return 0;
-	fp = fopen(fn, "rb");
-	if (fp == 0) return 0;
-	fclose(fp);
-	return 1;
-}
-
 mm_idx_reader_t *mm_idx_reader_open(const char *fn, const mm_idxopt_t *opt, const char *fn_out)
 {
 	int64_t is_idx;
@@ -812,16 +878,6 @@ mm_idx_reader_t *mm_idx_reader_open(const char *fn, const mm_idxopt_t *opt, cons
 		r->idx_size = is_idx;
 	} else r->fp.seq = mm_bseq_open(fn);
 	if (fn_out) r->fp_out = fopen(fn_out, "wb");
-	if (r->opt.many_targets_sidecar)
-		r->many_targets_sidecar = strdup(r->opt.many_targets_sidecar);
-	else if ((r->opt.flag & MM_I_WRITE_MTS) && fn_out)
-		r->many_targets_sidecar = mm_many_targets_path_dup(fn_out);
-	else if ((r->opt.flag & MM_I_MANY_TARGETS) || (r->opt.flag & MM_I_WRITE_MTS)) {
-		char *candidate = mm_many_targets_path_dup(fn);
-		if ((r->opt.flag & MM_I_WRITE_MTS) || mm_file_exists(candidate))
-			r->many_targets_sidecar = candidate;
-		else free(candidate);
-	}
 	return r;
 }
 
@@ -830,7 +886,6 @@ void mm_idx_reader_close(mm_idx_reader_t *r)
 	if (r->is_idx) fclose(r->fp.idx);
 	else mm_bseq_close(r->fp.seq);
 	if (r->fp_out) fclose(r->fp_out);
-	free(r->many_targets_sidecar);
 	free(r);
 }
 
@@ -841,24 +896,18 @@ mm_idx_t *mm_idx_reader_read(mm_idx_reader_t *r, int n_threads)
 		mi = mm_idx_load(r->fp.idx);
 		if (mi && mm_verbose >= 2 && (mi->k != r->opt.k || mi->w != r->opt.w || (mi->flag&MM_I_HPC) != (r->opt.flag&MM_I_HPC)))
 			fprintf(stderr, "[WARNING]\033[1;31m Indexing parameters (-k, -w or -H) overridden by parameters used in the prebuilt index.\033[0m\n");
-	} else
+		if (mi && mm_verbose >= 2 && (r->opt.flag & MM_I_COMPACT_REFS))
+			fprintf(stderr, "[WARNING]\033[1;31m Compactified-reference options are ignored when loading a prebuilt index.\033[0m\n");
+	} else if (r->opt.flag & MM_I_COMPACT_REFS)
+		mi = mm_idx_gen_compact(r->fp.seq, r->opt.w, r->opt.k, r->opt.bucket_bits, r->opt.flag, n_threads, r->opt.compact_k, r->opt.compact_ratio);
+	else
 		mi = mm_idx_gen(r->fp.seq, r->opt.w, r->opt.k, r->opt.bucket_bits, r->opt.flag, r->opt.mini_batch_size, n_threads, r->opt.batch_size);
 	if (mi) {
 		if (r->fp_out) mm_idx_dump(r->fp_out, mi);
-		if (r->opt.flag & MM_I_MANY_TARGETS) {
-			int loaded = -1;
-			if (r->many_targets_sidecar)
-				loaded = mm_many_targets_sidecar_load(mi, r->many_targets_sidecar);
-			if (loaded != 0)
-				mm_many_targets_sidecar_build(mi, (r->opt.flag & MM_I_WRITE_MTS)? r->many_targets_sidecar : 0);
-		} else if ((r->opt.flag & MM_I_WRITE_MTS) && r->many_targets_sidecar) {
-			mm_many_targets_sidecar_build(mi, r->many_targets_sidecar);
-		}
 		mi->index = r->n_parts++;
 	}
 	return mi;
 }
-
 int mm_idx_reader_eof(const mm_idx_reader_t *r) // TODO: in extremely rare cases, mm_bseq_eof() might not work
 {
 	return r->is_idx? (feof(r->fp.idx) || ftell(r->fp.idx) == r->idx_size) : mm_bseq_eof(r->fp.seq);

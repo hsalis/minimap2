@@ -1,4 +1,5 @@
 from libc.stdint cimport int8_t, uint8_t, int32_t, int64_t, uint32_t, uint64_t
+from libc.stdio cimport FILE
 
 cdef extern from "minimap.h":
 	#
@@ -8,7 +9,8 @@ cdef extern from "minimap.h":
 		short k, w, flag, bucket_bits
 		int64_t mini_batch_size
 		uint64_t batch_size
-		const char *many_targets_sidecar
+		int32_t compact_k
+		float compact_ratio
 
 	ctypedef struct mm_mapopt_t:
 		int64_t flag
@@ -53,7 +55,7 @@ cdef extern from "minimap.h":
 
 		int pe_ori, pe_bonus
 
-		int jump_min_match;
+		int jump_min_match
 
 		float mid_occ_frac
 		float q_occ_frac
@@ -113,8 +115,20 @@ cdef extern from "minimap.h":
 	void mm_tbuf_destroy(mm_tbuf_t *b)
 	void *mm_tbuf_get_km(mm_tbuf_t *b)
 	int mm_gen_cs(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq, int no_iden)
-	int mm_gen_ds(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq, int no_iden)
 	int mm_gen_MD(void *km, char **buf, int *max_len, const mm_idx_t *mi, const mm_reg1_t *r, const char *seq)
+
+cdef extern from "bseq.h":
+	ctypedef struct mm_bseq_file_t:
+		pass
+
+	ctypedef struct mm_bseq1_t:
+		int l_seq, rid
+		char *name, *seq, *qual, *comment
+
+	mm_bseq_file_t *mm_bseq_open(const char *fn)
+	void mm_bseq_close(mm_bseq_file_t *fp)
+	mm_bseq1_t *mm_bseq_read3(mm_bseq_file_t *fp, int64_t chunk_size, int with_qual, int with_comment, int frag_mode, int *n_)
+	int mm_bseq_eof(mm_bseq_file_t *fp)
 
 #
 # Helper header (because it is hard to expose mm_reg1_t with Cython)
@@ -131,9 +145,14 @@ cdef extern from "cmappy.h":
 		int32_t n_cigar32
 		uint32_t *cigar32
 
+	ctypedef struct mappy_map_result_t:
+		mm_reg1_t *regs
+		int n_regs
+
 	void mm_reg2hitpy(const mm_idx_t *mi, mm_reg1_t *r, mm_hitpy_t *h)
 	void mm_free_reg1(mm_reg1_t *r)
 	mm_reg1_t *mm_map_aux(const mm_idx_t *mi, const char* seqname, const char *seq1, const char *seq2, int *n_regs, mm_tbuf_t *b, const mm_mapopt_t *opt)
+	mm_reg1_t *mm_map_aux_nogil(const mm_idx_t *mi, const char* seqname, const char *seq1, const char *seq2, int *n_regs, mm_tbuf_t *b, const mm_mapopt_t *opt) nogil
 	char *mappy_fetch_seq(const mm_idx_t *mi, const char *name, int st, int en, int *l)
 	mm_idx_t *mappy_idx_seq(int w, int k, int is_hpc, int bucket_bits, const char *seq, int l)
 
@@ -152,6 +171,13 @@ cdef extern from "cmappy.h":
 	kseq_t *mm_fastx_open(const char *fn)
 	void mm_fastx_close(kseq_t *ks)
 	int kseq_read(kseq_t *seq)
+
+	void mappy_bseq_free_records(mm_bseq1_t *seqs, int n) nogil
+	void mappy_batch_result_destroy(mappy_map_result_t *result) nogil
+	void mappy_batch_results_free(mappy_map_result_t *results, int n) nogil
+	int mappy_map_batch(const mm_idx_t *mi, const mm_mapopt_t *opt, mm_bseq1_t *seqs, int n_seq, int n_threads, mappy_map_result_t *results) nogil
+	int mappy_write_sam_header(FILE *fp, const mm_idx_t *idx)
+	int mappy_write_batch(FILE *fp, const mm_idx_t *mi, const mm_mapopt_t *opt, mm_bseq1_t *seqs, mappy_map_result_t *results, int n_seq, int output_format) nogil
 
 	char *mappy_revcomp(int l, const uint8_t *seq)
 	int mm_verbose_level(int v)

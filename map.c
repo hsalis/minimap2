@@ -22,13 +22,6 @@ void mm_tbuf_destroy(mm_tbuf_t *b)
 {
 	if (b == 0) return;
 	km_destroy(b->km);
-	free(b->qseq);
-	free(b->tseq);
-	free(b->junc);
-	free(b->aux);
-	free(b->cigar);
-	free(b->anchors);
-	free(b->mini_pos);
 	free(b);
 }
 
@@ -219,10 +212,10 @@ static void chain_post(const mm_mapopt_t *opt, int max_chain_gap_ref, const mm_i
 	}
 }
 
-static mm_reg1_t *align_regs(const mm_mapopt_t *opt, const mm_idx_t *mi, void *km, mm_tbuf_t *b, int qlen, const char *seq, int *n_regs, mm_reg1_t *regs, mm128_t *a)
+static mm_reg1_t *align_regs(const mm_mapopt_t *opt, const mm_idx_t *mi, void *km, int qlen, const char *seq, int *n_regs, mm_reg1_t *regs, mm128_t *a)
 {
 	if (!(opt->flag & MM_F_CIGAR)) return regs;
-	regs = mm_align_skeleton(km, b, opt, mi, qlen, seq, n_regs, regs, a); // this calls mm_filter_regs()
+	regs = mm_align_skeleton(km, opt, mi, qlen, seq, n_regs, regs, a); // this calls mm_filter_regs()
 	if (!(opt->flag & MM_F_ALL_CHAINS)) { // don't choose primary mapping(s)
 		mm_set_parent(km, opt->mask_level, opt->mask_len, *n_regs, regs, opt->a * 2 + opt->b, opt->flag&MM_F_HARD_MLEVEL, opt->alt_drop);
 		mm_select_sub(km, opt->pri_ratio, mi->k*2, opt->best_n, 0, opt->max_gap * 0.8, n_regs, regs);
@@ -258,8 +251,6 @@ void mm_map_frag_core(const mm_idx_t *mi, int n_segs, const int *qlens, const ch
 	if (opt->q_occ_frac > 0.0f) mm_seed_mz_flt(b->km, &mv, opt->mid_occ, opt->q_occ_frac);
 	if (opt->flag & MM_F_HEAP_SORT) a = collect_seed_hits_heap(b->km, opt, opt->mid_occ, mi, qname, &mv, qlen_sum, &n_a, &rep_len, &n_mini_pos, &mini_pos);
 	else a = collect_seed_hits(b->km, opt, opt->mid_occ, mi, qname, &mv, qlen_sum, &n_a, &rep_len, &n_mini_pos, &mini_pos);
-	mm_bench_add_read();
-	mm_bench_add_anchors((uint64_t)n_a);
 
 	if (mm_dbg_flag & MM_DBG_PRINT_SEED) {
 		fprintf(stderr, "RS\t%d\n", rep_len);
@@ -345,7 +336,7 @@ void mm_map_frag_core(const mm_idx_t *mi, int n_segs, const int *qlens, const ch
 	}
 
 	if (n_segs == 1) { // uni-segment
-		regs0 = align_regs(opt, mi, b->km, b, qlens[0], seqs[0], &n_regs0, regs0, a);
+		regs0 = align_regs(opt, mi, b->km, qlens[0], seqs[0], &n_regs0, regs0, a);
 		regs0 = (mm_reg1_t*)realloc(regs0, sizeof(*regs0) * n_regs0);
 		mm_set_mapq2(b->km, n_regs0, regs0, opt->min_chain_score, opt->a, rep_len, is_sr || is_sr_rna, is_splice);
 		n_regs[0] = n_regs0, regs[0] = regs0;
@@ -355,7 +346,7 @@ void mm_map_frag_core(const mm_idx_t *mi, int n_segs, const int *qlens, const ch
 		free(regs0);
 		for (i = 0; i < n_segs; ++i) {
 			mm_set_parent(b->km, opt->mask_level, opt->mask_len, n_regs[i], regs[i], opt->a * 2 + opt->b, opt->flag&MM_F_HARD_MLEVEL, opt->alt_drop); // update mm_reg1_t::parent
-			regs[i] = align_regs(opt, mi, b->km, b, qlens[i], seqs[i], &n_regs[i], regs[i], seg[i].a);
+			regs[i] = align_regs(opt, mi, b->km, qlens[i], seqs[i], &n_regs[i], regs[i], seg[i].a);
 			mm_set_mapq2(b->km, n_regs[i], regs[i], opt->min_chain_score, opt->a, rep_len, is_sr || is_sr_rna, is_splice);
 		}
 		mm_seg_free(b->km, n_segs, seg);
@@ -414,7 +405,6 @@ typedef struct {
 	int64_t mini_batch_size;
 	const mm_mapopt_t *opt;
 	mm_bseq_file_t **fp;
-	mm_tbuf_t **buf;
 	const mm_idx_t *mi;
 	kstring_t str;
 
@@ -425,10 +415,11 @@ typedef struct {
 
 typedef struct {
 	const pipeline_t *p;
-	int n_seq, n_frag;
+    int n_seq, n_frag;
 	mm_bseq1_t *seq;
 	int *n_reg, *seg_off, *n_seg, *rep_len, *frag_gap;
 	mm_reg1_t **reg;
+	mm_tbuf_t **buf;
 } step_t;
 
 static void worker_for(void *_data, long i, int tid) // kt_for() callback
@@ -437,7 +428,7 @@ static void worker_for(void *_data, long i, int tid) // kt_for() callback
 	int qlens[MM_MAX_SEG], j, off = s->seg_off[i], pe_ori = s->p->opt->pe_ori;
 	const char *qseqs[MM_MAX_SEG];
 	double t = 0.0;
-	mm_tbuf_t *b = s->p->buf[tid];
+	mm_tbuf_t *b = s->buf[tid];
 	assert(s->n_seg[i] <= MM_MAX_SEG);
 	if (mm_dbg_flag & MM_DBG_PRINT_QNAME) {
 		fprintf(stderr, "QR\t%s\t%d\t%d\n", s->seq[off].name, tid, s->seq[off].l_seq);
@@ -563,6 +554,9 @@ static void *worker_pipeline(void *shared, int step, void *in)
 			s->p = p;
 			for (i = 0; i < s->n_seq; ++i)
 				s->seq[i].rid = p->n_processed++;
+			s->buf = (mm_tbuf_t**)calloc(p->n_threads, sizeof(mm_tbuf_t*));
+			for (i = 0; i < p->n_threads; ++i)
+				s->buf[i] = mm_tbuf_init();
 			s->n_reg = (int*)calloc(5 * s->n_seq, sizeof(int));
 			s->seg_off = s->n_reg + s->n_seq; // seg_off, n_seg, rep_len and frag_gap are allocated together with n_reg
 			s->n_seg = s->seg_off + s->n_seq;
@@ -585,6 +579,8 @@ static void *worker_pipeline(void *shared, int step, void *in)
 		void *km = 0;
         step_t *s = (step_t*)in;
 		const mm_idx_t *mi = p->mi;
+		for (i = 0; i < p->n_threads; ++i) mm_tbuf_destroy(s->buf[i]);
+		free(s->buf);
 		if ((p->opt->flag & MM_F_OUT_CS) && !(mm_dbg_flag & MM_DBG_NO_KALLOC)) km = km_init();
 		for (k = 0; k < s->n_frag; ++k) {
 			int seg_st = s->seg_off[k], seg_en = s->seg_off[k] + s->n_seg[k];
@@ -676,18 +672,12 @@ int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_
 	pl.opt = opt, pl.mi = idx;
 	pl.n_threads = n_threads > 1? n_threads : 1;
 	pl.mini_batch_size = opt->mini_batch_size;
-	pl.buf = (mm_tbuf_t**)calloc(pl.n_threads, sizeof(mm_tbuf_t*));
-	for (i = 0; i < pl.n_threads; ++i)
-		pl.buf[i] = mm_tbuf_init();
 	if (opt->split_prefix)
 		pl.fp_split = mm_split_init(opt->split_prefix, idx);
 	pl_threads = n_threads == 1? 1 : (opt->flag&MM_F_2_IO_THREADS)? 3 : 2;
 	kt_pipeline(pl_threads, worker_pipeline, &pl, 3);
 
 	free(pl.str.s);
-	for (i = 0; i < pl.n_threads; ++i)
-		mm_tbuf_destroy(pl.buf[i]);
-	free(pl.buf);
 	if (pl.fp_split) fclose(pl.fp_split);
 	for (i = 0; i < pl.n_fp; ++i)
 		mm_bseq_close(pl.fp[i]);
@@ -712,9 +702,6 @@ int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_sp
 	if (pl.fp == 0) return -1;
 	pl.opt = opt;
 	pl.mini_batch_size = opt->mini_batch_size;
-	pl.n_threads = 1;
-	pl.buf = (mm_tbuf_t**)calloc(1, sizeof(mm_tbuf_t*));
-	pl.buf[0] = mm_tbuf_init();
 
 	pl.n_parts = n_split_idx;
 	pl.fp_parts  = CALLOC(FILE*, pl.n_parts);
@@ -736,8 +723,6 @@ int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_sp
 	kt_pipeline(2, worker_pipeline, &pl, 3);
 
 	free(pl.str.s);
-	mm_tbuf_destroy(pl.buf[0]);
-	free(pl.buf);
 	mm_idx_destroy(mi);
 	free(pl.rid_shift);
 	for (i = 0; i < n_split_idx; ++i)

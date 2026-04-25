@@ -38,6 +38,7 @@ man ./minimap2.1
   - [General usage](#general)
   - [Use cases](#cases)
     - [Map long noisy genomic reads](#map-long-genomic)
+    - [Map to Thousands of References](#map-thousands)
     - [Map long mRNA/cDNA reads](#map-long-splice)
     - [Find overlaps between long reads](#long-overlap)
     - [Map short genomic reads](#short-genomic)
@@ -129,6 +130,42 @@ probably need to keep multiple indexes generated with different parameters.
 This makes minimap2 different from BWA which always uses the same index
 regardless of query data types.
 
+This fork also includes a Python CLI for high-throughput mapping and downstream
+summary generation. When mapping long ONT reads against thousands of reference
+sequences, you can enable compactified indexing to reduce repeated k-mers in
+the reference database during initial seeding and use multiple worker threads:
+```sh
+# build a compactified index and write parsed summary outputs to bench-out/
+python3 python/minimap2.py refs.fa reads.fastq \
+    -x map-ont \
+    --compact-repeats \
+    --compact-k 27 \
+    --compact-ratio 0.20 \
+    --threads 16 \
+    --output bench-out
+
+# optionally retain the raw SAM alignments while still writing the parsed .npy/.tsv outputs
+python3 python/minimap2.py refs.fa reads.fastq \
+    -x map-ont \
+    --compact-repeats \
+    --threads 16 \
+    --output bench-out \
+    --raw-output bench-out/alignments.sam \
+    --output-format sam
+
+# if you expect to reuse the same compactified reference set, build an index first
+./minimap2 -x map-ont --compact-repeats --compact-k 27 --compact-ratio 0.20 -d refs.compact.mmi refs.fa
+python3 python/minimap2.py refs.compact.mmi reads.fastq \
+    -x map-ont \
+    --threads 16 \
+    --output bench-out
+```
+By default, `python/minimap2.py` writes parsed output files including
+`coverage_percent.npy`, `high_quality_mappings.npy`, `matching_percent.npy`,
+`mean_depth.npy`, `offsets.npy`, `oligomers.tsv`, `ref_lengths.npy`,
+`ref_names.npy`, `summary.tsv` and `total_mappings.npy`. Add `--raw-output` if
+you also want to preserve the raw `legacy`, `PAF` or `SAM` mapping stream.
+
 ### <a name="cases"></a>Use cases
 
 Minimap2 uses the same base algorithm for all applications. However, due to the
@@ -151,6 +188,35 @@ performance and sensitivity when aligning PacBio CLR reads, but hurt when aligni
 Nanopore reads. `map-iclr` uses an adjusted alignment scoring matrix that
 accounts for the low overall error rate in the reads, with transversion errors
 being less frequent than transitions.
+
+#### <a name="map-thousands"></a>Map to Thousands of References
+
+This fork adds an opt-in compactified-reference mode for workloads where long
+reads are mapped against thousands of related reference sequences, such as
+large combinatorial DNA assembly libraries. In this mode, minimap2 first scans
+the reference set, identifies highly repeated k-mers, and removes those
+repeated k-mers from the reference sequences during initial seed generation.
+This reduces redundant seed hits and shrinks the effective search space during
+the first mapping pass, which can substantially improve throughput when many
+references share long repeated segments. The full-length original reference
+sequences are still retained for alignment extension and reporting, so the
+reported SAM/PAF coordinates and downstream summaries remain based on the true
+reference sequences rather than the compactified seed-only representation.
+
+For this use case, use the ONT preset, enable compactification, and increase
+the worker thread count to match available CPU cores:
+```sh
+python3 python/minimap2.py refs.fa reads.fastq \
+    -x map-ont \
+    --compact-repeats \
+    --compact-k 27 \
+    --compact-ratio 0.20 \
+    --threads 16 \
+    --output thousand-ref-run
+```
+If you will map multiple batches of reads to the same reference panel, first
+build a compactified `.mmi` index and then reuse it across runs for faster
+startup time.
 
 #### <a name="map-long-splice"></a>Map long mRNA/cDNA reads
 

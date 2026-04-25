@@ -191,7 +191,7 @@ being less frequent than transitions.
 
 #### <a name="map-thousands"></a>Map to Thousands of References
 
-This fork adds an opt-in compactified-reference mode for workloads where long
+This fork (contributed by Howard Salis) adds an opt-in compactified-reference mode for workloads where long
 reads are mapped against thousands of related reference sequences, such as
 large combinatorial DNA assembly libraries. In this mode, minimap2 first scans
 the reference set, identifies highly repeated k-mers, and removes those
@@ -260,7 +260,7 @@ signal. If you are studying SIRV, you may apply `--splice-flank=no` to let
 minimap2 only model GT..AG, ignoring the additional base.
 
 Since v2.17, minimap2 can optionally take annotated genes as input and
-prioritize on annotated splice junctions. To use this feature, you can 
+prioritize on annotated splice junctions. To use this feature, you can
 ```sh
 paftools.js gff2bed anno.gff > anno.bed
 minimap2 -ax splice --junc-bed anno.bed ref.fa query.fa > aln.sam

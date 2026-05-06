@@ -694,6 +694,7 @@ static void fill_row(const mm_idx_t *mi, const mm_ra_ref_t *rr, uint32_t rid, mm
 	row->median_depth = median_u32(depths, rr->ref_len);
 	free(depths);
 	build_consensus_and_cigar(rr, use_weight > 0.0, &row->consensus_seq, &row->consensus_len, &row->consensus_cigar, &row->cigar_eq, &row->cigar_x, &row->cigar_i, &row->cigar_d, &row->cigar_n, &row->consensus_edit_rate);
+	row->number_edits_vs_reference = row->cigar_x + row->cigar_i + row->cigar_d;
 }
 
 int mm_ref_analysis_collect_finish(mm_ref_analysis_collect_t *c, mm_ref_analysis_result_t **out)
@@ -759,15 +760,15 @@ int mm_ref_analysis_write(const mm_ref_analysis_result_t *res, const char *prefi
 		free(fa_fn); free(stats_fn); free(cigar_fn);
 		return -1;
 	}
-	fprintf(stats, "ref_name\tref_len\tprimary_reads_total\tprimary_reads_used\tsupplementary_pieces\tsecondary_alignments\tmin_read_len\tmax_read_len\tmedian_read_len\tmean_read_len\tavg_read_qual\tmean_mapq\tmedian_mapq\tmean_identity\tmedian_identity\tforward_primary\treverse_primary\tcovered_bases\tcoverage_breadth\tmean_depth\tmedian_depth\tmean_softclip_5p\tmean_softclip_3p\tmismatch_bases\tinsertion_bases\tdeletion_bases\tskipped_bases\tconsensus_len\tconsensus_edit_rate\n");
-	fprintf(cigar, "ref_name\tref_len\tconsensus_len\tcigar\teq_count\tx_count\ti_count\td_count\tn_count\tconsensus_edit_rate\n");
+	fprintf(stats, "ref_name\tref_len\tprimary_reads_total\tprimary_reads_used\tsupplementary_pieces\tsecondary_alignments\tmin_read_len\tmax_read_len\tmedian_read_len\tmean_read_len\tavg_read_qual\tmean_mapq\tmedian_mapq\tmean_identity\tmedian_identity\tforward_primary\treverse_primary\tcovered_bases\tcoverage_breadth\tmean_depth\tmedian_depth\tmean_softclip_5p\tmean_softclip_3p\tmismatch_bases\tinsertion_bases\tdeletion_bases\tskipped_bases\tconsensus_len\tnumber_edits_vs_reference\tconsensus_edit_rate\n");
+	fprintf(cigar, "ref_name\tref_len\tconsensus_len\tcigar\teq_count\tx_count\ti_count\td_count\tn_count\tnumber_edits_vs_reference\tconsensus_edit_rate\n");
 	for (i = 0; i < res->n_rows; ++i) {
 		const mm_ref_analysis_row_t *r = &res->rows[i];
 		if (r->primary_reads_total > 0 && r->consensus_seq)
 			fprintf(fa, ">%s\n%s\n", r->ref_name, r->consensus_seq);
 		fprintf(stats, "%s\t%u\t%u\t%u\t%u\t%u\t", r->ref_name, r->ref_len, r->primary_reads_total, r->primary_reads_used, r->supplementary_pieces, r->secondary_alignments);
 		if (r->primary_reads_used == 0) {
-			fprintf(stats, "0\t0\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t0\t0\t0\tNA\tNA\tNA\t0\t0\t0\t0\t0\t0\tNA\n");
+			fprintf(stats, "0\t0\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t0\t0\t0\tNA\tNA\tNA\t0\t0\t0\t0\t0\t0\t0\tNA\n");
 		} else {
 			fprintf(stats, "%u\t%u\t", r->min_read_len, r->max_read_len);
 			fputs_double(stats, r->median_read_len); fputc('\t', stats);
@@ -783,16 +784,17 @@ int mm_ref_analysis_write(const mm_ref_analysis_result_t *res, const char *prefi
 			fputs_double(stats, r->median_depth); fputc('\t', stats);
 			fputs_double(stats, r->mean_softclip_5p); fputc('\t', stats);
 			fputs_double(stats, r->mean_softclip_3p); fputc('\t', stats);
-			fprintf(stats, "%llu\t%llu\t%llu\t%llu\t%u\t",
+			fprintf(stats, "%llu\t%llu\t%llu\t%llu\t%u\t%llu\t",
 				(unsigned long long)r->mismatch_bases,
 				(unsigned long long)r->insertion_bases,
 				(unsigned long long)r->deletion_bases,
 				(unsigned long long)r->skipped_bases,
-				r->consensus_len);
+				r->consensus_len,
+				(unsigned long long)r->number_edits_vs_reference);
 			fputs_double(stats, r->consensus_edit_rate);
 			fputc('\n', stats);
 		}
-		fprintf(cigar, "%s\t%u\t%u\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\t",
+		fprintf(cigar, "%s\t%u\t%u\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\t%llu\t",
 			r->ref_name,
 			r->ref_len,
 			r->consensus_len,
@@ -801,7 +803,8 @@ int mm_ref_analysis_write(const mm_ref_analysis_result_t *res, const char *prefi
 			(unsigned long long)r->cigar_x,
 			(unsigned long long)r->cigar_i,
 			(unsigned long long)r->cigar_d,
-			(unsigned long long)r->cigar_n);
+			(unsigned long long)r->cigar_n,
+			(unsigned long long)r->number_edits_vs_reference);
 		fputs_double(cigar, r->consensus_edit_rate);
 		fputc('\n', cigar);
 	}

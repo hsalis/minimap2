@@ -626,6 +626,7 @@ cdef class Aligner:
             'cigar_i': row.cigar_i,
             'cigar_d': row.cigar_d,
             'cigar_n': row.cigar_n,
+            'number_edits_vs_reference': row.number_edits_vs_reference,
             'consensus_edit_rate': row.consensus_edit_rate,
         }
 

@@ -239,6 +239,7 @@ typedef struct {
 	uint64_t cigar_i;
 	uint64_t cigar_d;
 	uint64_t cigar_n;
+	uint64_t number_edits_vs_reference;
 	double consensus_edit_rate;
 } mm_ref_analysis_row_t;
 

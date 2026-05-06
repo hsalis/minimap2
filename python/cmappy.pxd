@@ -68,8 +68,57 @@ cdef extern from "minimap.h":
 
 		const char *split_prefix
 
+	ctypedef struct mm_ref_analysis_opt_t:
+		int32_t min_mapq
+		int32_t min_aln_len
+		int32_t use_qual
+		int32_t count_reads_for_eta
+
+	ctypedef struct mm_ref_analysis_row_t:
+		char *ref_name
+		uint32_t ref_len
+		uint32_t primary_reads_total
+		uint32_t primary_reads_used
+		uint32_t supplementary_pieces
+		uint32_t secondary_alignments
+		uint32_t min_read_len
+		uint32_t max_read_len
+		double median_read_len
+		double mean_read_len
+		double avg_read_qual
+		double mean_mapq
+		double median_mapq
+		double mean_identity
+		double median_identity
+		uint32_t forward_primary
+		uint32_t reverse_primary
+		uint32_t covered_bases
+		double coverage_breadth
+		double mean_depth
+		double median_depth
+		double mean_softclip_5p
+		double mean_softclip_3p
+		uint64_t mismatch_bases
+		uint64_t insertion_bases
+		uint64_t deletion_bases
+		uint64_t skipped_bases
+		char *consensus_seq
+		uint32_t consensus_len
+		char *consensus_cigar
+		uint64_t cigar_eq
+		uint64_t cigar_x
+		uint64_t cigar_i
+		uint64_t cigar_d
+		uint64_t cigar_n
+		double consensus_edit_rate
+
+	ctypedef struct mm_ref_analysis_result_t:
+		uint32_t n_rows
+		mm_ref_analysis_row_t *rows
+
 	int mm_set_opt(char *preset, mm_idxopt_t *io, mm_mapopt_t *mo)
 	int mm_verbose
+	void mm_ref_analysis_opt_init(mm_ref_analysis_opt_t *opt)
 
 	#
 	# Indexing
@@ -101,6 +150,9 @@ cdef extern from "minimap.h":
 	void mm_mapopt_update(mm_mapopt_t *opt, const mm_idx_t *mi)
 
 	int mm_idx_index_name(mm_idx_t *mi)
+	int mm_ref_analysis_file(const mm_idx_t *idx, const char *fn, const mm_mapopt_t *opt, int n_threads, const mm_ref_analysis_opt_t *aopt, mm_ref_analysis_result_t **out)
+	int mm_ref_analysis_write(const mm_ref_analysis_result_t *res, const char *prefix)
+	void mm_ref_analysis_result_destroy(mm_ref_analysis_result_t *res)
 
 	#
 	# Mapping (key struct defined in cmappy.h below)
@@ -182,3 +234,13 @@ cdef extern from "cmappy.h":
 	char *mappy_revcomp(int l, const uint8_t *seq)
 	int mm_verbose_level(int v)
 	void mm_reset_timer()
+
+cdef extern from "mmpriv.h":
+	ctypedef struct mm_ref_analysis_collect_t:
+		pass
+
+	mm_ref_analysis_collect_t *mm_ref_analysis_collect_init(const mm_idx_t *mi, const mm_ref_analysis_opt_t *opt)
+	void mm_ref_analysis_collect_destroy(mm_ref_analysis_collect_t *c)
+	void mm_ref_analysis_collect_set_total(mm_ref_analysis_collect_t *c, int64_t total_reads)
+	void mm_ref_analysis_step(mm_ref_analysis_collect_t *c, const mm_bseq1_t *t, int n_reg, mm_reg1_t *regs)
+	int mm_ref_analysis_collect_finish(mm_ref_analysis_collect_t *c, mm_ref_analysis_result_t **out)

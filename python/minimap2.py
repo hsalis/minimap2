@@ -24,6 +24,11 @@ DEFAULT_OUTPUT_FILES = (
     "summary.tsv",
     "total_mappings.npy",
 )
+REF_ANALYSIS_OUTPUT_SUFFIXES = (
+    ".consensus.fa",
+    ".reference_stats.tsv",
+    ".consensus_cigar.tsv",
+)
 
 
 def _bool_flag(value):
@@ -502,6 +507,12 @@ def build_parser():
         help="build a compactified reference index; accepts optional yes/no and is ignored when loading a prebuilt .mmi")
     parser.add_argument("--compact-k", dest="compact_k", type=int, default=27, help="k-mer size for compactification [27]")
     parser.add_argument("--compact-ratio", dest="compact_ratio", type=float, default=0.20, help="remove k-mers with counts > int(ratio*n_seq)+1 during compactification [0.20]")
+    parser.add_argument("--count-reads-for-eta", nargs="?", const=True, default=False, type=_bool_flag, help="pre-count query reads to estimate ETA for the Python mapping pass [no]")
+    parser.add_argument("--ref-analysis-prefix", dest="ref_analysis_prefix", default=None, help="optional prefix for C-side per-reference consensus/statistics outputs; relative paths are written under --output")
+    parser.add_argument("--ref-analysis-min-mapq", dest="ref_analysis_min_mapq", type=int, default=0, help="minimum MAPQ to include a primary read in reference analysis [0]")
+    parser.add_argument("--ref-analysis-min-aln-len", dest="ref_analysis_min_aln_len", type=int, default=0, help="minimum aligned query span to include a primary read in reference analysis [0]")
+    parser.add_argument("--ref-analysis-qual", nargs="?", const=True, default=True, type=_bool_flag, help="include quality-weighted support/statistics when FASTQ qualities are available [yes]")
+    parser.add_argument("--ref-analysis-count-reads", nargs="?", const=True, default=False, type=_bool_flag, help="pre-count query reads to estimate ETA for single-pass C-side ref-analysis in the Python CLI [no]")
     parser.add_argument(
         "--verbose",
         nargs="?",
@@ -536,11 +547,17 @@ def main(argv=None):
 
     total_reads = 0
     progress_every = 1000
-    if args.query != '-':
+    if args.query != '-' and (args.count_reads_for_eta or args.ref_analysis_count_reads):
         total_reads = _count_reads(args.query)
         progress_every = 1000 if total_reads >= 10000 else max(1, total_reads // 10 if total_reads > 0 else 1)
         print(
             f"[mappy] starting threaded mapping for {total_reads} reads with {args.n_threads} threads and update interval {progress_every}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif args.query != '-':
+        print(
+            f"[mappy] starting threaded mapping with {args.n_threads} threads; ETA disabled without --count-reads-for-eta",
             file=sys.stderr,
             flush=True,
         )
@@ -560,8 +577,14 @@ def main(argv=None):
         os.close(fd)
         raw_path = Path(temp_name)
         remove_raw_after = True
+    ref_analysis_prefix = None
 
     try:
+        if args.ref_analysis_prefix:
+            ref_analysis_prefix = Path(args.ref_analysis_prefix)
+            if not ref_analysis_prefix.is_absolute():
+                ref_analysis_prefix = output_dir / ref_analysis_prefix
+            ref_analysis_prefix.parent.mkdir(parents=True, exist_ok=True)
         aligner.map_file(
             args.query,
             output_path=str(raw_path),
@@ -571,7 +594,13 @@ def main(argv=None):
             MD=args.out_MD,
             verbose=args.verbose,
             total_reads=total_reads,
-            progress_every=progress_every)
+            progress_every=progress_every,
+            ref_analysis_prefix=str(ref_analysis_prefix) if ref_analysis_prefix else None,
+            ref_analysis_min_mapq=args.ref_analysis_min_mapq,
+            ref_analysis_min_aln_len=args.ref_analysis_min_aln_len,
+            ref_analysis_use_qual=args.ref_analysis_qual,
+            ref_analysis_count_reads=args.ref_analysis_count_reads,
+        )
 
         analyze_mappings(
             raw_path=str(raw_path),
@@ -593,6 +622,13 @@ def main(argv=None):
         file=sys.stderr,
         flush=True,
     )
+    if args.ref_analysis_prefix:
+        print(
+            f"[mappy] wrote reference-analysis outputs with prefix {ref_analysis_prefix}: "
+            f"{', '.join(str(ref_analysis_prefix) + suffix for suffix in REF_ANALYSIS_OUTPUT_SUFFIXES)}",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

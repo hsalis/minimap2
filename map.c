@@ -404,8 +404,10 @@ typedef struct {
 	int n_processed, n_threads, n_fp;
 	int64_t mini_batch_size;
 	const mm_mapopt_t *opt;
+	const mm_ref_analysis_opt_t *ra_opt;
 	mm_bseq_file_t **fp;
 	const mm_idx_t *mi;
+	mm_ref_analysis_collect_t *ra_collect;
 	kstring_t str;
 
 	int n_parts;
@@ -544,6 +546,8 @@ static void *worker_pipeline(void *shared, int step, void *in)
     pipeline_t *p = (pipeline_t*)shared;
     if (step == 0) { // step 0: read sequences
 		int with_qual = (!!(p->opt->flag & MM_F_OUT_SAM) && !(p->opt->flag & MM_F_NO_QUAL));
+		if ((p->opt->flag & MM_F_REF_ANALYSIS) && p->ra_opt && p->ra_opt->use_qual)
+			with_qual = 1;
 		int with_comment = !!(p->opt->flag & MM_F_COPY_COMMENT);
 		int frag_mode = (p->n_fp > 1 || !!(p->opt->flag & MM_F_FRAG_MODE));
         step_t *s;
@@ -598,14 +602,14 @@ static void *worker_pipeline(void *shared, int step, void *in)
 							mm_err_fwrite(r->p, r->p->capacity, 4, p->fp_split);
 						}
 					}
-				} else if (p->opt->flag & MM_F_OUT_JUNC) { // extra logic for --write-junc
+				} else if (!(p->opt->flag & MM_F_NO_PRINT) && (p->opt->flag & MM_F_OUT_JUNC)) { // extra logic for --write-junc
 					for (j = 0; j < s->n_reg[i]; ++j) {
 						const mm_reg1_t *r = &s->reg[i][j];
 						if (r->id != r->parent || r->mapq < 10) continue;
 						mm_write_junc(&p->str, mi, t, r);
 						if (p->str.l > 0) mm_err_puts(p->str.s);
 					}
-				} else if (s->n_reg[i] > 0) { // the query has at least one hit
+				} else if (!(p->opt->flag & MM_F_NO_PRINT) && s->n_reg[i] > 0) { // the query has at least one hit
 					for (j = 0; j < s->n_reg[i]; ++j) {
 						const mm_reg1_t *r = &s->reg[i][j];
 						assert(!r->sam_pri || r->id == r->parent);
@@ -617,13 +621,15 @@ static void *worker_pipeline(void *shared, int step, void *in)
 							mm_write_paf4(&p->str, mi, t, r, km, p->opt->flag, s->rep_len[i], s->n_seg[k], i - seg_st);
 						mm_err_puts(p->str.s);
 					}
-				} else if ((p->opt->flag & MM_F_PAF_NO_HIT) || ((p->opt->flag & MM_F_OUT_SAM) && !(p->opt->flag & MM_F_SAM_HIT_ONLY))) { // output an empty hit, if requested
+				} else if (!(p->opt->flag & MM_F_NO_PRINT) && ((p->opt->flag & MM_F_PAF_NO_HIT) || ((p->opt->flag & MM_F_OUT_SAM) && !(p->opt->flag & MM_F_SAM_HIT_ONLY)))) { // output an empty hit, if requested
 					if (p->opt->flag & MM_F_OUT_SAM)
 						mm_write_sam3(&p->str, mi, t, i - seg_st, -1, s->n_seg[k], &s->n_reg[seg_st], (const mm_reg1_t*const*)&s->reg[seg_st], km, p->opt->flag, s->rep_len[i]);
 					else
 						mm_write_paf4(&p->str, mi, t, 0, 0, p->opt->flag, s->rep_len[i], s->n_seg[k], i - seg_st);
 					mm_err_puts(p->str.s);
 				}
+				if (p->ra_collect)
+					mm_ref_analysis_step(p->ra_collect, t, s->n_reg[i], s->reg[i]);
 			}
 			for (i = seg_st; i < seg_en; ++i) {
 				for (j = 0; j < s->n_reg[i]; ++j) free(s->reg[i][j].p);
@@ -660,7 +666,7 @@ static mm_bseq_file_t **open_bseqs(int n, const char **fn)
 	return fp;
 }
 
-int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_mapopt_t *opt, int n_threads)
+int mm_map_file_frag_collect(const mm_idx_t *idx, int n_segs, const char **fn, const mm_mapopt_t *opt, int n_threads, const mm_ref_analysis_opt_t *ra_opt, mm_ref_analysis_collect_t *ra_collect)
 {
 	int i, pl_threads;
 	pipeline_t pl;
@@ -670,6 +676,8 @@ int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_
 	pl.fp = open_bseqs(pl.n_fp, fn);
 	if (pl.fp == 0) return -1;
 	pl.opt = opt, pl.mi = idx;
+	pl.ra_opt = ra_opt;
+	pl.ra_collect = ra_collect;
 	pl.n_threads = n_threads > 1? n_threads : 1;
 	pl.mini_batch_size = opt->mini_batch_size;
 	if (opt->split_prefix)
@@ -685,9 +693,14 @@ int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_
 	return 0;
 }
 
+int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_mapopt_t *opt, int n_threads)
+{
+	return mm_map_file_frag_collect(idx, n_segs, fn, opt, n_threads, 0, 0);
+}
+
 int mm_map_file(const mm_idx_t *idx, const char *fn, const mm_mapopt_t *opt, int n_threads)
 {
-	return mm_map_file_frag(idx, 1, &fn, opt, n_threads);
+	return mm_map_file_frag_collect(idx, 1, &fn, opt, n_threads, 0, 0);
 }
 
 int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_split_idx)

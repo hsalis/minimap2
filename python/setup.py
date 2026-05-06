@@ -27,6 +27,7 @@ else:
 
 sources = [
     str(HERE / 'mappy.pyx'),
+    str(ROOT / 'ref_analysis.c'),
     str(ROOT / 'align.c'), str(ROOT / 'bseq.c'), str(ROOT / 'lchain.c'),
     str(ROOT / 'seed.c'), str(ROOT / 'format.c'), str(ROOT / 'hit.c'),
     str(ROOT / 'index.c'), str(ROOT / 'pe.c'), str(ROOT / 'jump.c'),

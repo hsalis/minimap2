@@ -38,6 +38,7 @@
         "name": "mappy",
         "sources": [
             "/Users/howardsalis/minimap2/python/mappy.pyx",
+            "/Users/howardsalis/minimap2/ref_analysis.c",
             "/Users/howardsalis/minimap2/align.c",
             "/Users/howardsalis/minimap2/bseq.c",
             "/Users/howardsalis/minimap2/lchain.c",
@@ -1190,6 +1191,7 @@ static int __Pyx_init_co_variables(void) {
 #include "minimap.h"
 #include "bseq.h"
 #include "cmappy.h"
+#include "mmpriv.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -1693,7 +1695,7 @@ struct __pyx_obj_5mappy___pyx_scope_struct__map {
 };
 
 
-/* "mappy.pyx":582
+/* "mappy.pyx":706
  * 
  * 
  * def fastx_read(fn, read_comment=False):             # <<<<<<<<<<<<<<
@@ -1723,6 +1725,7 @@ struct __pyx_obj_5mappy___pyx_scope_struct_1_fastx_read {
 
 struct __pyx_vtabstruct_5mappy_Aligner {
   PyObject *(*_collect_alignments)(struct __pyx_obj_5mappy_Aligner *, mm_reg1_t *, int, PyObject *, PyObject *, int, int, int, mm_tbuf_t *);
+  PyObject *(*_ref_analysis_row_to_dict)(struct __pyx_obj_5mappy_Aligner *, mm_ref_analysis_row_t *);
 };
 static struct __pyx_vtabstruct_5mappy_Aligner *__pyx_vtabptr_5mappy_Aligner;
 /* #### Code section: utility_code_proto ### */
@@ -2722,6 +2725,12 @@ static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObje
 /* PyOSError_Check.proto */
 #define __Pyx_PyExc_OSError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_OSError)
 
+/* decode_c_string.proto */
+static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
+         const char* cstring, Py_ssize_t start, Py_ssize_t stop,
+         const char* encoding, const char* errors,
+         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors));
+
 /* ArgTypeTestFunc.export */
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
@@ -2729,12 +2738,6 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
 #define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
     ((likely(__Pyx_IS_TYPE(obj, type) | (none_allowed && (obj == Py_None)))) ? 1 :\
         __Pyx__ArgTypeTest(obj, type, name, exact))
-
-/* decode_c_string.proto */
-static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
-         const char* cstring, Py_ssize_t start, Py_ssize_t stop,
-         const char* encoding, const char* errors,
-         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors));
 
 /* AllocateExtensionType.proto */
 static PyObject *__Pyx_AllocateExtensionType(PyTypeObject *t, int is_final);
@@ -2874,6 +2877,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyLong_From_uint32_t(uint32_t value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE int64_t __Pyx_PyLong_As_int64_t(PyObject *);
+
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyLong_From_uint64_t(uint64_t value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE uint32_t __Pyx_PyLong_As_uint32_t(PyObject *);
@@ -3090,6 +3096,7 @@ static int __Pyx_State_RemoveModule(void*);
 #define __PYX_TYPE_MODULE_PREFIX __PYX_ABI_MODULE_NAME "."
 
 static PyObject *__pyx_f_5mappy_7Aligner__collect_alignments(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, mm_reg1_t *__pyx_v_regs, int __pyx_v_n_regs, PyObject *__pyx_v_seq1, PyObject *__pyx_v_seq2, int __pyx_v_has_seq2, int __pyx_v_cs, int __pyx_v_MD, mm_tbuf_t *__pyx_v_buf); /* proto*/
+static PyObject *__pyx_f_5mappy_7Aligner__ref_analysis_row_to_dict(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, mm_ref_analysis_row_t *__pyx_v_row); /* proto*/
 
 /* Module declarations from "libc.stdint" */
 
@@ -3160,14 +3167,15 @@ static void __pyx_pf_5mappy_7Aligner_2__dealloc__(struct __pyx_obj_5mappy_Aligne
 static int __pyx_pf_5mappy_7Aligner_4__bool__(struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_6map(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_seq, PyObject *__pyx_v_seq2, PyObject *__pyx_v_name, PyObject *__pyx_v_buf, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_9map_batch(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_records, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags, PyObject *__pyx_v_n_threads); /* proto */
-static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_output_path, PyObject *__pyx_v_output_format, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags, PyObject *__pyx_v_verbose, PyObject *__pyx_v_total_reads, PyObject *__pyx_v_progress_every, PyObject *__pyx_v_batch_bases, PyObject *__pyx_v_batch_reads); /* proto */
-static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_name, int __pyx_v_start, int __pyx_v_end); /* proto */
+static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_output_path, PyObject *__pyx_v_output_format, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags, PyObject *__pyx_v_verbose, PyObject *__pyx_v_total_reads, PyObject *__pyx_v_progress_every, PyObject *__pyx_v_batch_bases, PyObject *__pyx_v_batch_reads, PyObject *__pyx_v_ref_analysis_prefix, PyObject *__pyx_v_ref_analysis_min_mapq, PyObject *__pyx_v_ref_analysis_min_aln_len, PyObject *__pyx_v_ref_analysis_use_qual, PyObject *__pyx_v_ref_analysis_count_reads); /* proto */
+static PyObject *__pyx_pf_5mappy_7Aligner_13ref_analysis_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_prefix, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_min_mapq, PyObject *__pyx_v_min_aln_len, PyObject *__pyx_v_use_qual, PyObject *__pyx_v_count_reads_for_eta); /* proto */
+static PyObject *__pyx_pf_5mappy_7Aligner_15seq(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_name, int __pyx_v_start, int __pyx_v_end); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_1k___get__(struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_1w___get__(struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_5n_seq___get__(struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5mappy_7Aligner_15__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5mappy_7Aligner_17__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5mappy_7Aligner_17__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5mappy_7Aligner_19__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5mappy_4fastx_read(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fn, PyObject *__pyx_v_read_comment); /* proto */
 static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_seq); /* proto */
 static PyObject *__pyx_pf_5mappy_9verbose(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_v); /* proto */
@@ -3210,9 +3218,9 @@ typedef struct {
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_pop;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_values;
   __Pyx_CachedCFunction __pyx_umethod_PyUnicode_Type__lower;
-  PyObject *__pyx_tuple[7];
-  PyObject *__pyx_codeobj_tab[16];
-  PyObject *__pyx_string_tab[249];
+  PyObject *__pyx_tuple[8];
+  PyObject *__pyx_codeobj_tab[17];
+  PyObject *__pyx_string_tab[310];
   PyObject *__pyx_number_tab[14];
 /* #### Code section: module_state_contents ### */
 /* CommonTypesMetaclass.module_state_decls */
@@ -3293,234 +3301,295 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #define __pyx_kp_u_each_batch_record_must_be_a_tupl __pyx_string_tab[18]
 #define __pyx_kp_u_elapsed __pyx_string_tab[19]
 #define __pyx_kp_u_enable __pyx_string_tab[20]
-#define __pyx_kp_u_failed_to_open_output_file __pyx_string_tab[21]
-#define __pyx_kp_u_failed_to_open_query_file __pyx_string_tab[22]
-#define __pyx_kp_u_failed_to_write_SAM_header __pyx_string_tab[23]
-#define __pyx_kp_u_failed_to_write_mapped_output_ba __pyx_string_tab[24]
-#define __pyx_kp_u_gc __pyx_string_tab[25]
-#define __pyx_kp_u_index_is_not_loaded __pyx_string_tab[26]
-#define __pyx_kp_u_isenabled __pyx_string_tab[27]
-#define __pyx_kp_u_mappy_batch __pyx_string_tab[28]
-#define __pyx_kp_u_mappy_completed __pyx_string_tab[29]
-#define __pyx_kp_u_mappy_progress __pyx_string_tab[30]
-#define __pyx_kp_u_mappy_pyx __pyx_string_tab[31]
-#define __pyx_kp_u_no_default___reduce___due_to_non __pyx_string_tab[32]
-#define __pyx_kp_u_processed_2 __pyx_string_tab[33]
-#define __pyx_kp_u_reads_mapped __pyx_string_tab[34]
-#define __pyx_kp_u_reads_s_ETA __pyx_string_tab[35]
-#define __pyx_kp_u_stringsource __pyx_string_tab[36]
-#define __pyx_kp_u_threaded_batch_mapping_failed __pyx_string_tab[37]
-#define __pyx_kp_u_threaded_file_mapping_failed __pyx_string_tab[38]
-#define __pyx_kp_u_throughput __pyx_string_tab[39]
-#define __pyx_kp_u_tp_A_P __pyx_string_tab[40]
-#define __pyx_kp_u_tp_A_S __pyx_string_tab[41]
-#define __pyx_kp_u_ts_A __pyx_string_tab[42]
-#define __pyx_kp_u_ts_A_2 __pyx_string_tab[43]
-#define __pyx_kp_u_ts_A_3 __pyx_string_tab[44]
-#define __pyx_kp_u_unable_to_allocate_batch_mapping __pyx_string_tab[45]
-#define __pyx_kp_u_unable_to_allocate_threaded_mapp __pyx_string_tab[46]
-#define __pyx_kp_u_unsupported_output_format __pyx_string_tab[47]
-#define __pyx_n_u_Aligner __pyx_string_tab[48]
-#define __pyx_n_u_Aligner___reduce_cython __pyx_string_tab[49]
-#define __pyx_n_u_Aligner___setstate_cython __pyx_string_tab[50]
-#define __pyx_n_u_Aligner_map __pyx_string_tab[51]
-#define __pyx_n_u_Aligner_map_batch __pyx_string_tab[52]
-#define __pyx_n_u_Aligner_map_file __pyx_string_tab[53]
-#define __pyx_n_u_Aligner_seq __pyx_string_tab[54]
-#define __pyx_n_u_Alignment __pyx_string_tab[55]
-#define __pyx_n_u_Alignment___get___locals_lambda __pyx_string_tab[56]
-#define __pyx_n_u_Alignment___reduce_cython __pyx_string_tab[57]
-#define __pyx_n_u_Alignment___setstate_cython __pyx_string_tab[58]
-#define __pyx_n_u_MD __pyx_string_tab[59]
-#define __pyx_n_u_MD_str __pyx_string_tab[60]
-#define __pyx_n_u_NM __pyx_string_tab[61]
-#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[62]
-#define __pyx_n_u_ThreadBuffer __pyx_string_tab[63]
-#define __pyx_n_u_ThreadBuffer___reduce_cython __pyx_string_tab[64]
-#define __pyx_n_u_ThreadBuffer___setstate_cython __pyx_string_tab[65]
-#define __pyx_n_u_alignments __pyx_string_tab[66]
-#define __pyx_n_u_aln __pyx_string_tab[67]
-#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[68]
-#define __pyx_n_u_b __pyx_string_tab[69]
-#define __pyx_n_u_batch_bases __pyx_string_tab[70]
-#define __pyx_n_u_batch_no __pyx_string_tab[71]
-#define __pyx_n_u_batch_reads __pyx_string_tab[72]
-#define __pyx_n_u_best_n __pyx_string_tab[73]
-#define __pyx_n_u_blen __pyx_string_tab[74]
-#define __pyx_n_u_bseq __pyx_string_tab[75]
-#define __pyx_n_u_buf __pyx_string_tab[76]
-#define __pyx_n_u_bw __pyx_string_tab[77]
-#define __pyx_n_u_bw_long __pyx_string_tab[78]
-#define __pyx_n_u_ce __pyx_string_tab[79]
-#define __pyx_n_u_chunk_mapped __pyx_string_tab[80]
-#define __pyx_n_u_chunk_n __pyx_string_tab[81]
-#define __pyx_n_u_chunk_seqs __pyx_string_tab[82]
-#define __pyx_n_u_cigar __pyx_string_tab[83]
-#define __pyx_n_u_cigar_str __pyx_string_tab[84]
-#define __pyx_n_u_cl __pyx_string_tab[85]
-#define __pyx_n_u_class_getitem __pyx_string_tab[86]
-#define __pyx_n_u_cline_in_traceback __pyx_string_tab[87]
-#define __pyx_n_u_close __pyx_string_tab[88]
-#define __pyx_n_u_comment __pyx_string_tab[89]
-#define __pyx_n_u_compact_k __pyx_string_tab[90]
-#define __pyx_n_u_compact_ratio __pyx_string_tab[91]
-#define __pyx_n_u_compact_repeats __pyx_string_tab[92]
-#define __pyx_n_u_cs __pyx_string_tab[93]
-#define __pyx_n_u_cs_str __pyx_string_tab[94]
-#define __pyx_n_u_ctg __pyx_string_tab[95]
-#define __pyx_n_u_decode __pyx_string_tab[96]
-#define __pyx_n_u_elapsed_2 __pyx_string_tab[97]
-#define __pyx_n_u_elapsed_sec __pyx_string_tab[98]
-#define __pyx_n_u_emit_progress __pyx_string_tab[99]
-#define __pyx_n_u_encode __pyx_string_tab[100]
-#define __pyx_n_u_end __pyx_string_tab[101]
-#define __pyx_n_u_eta __pyx_string_tab[102]
-#define __pyx_n_u_extra_flags __pyx_string_tab[103]
-#define __pyx_n_u_fastx_read __pyx_string_tab[104]
-#define __pyx_n_u_file __pyx_string_tab[105]
-#define __pyx_n_u_final __pyx_string_tab[106]
-#define __pyx_n_u_flush __pyx_string_tab[107]
-#define __pyx_n_u_fn __pyx_string_tab[108]
-#define __pyx_n_u_fn_idx_in __pyx_string_tab[109]
-#define __pyx_n_u_fn_idx_out __pyx_string_tab[110]
-#define __pyx_n_u_format_duration __pyx_string_tab[111]
-#define __pyx_n_u_func __pyx_string_tab[112]
-#define __pyx_n_u_getstate __pyx_string_tab[113]
-#define __pyx_n_u_h __pyx_string_tab[114]
-#define __pyx_n_u_hours __pyx_string_tab[115]
-#define __pyx_n_u_i __pyx_string_tab[116]
-#define __pyx_n_u_is_coroutine __pyx_string_tab[117]
-#define __pyx_n_u_is_primary __pyx_string_tab[118]
-#define __pyx_n_u_items __pyx_string_tab[119]
-#define __pyx_n_u_k __pyx_string_tab[120]
-#define __pyx_n_u_ks __pyx_string_tab[121]
-#define __pyx_n_u_l __pyx_string_tab[122]
-#define __pyx_n_u_lambda __pyx_string_tab[123]
-#define __pyx_n_u_last_reported __pyx_string_tab[124]
-#define __pyx_n_u_legacy __pyx_string_tab[125]
-#define __pyx_n_u_lower __pyx_string_tab[126]
-#define __pyx_n_u_m __pyx_string_tab[127]
-#define __pyx_n_u_main __pyx_string_tab[128]
-#define __pyx_n_u_map __pyx_string_tab[129]
-#define __pyx_n_u_map_batch __pyx_string_tab[130]
-#define __pyx_n_u_map_file __pyx_string_tab[131]
-#define __pyx_n_u_map_opt __pyx_string_tab[132]
-#define __pyx_n_u_mapped __pyx_string_tab[133]
-#define __pyx_n_u_mappy __pyx_string_tab[134]
-#define __pyx_n_u_mapq __pyx_string_tab[135]
-#define __pyx_n_u_max_chain_skip __pyx_string_tab[136]
-#define __pyx_n_u_max_frag_len __pyx_string_tab[137]
-#define __pyx_n_u_min_chain_score __pyx_string_tab[138]
-#define __pyx_n_u_min_cnt __pyx_string_tab[139]
-#define __pyx_n_u_min_dp_score __pyx_string_tab[140]
-#define __pyx_n_u_minutes __pyx_string_tab[141]
-#define __pyx_n_u_mlen __pyx_string_tab[142]
-#define __pyx_n_u_module __pyx_string_tab[143]
-#define __pyx_n_u_n_batch __pyx_string_tab[144]
-#define __pyx_n_u_n_regs __pyx_string_tab[145]
-#define __pyx_n_u_n_seq __pyx_string_tab[146]
-#define __pyx_n_u_n_threads __pyx_string_tab[147]
-#define __pyx_n_u_name __pyx_string_tab[148]
-#define __pyx_n_u_name_2 __pyx_string_tab[149]
-#define __pyx_n_u_name_3 __pyx_string_tab[150]
-#define __pyx_n_u_name_b __pyx_string_tab[151]
-#define __pyx_n_u_names __pyx_string_tab[152]
-#define __pyx_n_u_next __pyx_string_tab[153]
-#define __pyx_n_u_offset __pyx_string_tab[154]
-#define __pyx_n_u_out __pyx_string_tab[155]
-#define __pyx_n_u_out_fp __pyx_string_tab[156]
-#define __pyx_n_u_output_b __pyx_string_tab[157]
-#define __pyx_n_u_output_code __pyx_string_tab[158]
-#define __pyx_n_u_output_format __pyx_string_tab[159]
-#define __pyx_n_u_output_path __pyx_string_tab[160]
-#define __pyx_n_u_paf __pyx_string_tab[161]
-#define __pyx_n_u_perf_counter __pyx_string_tab[162]
-#define __pyx_n_u_pop __pyx_string_tab[163]
-#define __pyx_n_u_prefix __pyx_string_tab[164]
-#define __pyx_n_u_preset __pyx_string_tab[165]
-#define __pyx_n_u_print __pyx_string_tab[166]
-#define __pyx_n_u_processed __pyx_string_tab[167]
-#define __pyx_n_u_progress __pyx_string_tab[168]
-#define __pyx_n_u_progress_every __pyx_string_tab[169]
-#define __pyx_n_u_pyx_state __pyx_string_tab[170]
-#define __pyx_n_u_pyx_vtable __pyx_string_tab[171]
-#define __pyx_n_u_qe __pyx_string_tab[172]
-#define __pyx_n_u_qs __pyx_string_tab[173]
-#define __pyx_n_u_qual __pyx_string_tab[174]
-#define __pyx_n_u_qualname __pyx_string_tab[175]
-#define __pyx_n_u_query_b __pyx_string_tab[176]
-#define __pyx_n_u_query_path __pyx_string_tab[177]
-#define __pyx_n_u_r __pyx_string_tab[178]
-#define __pyx_n_u_rc __pyx_string_tab[179]
-#define __pyx_n_u_read_comment __pyx_string_tab[180]
-#define __pyx_n_u_reader __pyx_string_tab[181]
-#define __pyx_n_u_reads_per_sec __pyx_string_tab[182]
-#define __pyx_n_u_rec __pyx_string_tab[183]
-#define __pyx_n_u_records __pyx_string_tab[184]
-#define __pyx_n_u_reduce __pyx_string_tab[185]
-#define __pyx_n_u_reduce_cython __pyx_string_tab[186]
-#define __pyx_n_u_reduce_ex __pyx_string_tab[187]
-#define __pyx_n_u_regs __pyx_string_tab[188]
-#define __pyx_n_u_remaining __pyx_string_tab[189]
-#define __pyx_n_u_results __pyx_string_tab[190]
-#define __pyx_n_u_revcomp __pyx_string_tab[191]
-#define __pyx_n_u_round __pyx_string_tab[192]
-#define __pyx_n_u_s __pyx_string_tab[193]
-#define __pyx_n_u_sam __pyx_string_tab[194]
-#define __pyx_n_u_sc_ambi __pyx_string_tab[195]
-#define __pyx_n_u_scoring __pyx_string_tab[196]
-#define __pyx_n_u_sec __pyx_string_tab[197]
-#define __pyx_n_u_seconds __pyx_string_tab[198]
-#define __pyx_n_u_seg_id __pyx_string_tab[199]
-#define __pyx_n_u_self __pyx_string_tab[200]
-#define __pyx_n_u_send __pyx_string_tab[201]
-#define __pyx_n_u_seq __pyx_string_tab[202]
-#define __pyx_n_u_seq2 __pyx_string_tab[203]
-#define __pyx_n_u_seq2_2 __pyx_string_tab[204]
-#define __pyx_n_u_seq_2 __pyx_string_tab[205]
-#define __pyx_n_u_seq_b __pyx_string_tab[206]
-#define __pyx_n_u_seq_bufs __pyx_string_tab[207]
-#define __pyx_n_u_seqs __pyx_string_tab[208]
-#define __pyx_n_u_set_name __pyx_string_tab[209]
-#define __pyx_n_u_setdefault __pyx_string_tab[210]
-#define __pyx_n_u_setstate __pyx_string_tab[211]
-#define __pyx_n_u_setstate_cython __pyx_string_tab[212]
-#define __pyx_n_u_start __pyx_string_tab[213]
-#define __pyx_n_u_start_time __pyx_string_tab[214]
-#define __pyx_n_u_stats __pyx_string_tab[215]
-#define __pyx_n_u_stderr __pyx_string_tab[216]
-#define __pyx_n_u_strand __pyx_string_tab[217]
-#define __pyx_n_u_sys __pyx_string_tab[218]
-#define __pyx_n_u_test __pyx_string_tab[219]
-#define __pyx_n_u_thread_count __pyx_string_tab[220]
-#define __pyx_n_u_threads __pyx_string_tab[221]
-#define __pyx_n_u_throughput_2 __pyx_string_tab[222]
-#define __pyx_n_u_throw __pyx_string_tab[223]
-#define __pyx_n_u_time __pyx_string_tab[224]
-#define __pyx_n_u_total_reads __pyx_string_tab[225]
-#define __pyx_n_u_trans_strand __pyx_string_tab[226]
-#define __pyx_n_u_unknown __pyx_string_tab[227]
-#define __pyx_n_u_v __pyx_string_tab[228]
-#define __pyx_n_u_value __pyx_string_tab[229]
-#define __pyx_n_u_values __pyx_string_tab[230]
-#define __pyx_n_u_verbose __pyx_string_tab[231]
-#define __pyx_n_u_version __pyx_string_tab[232]
-#define __pyx_n_u_w __pyx_string_tab[233]
-#define __pyx_n_u_with_qual __pyx_string_tab[234]
-#define __pyx_n_u_write_rc __pyx_string_tab[235]
-#define __pyx_n_u_x __pyx_string_tab[236]
-#define __pyx_kp_b__2 __pyx_string_tab[237]
-#define __pyx_kp_b_iso88591_1 __pyx_string_tab[238]
-#define __pyx_kp_b_iso88591_1A_7_AU_c_q_1_6_1Cz_BgQ_1 __pyx_string_tab[239]
-#define __pyx_kp_b_iso88591_A_r_F_q_1 __pyx_string_tab[240]
-#define __pyx_kp_b_iso88591_BBVV_ffz_M_M_m_m_Q_Q_g_g_h_Q_q __pyx_string_tab[241]
-#define __pyx_kp_b_iso88591_J_BBTTdde_aq_1A_q_2_Q_A_4vS_1_T __pyx_string_tab[242]
-#define __pyx_kp_b_iso88591_Kz_DXXjjk __pyx_string_tab[243]
-#define __pyx_kp_b_iso88591_Q __pyx_string_tab[244]
-#define __pyx_kp_b_iso88591_S_4r_Qaq __pyx_string_tab[245]
-#define __pyx_kp_b_iso88591_k_4vS_a_T_r_U_e6_5_4wd_WE_2S_7 __pyx_string_tab[246]
-#define __pyx_kp_b_iso88591_n_d_s_A_2_4_A_q_r_az_1_2Qk_a_3a __pyx_string_tab[247]
-#define __pyx_kp_b_iso88591_uAQ_xr_r_V6_Qe1Kq_xr_r_1Cq_V1IQ __pyx_string_tab[248]
+#define __pyx_kp_u_failed_to_finalize_reference_ana __pyx_string_tab[21]
+#define __pyx_kp_u_failed_to_open_output_file __pyx_string_tab[22]
+#define __pyx_kp_u_failed_to_open_query_file __pyx_string_tab[23]
+#define __pyx_kp_u_failed_to_write_SAM_header __pyx_string_tab[24]
+#define __pyx_kp_u_failed_to_write_mapped_output_ba __pyx_string_tab[25]
+#define __pyx_kp_u_failed_to_write_reference_analys __pyx_string_tab[26]
+#define __pyx_kp_u_gc __pyx_string_tab[27]
+#define __pyx_kp_u_index_is_not_loaded __pyx_string_tab[28]
+#define __pyx_kp_u_isenabled __pyx_string_tab[29]
+#define __pyx_kp_u_mappy_batch __pyx_string_tab[30]
+#define __pyx_kp_u_mappy_completed __pyx_string_tab[31]
+#define __pyx_kp_u_mappy_progress __pyx_string_tab[32]
+#define __pyx_kp_u_mappy_pyx __pyx_string_tab[33]
+#define __pyx_kp_u_no_default___reduce___due_to_non __pyx_string_tab[34]
+#define __pyx_kp_u_processed_2 __pyx_string_tab[35]
+#define __pyx_kp_u_reads_mapped __pyx_string_tab[36]
+#define __pyx_kp_u_reads_s_ETA __pyx_string_tab[37]
+#define __pyx_kp_u_reference_analysis_failed __pyx_string_tab[38]
+#define __pyx_kp_u_reference_analysis_requires_refe __pyx_string_tab[39]
+#define __pyx_kp_u_stringsource __pyx_string_tab[40]
+#define __pyx_kp_u_threaded_batch_mapping_failed __pyx_string_tab[41]
+#define __pyx_kp_u_threaded_file_mapping_failed __pyx_string_tab[42]
+#define __pyx_kp_u_throughput __pyx_string_tab[43]
+#define __pyx_kp_u_tp_A_P __pyx_string_tab[44]
+#define __pyx_kp_u_tp_A_S __pyx_string_tab[45]
+#define __pyx_kp_u_ts_A __pyx_string_tab[46]
+#define __pyx_kp_u_ts_A_2 __pyx_string_tab[47]
+#define __pyx_kp_u_ts_A_3 __pyx_string_tab[48]
+#define __pyx_kp_u_unable_to_allocate_batch_mapping __pyx_string_tab[49]
+#define __pyx_kp_u_unable_to_allocate_threaded_mapp __pyx_string_tab[50]
+#define __pyx_kp_u_unable_to_initialize_reference_a __pyx_string_tab[51]
+#define __pyx_kp_u_unsupported_output_format __pyx_string_tab[52]
+#define __pyx_n_u_Aligner __pyx_string_tab[53]
+#define __pyx_n_u_Aligner___reduce_cython __pyx_string_tab[54]
+#define __pyx_n_u_Aligner___setstate_cython __pyx_string_tab[55]
+#define __pyx_n_u_Aligner_map __pyx_string_tab[56]
+#define __pyx_n_u_Aligner_map_batch __pyx_string_tab[57]
+#define __pyx_n_u_Aligner_map_file __pyx_string_tab[58]
+#define __pyx_n_u_Aligner_ref_analysis_file __pyx_string_tab[59]
+#define __pyx_n_u_Aligner_seq __pyx_string_tab[60]
+#define __pyx_n_u_Alignment __pyx_string_tab[61]
+#define __pyx_n_u_Alignment___get___locals_lambda __pyx_string_tab[62]
+#define __pyx_n_u_Alignment___reduce_cython __pyx_string_tab[63]
+#define __pyx_n_u_Alignment___setstate_cython __pyx_string_tab[64]
+#define __pyx_n_u_MD __pyx_string_tab[65]
+#define __pyx_n_u_MD_str __pyx_string_tab[66]
+#define __pyx_n_u_NM __pyx_string_tab[67]
+#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[68]
+#define __pyx_n_u_ThreadBuffer __pyx_string_tab[69]
+#define __pyx_n_u_ThreadBuffer___reduce_cython __pyx_string_tab[70]
+#define __pyx_n_u_ThreadBuffer___setstate_cython __pyx_string_tab[71]
+#define __pyx_n_u_alignments __pyx_string_tab[72]
+#define __pyx_n_u_aln __pyx_string_tab[73]
+#define __pyx_n_u_aopt __pyx_string_tab[74]
+#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[75]
+#define __pyx_n_u_avg_read_qual __pyx_string_tab[76]
+#define __pyx_n_u_b __pyx_string_tab[77]
+#define __pyx_n_u_batch_bases __pyx_string_tab[78]
+#define __pyx_n_u_batch_no __pyx_string_tab[79]
+#define __pyx_n_u_batch_reads __pyx_string_tab[80]
+#define __pyx_n_u_best_n __pyx_string_tab[81]
+#define __pyx_n_u_blen __pyx_string_tab[82]
+#define __pyx_n_u_bseq __pyx_string_tab[83]
+#define __pyx_n_u_buf __pyx_string_tab[84]
+#define __pyx_n_u_bw __pyx_string_tab[85]
+#define __pyx_n_u_bw_long __pyx_string_tab[86]
+#define __pyx_n_u_ce __pyx_string_tab[87]
+#define __pyx_n_u_chunk_mapped __pyx_string_tab[88]
+#define __pyx_n_u_chunk_n __pyx_string_tab[89]
+#define __pyx_n_u_chunk_seqs __pyx_string_tab[90]
+#define __pyx_n_u_cigar __pyx_string_tab[91]
+#define __pyx_n_u_cigar_d __pyx_string_tab[92]
+#define __pyx_n_u_cigar_eq __pyx_string_tab[93]
+#define __pyx_n_u_cigar_i __pyx_string_tab[94]
+#define __pyx_n_u_cigar_n __pyx_string_tab[95]
+#define __pyx_n_u_cigar_str __pyx_string_tab[96]
+#define __pyx_n_u_cigar_x __pyx_string_tab[97]
+#define __pyx_n_u_cl __pyx_string_tab[98]
+#define __pyx_n_u_class_getitem __pyx_string_tab[99]
+#define __pyx_n_u_cline_in_traceback __pyx_string_tab[100]
+#define __pyx_n_u_close __pyx_string_tab[101]
+#define __pyx_n_u_comment __pyx_string_tab[102]
+#define __pyx_n_u_compact_k __pyx_string_tab[103]
+#define __pyx_n_u_compact_ratio __pyx_string_tab[104]
+#define __pyx_n_u_compact_repeats __pyx_string_tab[105]
+#define __pyx_n_u_consensus_cigar __pyx_string_tab[106]
+#define __pyx_n_u_consensus_edit_rate __pyx_string_tab[107]
+#define __pyx_n_u_consensus_len __pyx_string_tab[108]
+#define __pyx_n_u_consensus_seq __pyx_string_tab[109]
+#define __pyx_n_u_count_reads_for_eta __pyx_string_tab[110]
+#define __pyx_n_u_coverage_breadth __pyx_string_tab[111]
+#define __pyx_n_u_covered_bases __pyx_string_tab[112]
+#define __pyx_n_u_cs __pyx_string_tab[113]
+#define __pyx_n_u_cs_str __pyx_string_tab[114]
+#define __pyx_n_u_ctg __pyx_string_tab[115]
+#define __pyx_n_u_decode __pyx_string_tab[116]
+#define __pyx_n_u_deletion_bases __pyx_string_tab[117]
+#define __pyx_n_u_elapsed_2 __pyx_string_tab[118]
+#define __pyx_n_u_elapsed_sec __pyx_string_tab[119]
+#define __pyx_n_u_emit_progress __pyx_string_tab[120]
+#define __pyx_n_u_encode __pyx_string_tab[121]
+#define __pyx_n_u_end __pyx_string_tab[122]
+#define __pyx_n_u_eta __pyx_string_tab[123]
+#define __pyx_n_u_extra_flags __pyx_string_tab[124]
+#define __pyx_n_u_fastx_read __pyx_string_tab[125]
+#define __pyx_n_u_file __pyx_string_tab[126]
+#define __pyx_n_u_final __pyx_string_tab[127]
+#define __pyx_n_u_flush __pyx_string_tab[128]
+#define __pyx_n_u_fn __pyx_string_tab[129]
+#define __pyx_n_u_fn_idx_in __pyx_string_tab[130]
+#define __pyx_n_u_fn_idx_out __pyx_string_tab[131]
+#define __pyx_n_u_format_duration __pyx_string_tab[132]
+#define __pyx_n_u_forward_primary __pyx_string_tab[133]
+#define __pyx_n_u_func __pyx_string_tab[134]
+#define __pyx_n_u_getstate __pyx_string_tab[135]
+#define __pyx_n_u_h __pyx_string_tab[136]
+#define __pyx_n_u_hours __pyx_string_tab[137]
+#define __pyx_n_u_i __pyx_string_tab[138]
+#define __pyx_n_u_insertion_bases __pyx_string_tab[139]
+#define __pyx_n_u_is_coroutine __pyx_string_tab[140]
+#define __pyx_n_u_is_primary __pyx_string_tab[141]
+#define __pyx_n_u_items __pyx_string_tab[142]
+#define __pyx_n_u_k __pyx_string_tab[143]
+#define __pyx_n_u_ks __pyx_string_tab[144]
+#define __pyx_n_u_l __pyx_string_tab[145]
+#define __pyx_n_u_lambda __pyx_string_tab[146]
+#define __pyx_n_u_last_reported __pyx_string_tab[147]
+#define __pyx_n_u_legacy __pyx_string_tab[148]
+#define __pyx_n_u_lower __pyx_string_tab[149]
+#define __pyx_n_u_m __pyx_string_tab[150]
+#define __pyx_n_u_main __pyx_string_tab[151]
+#define __pyx_n_u_map __pyx_string_tab[152]
+#define __pyx_n_u_map_batch __pyx_string_tab[153]
+#define __pyx_n_u_map_file __pyx_string_tab[154]
+#define __pyx_n_u_map_opt __pyx_string_tab[155]
+#define __pyx_n_u_mapped __pyx_string_tab[156]
+#define __pyx_n_u_mappy __pyx_string_tab[157]
+#define __pyx_n_u_mapq __pyx_string_tab[158]
+#define __pyx_n_u_max_chain_skip __pyx_string_tab[159]
+#define __pyx_n_u_max_frag_len __pyx_string_tab[160]
+#define __pyx_n_u_max_read_len __pyx_string_tab[161]
+#define __pyx_n_u_mean_depth __pyx_string_tab[162]
+#define __pyx_n_u_mean_identity __pyx_string_tab[163]
+#define __pyx_n_u_mean_mapq __pyx_string_tab[164]
+#define __pyx_n_u_mean_read_len __pyx_string_tab[165]
+#define __pyx_n_u_mean_softclip_3p __pyx_string_tab[166]
+#define __pyx_n_u_mean_softclip_5p __pyx_string_tab[167]
+#define __pyx_n_u_median_depth __pyx_string_tab[168]
+#define __pyx_n_u_median_identity __pyx_string_tab[169]
+#define __pyx_n_u_median_mapq __pyx_string_tab[170]
+#define __pyx_n_u_median_read_len __pyx_string_tab[171]
+#define __pyx_n_u_min_aln_len __pyx_string_tab[172]
+#define __pyx_n_u_min_chain_score __pyx_string_tab[173]
+#define __pyx_n_u_min_cnt __pyx_string_tab[174]
+#define __pyx_n_u_min_dp_score __pyx_string_tab[175]
+#define __pyx_n_u_min_mapq __pyx_string_tab[176]
+#define __pyx_n_u_min_read_len __pyx_string_tab[177]
+#define __pyx_n_u_minutes __pyx_string_tab[178]
+#define __pyx_n_u_mismatch_bases __pyx_string_tab[179]
+#define __pyx_n_u_mlen __pyx_string_tab[180]
+#define __pyx_n_u_module __pyx_string_tab[181]
+#define __pyx_n_u_n_batch __pyx_string_tab[182]
+#define __pyx_n_u_n_regs __pyx_string_tab[183]
+#define __pyx_n_u_n_seq __pyx_string_tab[184]
+#define __pyx_n_u_n_threads __pyx_string_tab[185]
+#define __pyx_n_u_name __pyx_string_tab[186]
+#define __pyx_n_u_name_2 __pyx_string_tab[187]
+#define __pyx_n_u_name_3 __pyx_string_tab[188]
+#define __pyx_n_u_name_b __pyx_string_tab[189]
+#define __pyx_n_u_names __pyx_string_tab[190]
+#define __pyx_n_u_next __pyx_string_tab[191]
+#define __pyx_n_u_offset __pyx_string_tab[192]
+#define __pyx_n_u_out __pyx_string_tab[193]
+#define __pyx_n_u_out_fp __pyx_string_tab[194]
+#define __pyx_n_u_output_b __pyx_string_tab[195]
+#define __pyx_n_u_output_code __pyx_string_tab[196]
+#define __pyx_n_u_output_format __pyx_string_tab[197]
+#define __pyx_n_u_output_path __pyx_string_tab[198]
+#define __pyx_n_u_paf __pyx_string_tab[199]
+#define __pyx_n_u_perf_counter __pyx_string_tab[200]
+#define __pyx_n_u_pop __pyx_string_tab[201]
+#define __pyx_n_u_prefix __pyx_string_tab[202]
+#define __pyx_n_u_prefix_b __pyx_string_tab[203]
+#define __pyx_n_u_preset __pyx_string_tab[204]
+#define __pyx_n_u_primary_reads_total __pyx_string_tab[205]
+#define __pyx_n_u_primary_reads_used __pyx_string_tab[206]
+#define __pyx_n_u_print __pyx_string_tab[207]
+#define __pyx_n_u_processed __pyx_string_tab[208]
+#define __pyx_n_u_progress __pyx_string_tab[209]
+#define __pyx_n_u_progress_every __pyx_string_tab[210]
+#define __pyx_n_u_pyx_state __pyx_string_tab[211]
+#define __pyx_n_u_pyx_vtable __pyx_string_tab[212]
+#define __pyx_n_u_qe __pyx_string_tab[213]
+#define __pyx_n_u_qs __pyx_string_tab[214]
+#define __pyx_n_u_qual __pyx_string_tab[215]
+#define __pyx_n_u_qualname __pyx_string_tab[216]
+#define __pyx_n_u_query_b __pyx_string_tab[217]
+#define __pyx_n_u_query_path __pyx_string_tab[218]
+#define __pyx_n_u_r __pyx_string_tab[219]
+#define __pyx_n_u_rc __pyx_string_tab[220]
+#define __pyx_n_u_read_comment __pyx_string_tab[221]
+#define __pyx_n_u_reader __pyx_string_tab[222]
+#define __pyx_n_u_reads_per_sec __pyx_string_tab[223]
+#define __pyx_n_u_rec __pyx_string_tab[224]
+#define __pyx_n_u_records __pyx_string_tab[225]
+#define __pyx_n_u_reduce __pyx_string_tab[226]
+#define __pyx_n_u_reduce_cython __pyx_string_tab[227]
+#define __pyx_n_u_reduce_ex __pyx_string_tab[228]
+#define __pyx_n_u_ref_analysis_count_reads __pyx_string_tab[229]
+#define __pyx_n_u_ref_analysis_file __pyx_string_tab[230]
+#define __pyx_n_u_ref_analysis_min_aln_len __pyx_string_tab[231]
+#define __pyx_n_u_ref_analysis_min_mapq __pyx_string_tab[232]
+#define __pyx_n_u_ref_analysis_opt __pyx_string_tab[233]
+#define __pyx_n_u_ref_analysis_prefix __pyx_string_tab[234]
+#define __pyx_n_u_ref_analysis_use_qual __pyx_string_tab[235]
+#define __pyx_n_u_ref_collect __pyx_string_tab[236]
+#define __pyx_n_u_ref_len __pyx_string_tab[237]
+#define __pyx_n_u_ref_name __pyx_string_tab[238]
+#define __pyx_n_u_ref_prefix_b __pyx_string_tab[239]
+#define __pyx_n_u_ref_result __pyx_string_tab[240]
+#define __pyx_n_u_regs __pyx_string_tab[241]
+#define __pyx_n_u_remaining __pyx_string_tab[242]
+#define __pyx_n_u_res __pyx_string_tab[243]
+#define __pyx_n_u_results __pyx_string_tab[244]
+#define __pyx_n_u_revcomp __pyx_string_tab[245]
+#define __pyx_n_u_reverse_primary __pyx_string_tab[246]
+#define __pyx_n_u_round __pyx_string_tab[247]
+#define __pyx_n_u_rows __pyx_string_tab[248]
+#define __pyx_n_u_s __pyx_string_tab[249]
+#define __pyx_n_u_sam __pyx_string_tab[250]
+#define __pyx_n_u_sc_ambi __pyx_string_tab[251]
+#define __pyx_n_u_scoring __pyx_string_tab[252]
+#define __pyx_n_u_sec __pyx_string_tab[253]
+#define __pyx_n_u_secondary_alignments __pyx_string_tab[254]
+#define __pyx_n_u_seconds __pyx_string_tab[255]
+#define __pyx_n_u_seg_id __pyx_string_tab[256]
+#define __pyx_n_u_self __pyx_string_tab[257]
+#define __pyx_n_u_send __pyx_string_tab[258]
+#define __pyx_n_u_seq __pyx_string_tab[259]
+#define __pyx_n_u_seq2 __pyx_string_tab[260]
+#define __pyx_n_u_seq2_2 __pyx_string_tab[261]
+#define __pyx_n_u_seq_2 __pyx_string_tab[262]
+#define __pyx_n_u_seq_b __pyx_string_tab[263]
+#define __pyx_n_u_seq_bufs __pyx_string_tab[264]
+#define __pyx_n_u_seqs __pyx_string_tab[265]
+#define __pyx_n_u_set_name __pyx_string_tab[266]
+#define __pyx_n_u_setdefault __pyx_string_tab[267]
+#define __pyx_n_u_setstate __pyx_string_tab[268]
+#define __pyx_n_u_setstate_cython __pyx_string_tab[269]
+#define __pyx_n_u_skipped_bases __pyx_string_tab[270]
+#define __pyx_n_u_start __pyx_string_tab[271]
+#define __pyx_n_u_start_time __pyx_string_tab[272]
+#define __pyx_n_u_stats __pyx_string_tab[273]
+#define __pyx_n_u_stderr __pyx_string_tab[274]
+#define __pyx_n_u_strand __pyx_string_tab[275]
+#define __pyx_n_u_supplementary_pieces __pyx_string_tab[276]
+#define __pyx_n_u_sys __pyx_string_tab[277]
+#define __pyx_n_u_test __pyx_string_tab[278]
+#define __pyx_n_u_thread_count __pyx_string_tab[279]
+#define __pyx_n_u_threads __pyx_string_tab[280]
+#define __pyx_n_u_throughput_2 __pyx_string_tab[281]
+#define __pyx_n_u_throw __pyx_string_tab[282]
+#define __pyx_n_u_time __pyx_string_tab[283]
+#define __pyx_n_u_total_reads __pyx_string_tab[284]
+#define __pyx_n_u_trans_strand __pyx_string_tab[285]
+#define __pyx_n_u_unknown __pyx_string_tab[286]
+#define __pyx_n_u_use_qual __pyx_string_tab[287]
+#define __pyx_n_u_v __pyx_string_tab[288]
+#define __pyx_n_u_value __pyx_string_tab[289]
+#define __pyx_n_u_values __pyx_string_tab[290]
+#define __pyx_n_u_verbose __pyx_string_tab[291]
+#define __pyx_n_u_version __pyx_string_tab[292]
+#define __pyx_n_u_w __pyx_string_tab[293]
+#define __pyx_n_u_with_qual __pyx_string_tab[294]
+#define __pyx_n_u_write_rc __pyx_string_tab[295]
+#define __pyx_n_u_x __pyx_string_tab[296]
+#define __pyx_kp_b__2 __pyx_string_tab[297]
+#define __pyx_kp_b_iso88591_1 __pyx_string_tab[298]
+#define __pyx_kp_b_iso88591_1A_7_AU_c_q_1_6_1Cz_BgQ_1 __pyx_string_tab[299]
+#define __pyx_kp_b_iso88591_33C_j_k_E_E_F_4A_4vS_AQ_T_r_U_e __pyx_string_tab[300]
+#define __pyx_kp_b_iso88591_A_r_F_q_1 __pyx_string_tab[301]
+#define __pyx_kp_b_iso88591_BBVV_ffz_M_M_m_m_Q_Q_g_g_A_A_y __pyx_string_tab[302]
+#define __pyx_kp_b_iso88591_J_BBTTdde_aq_1A_q_2_Q_A_4vS_1_T __pyx_string_tab[303]
+#define __pyx_kp_b_iso88591_Kz_DXXjjk __pyx_string_tab[304]
+#define __pyx_kp_b_iso88591_Q __pyx_string_tab[305]
+#define __pyx_kp_b_iso88591_S_4r_Qaq __pyx_string_tab[306]
+#define __pyx_kp_b_iso88591_k_4vS_a_T_r_U_e6_5_4wd_WE_2S_7 __pyx_string_tab[307]
+#define __pyx_kp_b_iso88591_n_d_s_A_2_4_A_q_r_az_1_2Qk_a_3a __pyx_string_tab[308]
+#define __pyx_kp_b_iso88591_uAQ_xr_r_V6_Qe1Kq_xr_r_1Cq_V1IQ __pyx_string_tab[309]
 #define __pyx_float_0_0 __pyx_number_tab[0]
 #define __pyx_float_0_20 __pyx_number_tab[1]
 #define __pyx_int_0 __pyx_number_tab[2]
@@ -3559,9 +3628,9 @@ static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_type_5mappy___pyx_scope_struct__map);
   Py_CLEAR(clear_module_state->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read);
   Py_CLEAR(clear_module_state->__pyx_type_5mappy___pyx_scope_struct_1_fastx_read);
-  for (int i=0; i<7; ++i) { Py_CLEAR(clear_module_state->__pyx_tuple[i]); }
-  for (int i=0; i<16; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<249; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<8; ++i) { Py_CLEAR(clear_module_state->__pyx_tuple[i]); }
+  for (int i=0; i<17; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<310; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<14; ++i) { Py_CLEAR(clear_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_clear_contents ### */
 /* CommonTypesMetaclass.module_state_clear */
@@ -3598,9 +3667,9 @@ static CYTHON_SMALL_CODE int __pyx_m_traverse(PyObject *m, visitproc visit, void
   Py_VISIT(traverse_module_state->__pyx_type_5mappy___pyx_scope_struct__map);
   Py_VISIT(traverse_module_state->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read);
   Py_VISIT(traverse_module_state->__pyx_type_5mappy___pyx_scope_struct_1_fastx_read);
-  for (int i=0; i<7; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_tuple[i]); }
-  for (int i=0; i<16; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<249; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<8; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_tuple[i]); }
+  for (int i=0; i<17; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<310; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<14; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_traverse_contents ### */
 /* CommonTypesMetaclass.module_state_traverse */
@@ -11224,7 +11293,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9map_batch(struct __pyx_obj_5mappy_Ali
  *                 results = NULL
  *             free(seqs)             # <<<<<<<<<<<<<<
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):
 */
         free(__pyx_v_seqs);
       }
@@ -11317,7 +11386,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9map_batch(struct __pyx_obj_5mappy_Ali
  *                 results = NULL
  *             free(seqs)             # <<<<<<<<<<<<<<
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):
 */
       free(__pyx_v_seqs);
       __pyx_r = __pyx_t_24;
@@ -11361,7 +11430,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9map_batch(struct __pyx_obj_5mappy_Ali
 /* "mappy.pyx":401
  *             free(seqs)
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):             # <<<<<<<<<<<<<<
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq_file_t *reader = NULL
  *         cdef cmappy.mm_bseq1_t *seqs = NULL
 */
@@ -11395,11 +11464,16 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   PyObject *__pyx_v_progress_every = 0;
   PyObject *__pyx_v_batch_bases = 0;
   PyObject *__pyx_v_batch_reads = 0;
+  PyObject *__pyx_v_ref_analysis_prefix = 0;
+  PyObject *__pyx_v_ref_analysis_min_mapq = 0;
+  PyObject *__pyx_v_ref_analysis_min_aln_len = 0;
+  PyObject *__pyx_v_ref_analysis_use_qual = 0;
+  PyObject *__pyx_v_ref_analysis_count_reads = 0;
   #if !CYTHON_METH_FASTCALL
   CYTHON_UNUSED Py_ssize_t __pyx_nargs;
   #endif
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
-  PyObject* values[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+  PyObject* values[18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -11415,11 +11489,31 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   #endif
   __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
   {
-    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_query_path,&__pyx_mstate_global->__pyx_n_u_output_path,&__pyx_mstate_global->__pyx_n_u_output_format,&__pyx_mstate_global->__pyx_n_u_n_threads,&__pyx_mstate_global->__pyx_n_u_cs,&__pyx_mstate_global->__pyx_n_u_MD,&__pyx_mstate_global->__pyx_n_u_max_frag_len,&__pyx_mstate_global->__pyx_n_u_extra_flags,&__pyx_mstate_global->__pyx_n_u_verbose,&__pyx_mstate_global->__pyx_n_u_total_reads,&__pyx_mstate_global->__pyx_n_u_progress_every,&__pyx_mstate_global->__pyx_n_u_batch_bases,&__pyx_mstate_global->__pyx_n_u_batch_reads,0};
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_query_path,&__pyx_mstate_global->__pyx_n_u_output_path,&__pyx_mstate_global->__pyx_n_u_output_format,&__pyx_mstate_global->__pyx_n_u_n_threads,&__pyx_mstate_global->__pyx_n_u_cs,&__pyx_mstate_global->__pyx_n_u_MD,&__pyx_mstate_global->__pyx_n_u_max_frag_len,&__pyx_mstate_global->__pyx_n_u_extra_flags,&__pyx_mstate_global->__pyx_n_u_verbose,&__pyx_mstate_global->__pyx_n_u_total_reads,&__pyx_mstate_global->__pyx_n_u_progress_every,&__pyx_mstate_global->__pyx_n_u_batch_bases,&__pyx_mstate_global->__pyx_n_u_batch_reads,&__pyx_mstate_global->__pyx_n_u_ref_analysis_prefix,&__pyx_mstate_global->__pyx_n_u_ref_analysis_min_mapq,&__pyx_mstate_global->__pyx_n_u_ref_analysis_min_aln_len,&__pyx_mstate_global->__pyx_n_u_ref_analysis_use_qual,&__pyx_mstate_global->__pyx_n_u_ref_analysis_count_reads,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
     if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 401, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
+        case 18:
+        values[17] = __Pyx_ArgRef_FASTCALL(__pyx_args, 17);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[17])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 17:
+        values[16] = __Pyx_ArgRef_FASTCALL(__pyx_args, 16);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[16])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 16:
+        values[15] = __Pyx_ArgRef_FASTCALL(__pyx_args, 15);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[15])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 15:
+        values[14] = __Pyx_ArgRef_FASTCALL(__pyx_args, 14);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[14])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 14:
+        values[13] = __Pyx_ArgRef_FASTCALL(__pyx_args, 13);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[13])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
         case 13:
         values[12] = __Pyx_ArgRef_FASTCALL(__pyx_args, 12);
         if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[12])) __PYX_ERR(0, 401, __pyx_L3_error)
@@ -11489,11 +11583,36 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       if (!values[10]) values[10] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_1000));
       if (!values[11]) values[11] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_33554432));
       if (!values[12]) values[12] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_4096));
+      if (!values[13]) values[13] = __Pyx_NewRef(((PyObject *)Py_None));
+      if (!values[14]) values[14] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[15]) values[15] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[16]) values[16] = __Pyx_NewRef(((PyObject *)Py_True));
+      if (!values[17]) values[17] = __Pyx_NewRef(((PyObject *)Py_False));
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("map_file", 0, 1, 13, i); __PYX_ERR(0, 401, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("map_file", 0, 1, 18, i); __PYX_ERR(0, 401, __pyx_L3_error) }
       }
     } else {
       switch (__pyx_nargs) {
+        case 18:
+        values[17] = __Pyx_ArgRef_FASTCALL(__pyx_args, 17);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[17])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 17:
+        values[16] = __Pyx_ArgRef_FASTCALL(__pyx_args, 16);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[16])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 16:
+        values[15] = __Pyx_ArgRef_FASTCALL(__pyx_args, 15);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[15])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 15:
+        values[14] = __Pyx_ArgRef_FASTCALL(__pyx_args, 14);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[14])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case 14:
+        values[13] = __Pyx_ArgRef_FASTCALL(__pyx_args, 13);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[13])) __PYX_ERR(0, 401, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
         case 13:
         values[12] = __Pyx_ArgRef_FASTCALL(__pyx_args, 12);
         if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[12])) __PYX_ERR(0, 401, __pyx_L3_error)
@@ -11560,6 +11679,11 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       if (!values[10]) values[10] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_1000));
       if (!values[11]) values[11] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_33554432));
       if (!values[12]) values[12] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_4096));
+      if (!values[13]) values[13] = __Pyx_NewRef(((PyObject *)Py_None));
+      if (!values[14]) values[14] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[15]) values[15] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[16]) values[16] = __Pyx_NewRef(((PyObject *)Py_True));
+      if (!values[17]) values[17] = __Pyx_NewRef(((PyObject *)Py_False));
     }
     __pyx_v_query_path = values[0];
     __pyx_v_output_path = values[1];
@@ -11574,10 +11698,15 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
     __pyx_v_progress_every = values[10];
     __pyx_v_batch_bases = values[11];
     __pyx_v_batch_reads = values[12];
+    __pyx_v_ref_analysis_prefix = values[13];
+    __pyx_v_ref_analysis_min_mapq = values[14];
+    __pyx_v_ref_analysis_min_aln_len = values[15];
+    __pyx_v_ref_analysis_use_qual = values[16];
+    __pyx_v_ref_analysis_count_reads = values[17];
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("map_file", 0, 1, 13, __pyx_nargs); __PYX_ERR(0, 401, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("map_file", 0, 1, 18, __pyx_nargs); __PYX_ERR(0, 401, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11588,7 +11717,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5mappy_7Aligner_11map_file(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v_query_path, __pyx_v_output_path, __pyx_v_output_format, __pyx_v_n_threads, __pyx_v_cs, __pyx_v_MD, __pyx_v_max_frag_len, __pyx_v_extra_flags, __pyx_v_verbose, __pyx_v_total_reads, __pyx_v_progress_every, __pyx_v_batch_bases, __pyx_v_batch_reads);
+  __pyx_r = __pyx_pf_5mappy_7Aligner_11map_file(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v_query_path, __pyx_v_output_path, __pyx_v_output_format, __pyx_v_n_threads, __pyx_v_cs, __pyx_v_MD, __pyx_v_max_frag_len, __pyx_v_extra_flags, __pyx_v_verbose, __pyx_v_total_reads, __pyx_v_progress_every, __pyx_v_batch_bases, __pyx_v_batch_reads, __pyx_v_ref_analysis_prefix, __pyx_v_ref_analysis_min_mapq, __pyx_v_ref_analysis_min_aln_len, __pyx_v_ref_analysis_use_qual, __pyx_v_ref_analysis_count_reads);
 
   /* function exit code */
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
@@ -11598,15 +11727,19 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_output_path, PyObject *__pyx_v_output_format, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags, PyObject *__pyx_v_verbose, PyObject *__pyx_v_total_reads, PyObject *__pyx_v_progress_every, PyObject *__pyx_v_batch_bases, PyObject *__pyx_v_batch_reads) {
+static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_output_path, PyObject *__pyx_v_output_format, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_cs, PyObject *__pyx_v_MD, PyObject *__pyx_v_max_frag_len, PyObject *__pyx_v_extra_flags, PyObject *__pyx_v_verbose, PyObject *__pyx_v_total_reads, PyObject *__pyx_v_progress_every, PyObject *__pyx_v_batch_bases, PyObject *__pyx_v_batch_reads, PyObject *__pyx_v_ref_analysis_prefix, PyObject *__pyx_v_ref_analysis_min_mapq, PyObject *__pyx_v_ref_analysis_min_aln_len, PyObject *__pyx_v_ref_analysis_use_qual, PyObject *__pyx_v_ref_analysis_count_reads) {
   mm_bseq_file_t *__pyx_v_reader;
   mm_bseq1_t *__pyx_v_seqs;
   mm_bseq1_t *__pyx_v_chunk_seqs;
   mappy_map_result_t *__pyx_v_results;
   mm_mapopt_t __pyx_v_map_opt;
+  mm_ref_analysis_opt_t __pyx_v_ref_analysis_opt;
+  mm_ref_analysis_collect_t *__pyx_v_ref_collect;
+  mm_ref_analysis_result_t *__pyx_v_ref_result;
   FILE *__pyx_v_out_fp;
   PyObject *__pyx_v_query_b = 0;
   PyObject *__pyx_v_output_b = 0;
+  PyObject *__pyx_v_ref_prefix_b = 0;
   int __pyx_v_output_code;
   int __pyx_v_n_batch;
   int __pyx_v_chunk_n;
@@ -11633,24 +11766,26 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   int __pyx_t_6;
   mm_mapopt_t __pyx_t_7;
   int64_t __pyx_t_8;
-  PyObject *__pyx_t_9 = NULL;
-  char const *__pyx_t_10;
-  PyObject *__pyx_t_11 = NULL;
-  char const *__pyx_t_12;
-  int __pyx_t_13;
+  int32_t __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
+  char const *__pyx_t_11;
+  PyObject *__pyx_t_12 = NULL;
+  char const *__pyx_t_13;
   int __pyx_t_14;
-  PyObject *__pyx_t_15 = NULL;
+  int __pyx_t_15;
   PyObject *__pyx_t_16 = NULL;
   PyObject *__pyx_t_17 = NULL;
-  char const *__pyx_t_18;
-  PyObject *__pyx_t_19 = NULL;
+  PyObject *__pyx_t_18 = NULL;
+  char const *__pyx_t_19;
   PyObject *__pyx_t_20 = NULL;
   PyObject *__pyx_t_21 = NULL;
   PyObject *__pyx_t_22 = NULL;
   PyObject *__pyx_t_23 = NULL;
   PyObject *__pyx_t_24 = NULL;
-  char const *__pyx_t_25;
+  PyObject *__pyx_t_25 = NULL;
   char const *__pyx_t_26;
+  char const *__pyx_t_27;
+  char const *__pyx_t_28;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -11662,7 +11797,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 
   /* "mappy.pyx":402
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):
  *         cdef cmappy.mm_bseq_file_t *reader = NULL             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq1_t *seqs = NULL
  *         cdef cmappy.mm_bseq1_t *chunk_seqs
@@ -11670,7 +11805,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_v_reader = NULL;
 
   /* "mappy.pyx":403
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):
  *         cdef cmappy.mm_bseq_file_t *reader = NULL
  *         cdef cmappy.mm_bseq1_t *seqs = NULL             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq1_t *chunk_seqs
@@ -11683,31 +11818,49 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *         cdef cmappy.mm_bseq1_t *chunk_seqs
  *         cdef cmappy.mappy_map_result_t *results = NULL             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_mapopt_t map_opt
- *         cdef FILE *out_fp = stdout
+ *         cdef cmappy.mm_ref_analysis_opt_t ref_analysis_opt
 */
   __pyx_v_results = NULL;
 
-  /* "mappy.pyx":407
- *         cdef cmappy.mappy_map_result_t *results = NULL
+  /* "mappy.pyx":408
  *         cdef cmappy.mm_mapopt_t map_opt
+ *         cdef cmappy.mm_ref_analysis_opt_t ref_analysis_opt
+ *         cdef cmappy.mm_ref_analysis_collect_t *ref_collect = NULL             # <<<<<<<<<<<<<<
+ *         cdef cmappy.mm_ref_analysis_result_t *ref_result = NULL
+ *         cdef FILE *out_fp = stdout
+*/
+  __pyx_v_ref_collect = NULL;
+
+  /* "mappy.pyx":409
+ *         cdef cmappy.mm_ref_analysis_opt_t ref_analysis_opt
+ *         cdef cmappy.mm_ref_analysis_collect_t *ref_collect = NULL
+ *         cdef cmappy.mm_ref_analysis_result_t *ref_result = NULL             # <<<<<<<<<<<<<<
+ *         cdef FILE *out_fp = stdout
+ *         cdef bytes query_b
+*/
+  __pyx_v_ref_result = NULL;
+
+  /* "mappy.pyx":410
+ *         cdef cmappy.mm_ref_analysis_collect_t *ref_collect = NULL
+ *         cdef cmappy.mm_ref_analysis_result_t *ref_result = NULL
  *         cdef FILE *out_fp = stdout             # <<<<<<<<<<<<<<
  *         cdef bytes query_b
  *         cdef bytes output_b
 */
   __pyx_v_out_fp = stdout;
 
-  /* "mappy.pyx":410
- *         cdef bytes query_b
+  /* "mappy.pyx":414
  *         cdef bytes output_b
+ *         cdef bytes ref_prefix_b
  *         cdef int output_code = _output_format_code(output_format)             # <<<<<<<<<<<<<<
  *         cdef int n_batch = 0
  *         cdef int chunk_n
 */
-  __pyx_t_1 = __pyx_f_5mappy__output_format_code(__pyx_v_output_format); if (unlikely(__pyx_t_1 == ((int)-1) && PyErr_Occurred())) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5mappy__output_format_code(__pyx_v_output_format); if (unlikely(__pyx_t_1 == ((int)-1) && PyErr_Occurred())) __PYX_ERR(0, 414, __pyx_L1_error)
   __pyx_v_output_code = __pyx_t_1;
 
-  /* "mappy.pyx":411
- *         cdef bytes output_b
+  /* "mappy.pyx":415
+ *         cdef bytes ref_prefix_b
  *         cdef int output_code = _output_format_code(output_format)
  *         cdef int n_batch = 0             # <<<<<<<<<<<<<<
  *         cdef int chunk_n
@@ -11715,7 +11868,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_v_n_batch = 0;
 
-  /* "mappy.pyx":420
+  /* "mappy.pyx":424
  *         cdef int chunk_mapped
  *         cdef int i
  *         cdef long processed = 0             # <<<<<<<<<<<<<<
@@ -11724,7 +11877,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_v_processed = 0;
 
-  /* "mappy.pyx":421
+  /* "mappy.pyx":425
  *         cdef int i
  *         cdef long processed = 0
  *         cdef long mapped = 0             # <<<<<<<<<<<<<<
@@ -11733,7 +11886,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_v_mapped = 0;
 
-  /* "mappy.pyx":422
+  /* "mappy.pyx":426
  *         cdef long processed = 0
  *         cdef long mapped = 0
  *         cdef long last_reported = 0             # <<<<<<<<<<<<<<
@@ -11742,7 +11895,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_v_last_reported = 0;
 
-  /* "mappy.pyx":423
+  /* "mappy.pyx":427
  *         cdef long mapped = 0
  *         cdef long last_reported = 0
  *         cdef long batch_no = 0             # <<<<<<<<<<<<<<
@@ -11751,7 +11904,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_v_batch_no = 0;
 
-  /* "mappy.pyx":427
+  /* "mappy.pyx":431
  *         cdef object stats
  * 
  *         if self._idx == NULL:             # <<<<<<<<<<<<<<
@@ -11761,7 +11914,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_t_2 = (__pyx_v_self->_idx == NULL);
   if (unlikely(__pyx_t_2)) {
 
-    /* "mappy.pyx":428
+    /* "mappy.pyx":432
  * 
  *         if self._idx == NULL:
  *             raise ValueError('index is not loaded')             # <<<<<<<<<<<<<<
@@ -11774,14 +11927,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
       PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_index_is_not_loaded};
       __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 428, __pyx_L1_error)
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 432, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     }
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 428, __pyx_L1_error)
+    __PYX_ERR(0, 432, __pyx_L1_error)
 
-    /* "mappy.pyx":427
+    /* "mappy.pyx":431
  *         cdef object stats
  * 
  *         if self._idx == NULL:             # <<<<<<<<<<<<<<
@@ -11790,7 +11943,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":429
+  /* "mappy.pyx":433
  *         if self._idx == NULL:
  *             raise ValueError('index is not loaded')
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):             # <<<<<<<<<<<<<<
@@ -11808,7 +11961,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_L5_bool_binop_done:;
   if (unlikely(__pyx_t_2)) {
 
-    /* "mappy.pyx":430
+    /* "mappy.pyx":434
  *             raise ValueError('index is not loaded')
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
  *             raise ValueError('alignment output requires reference sequences in the index')             # <<<<<<<<<<<<<<
@@ -11821,14 +11974,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
       PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_alignment_output_requires_refere};
       __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 430, __pyx_L1_error)
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 434, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     }
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 430, __pyx_L1_error)
+    __PYX_ERR(0, 434, __pyx_L1_error)
 
-    /* "mappy.pyx":429
+    /* "mappy.pyx":433
  *         if self._idx == NULL:
  *             raise ValueError('index is not loaded')
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):             # <<<<<<<<<<<<<<
@@ -11837,7 +11990,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":432
+  /* "mappy.pyx":436
  *             raise ValueError('alignment output requires reference sequences in the index')
  * 
  *         if n_threads is None or n_threads < 1:             # <<<<<<<<<<<<<<
@@ -11850,14 +12003,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __pyx_t_2 = __pyx_t_6;
     goto __pyx_L8_bool_binop_done;
   }
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_n_threads, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 432, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 432, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_n_threads, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 436, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 436, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_2 = __pyx_t_6;
   __pyx_L8_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":433
+    /* "mappy.pyx":437
  * 
  *         if n_threads is None or n_threads < 1:
  *             n_threads = 1             # <<<<<<<<<<<<<<
@@ -11867,7 +12020,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __Pyx_INCREF(__pyx_mstate_global->__pyx_int_1);
     __Pyx_DECREF_SET(__pyx_v_n_threads, __pyx_mstate_global->__pyx_int_1);
 
-    /* "mappy.pyx":432
+    /* "mappy.pyx":436
  *             raise ValueError('alignment output requires reference sequences in the index')
  * 
  *         if n_threads is None or n_threads < 1:             # <<<<<<<<<<<<<<
@@ -11876,17 +12029,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":434
+  /* "mappy.pyx":438
  *         if n_threads is None or n_threads < 1:
  *             n_threads = 1
  *         thread_count = <int>n_threads             # <<<<<<<<<<<<<<
  *         if batch_reads is None or batch_reads < 1:
  *             batch_reads = 4096
 */
-  __pyx_t_1 = __Pyx_PyLong_As_int(__pyx_v_n_threads); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 434, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_As_int(__pyx_v_n_threads); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 438, __pyx_L1_error)
   __pyx_v_thread_count = ((int)__pyx_t_1);
 
-  /* "mappy.pyx":435
+  /* "mappy.pyx":439
  *             n_threads = 1
  *         thread_count = <int>n_threads
  *         if batch_reads is None or batch_reads < 1:             # <<<<<<<<<<<<<<
@@ -11899,14 +12052,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __pyx_t_2 = __pyx_t_6;
     goto __pyx_L11_bool_binop_done;
   }
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_batch_reads, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 435, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 435, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_batch_reads, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 439, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 439, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_2 = __pyx_t_6;
   __pyx_L11_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":436
+    /* "mappy.pyx":440
  *         thread_count = <int>n_threads
  *         if batch_reads is None or batch_reads < 1:
  *             batch_reads = 4096             # <<<<<<<<<<<<<<
@@ -11916,7 +12069,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __Pyx_INCREF(__pyx_mstate_global->__pyx_int_4096);
     __Pyx_DECREF_SET(__pyx_v_batch_reads, __pyx_mstate_global->__pyx_int_4096);
 
-    /* "mappy.pyx":435
+    /* "mappy.pyx":439
  *             n_threads = 1
  *         thread_count = <int>n_threads
  *         if batch_reads is None or batch_reads < 1:             # <<<<<<<<<<<<<<
@@ -11925,7 +12078,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":437
+  /* "mappy.pyx":441
  *         if batch_reads is None or batch_reads < 1:
  *             batch_reads = 4096
  *         if batch_bases is None or batch_bases < 1:             # <<<<<<<<<<<<<<
@@ -11938,14 +12091,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __pyx_t_2 = __pyx_t_6;
     goto __pyx_L14_bool_binop_done;
   }
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_batch_bases, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 437, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 437, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_batch_bases, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 441, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 441, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_2 = __pyx_t_6;
   __pyx_L14_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":438
+    /* "mappy.pyx":442
  *             batch_reads = 4096
  *         if batch_bases is None or batch_bases < 1:
  *             batch_bases = 33554432             # <<<<<<<<<<<<<<
@@ -11955,7 +12108,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __Pyx_INCREF(__pyx_mstate_global->__pyx_int_33554432);
     __Pyx_DECREF_SET(__pyx_v_batch_bases, __pyx_mstate_global->__pyx_int_33554432);
 
-    /* "mappy.pyx":437
+    /* "mappy.pyx":441
  *         if batch_reads is None or batch_reads < 1:
  *             batch_reads = 4096
  *         if batch_bases is None or batch_bases < 1:             # <<<<<<<<<<<<<<
@@ -11964,7 +12117,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":439
+  /* "mappy.pyx":443
  *         if batch_bases is None or batch_bases < 1:
  *             batch_bases = 33554432
  *         if progress_every is None or progress_every < 1:             # <<<<<<<<<<<<<<
@@ -11977,14 +12130,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __pyx_t_2 = __pyx_t_6;
     goto __pyx_L17_bool_binop_done;
   }
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_progress_every, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 439, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 439, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_progress_every, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 443, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_2 = __pyx_t_6;
   __pyx_L17_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":440
+    /* "mappy.pyx":444
  *             batch_bases = 33554432
  *         if progress_every is None or progress_every < 1:
  *             progress_every = 1000             # <<<<<<<<<<<<<<
@@ -11994,7 +12147,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     __Pyx_INCREF(__pyx_mstate_global->__pyx_int_1000);
     __Pyx_DECREF_SET(__pyx_v_progress_every, __pyx_mstate_global->__pyx_int_1000);
 
-    /* "mappy.pyx":439
+    /* "mappy.pyx":443
  *         if batch_bases is None or batch_bases < 1:
  *             batch_bases = 33554432
  *         if progress_every is None or progress_every < 1:             # <<<<<<<<<<<<<<
@@ -12003,7 +12156,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":442
+  /* "mappy.pyx":446
  *             progress_every = 1000
  * 
  *         map_opt = self.map_opt             # <<<<<<<<<<<<<<
@@ -12013,7 +12166,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_t_7 = __pyx_v_self->map_opt;
   __pyx_v_map_opt = __pyx_t_7;
 
-  /* "mappy.pyx":443
+  /* "mappy.pyx":447
  * 
  *         map_opt = self.map_opt
  *         if max_frag_len is not None: map_opt.max_frag_len = max_frag_len             # <<<<<<<<<<<<<<
@@ -12022,11 +12175,11 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_t_2 = (__pyx_v_max_frag_len != Py_None);
   if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyLong_As_int(__pyx_v_max_frag_len); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 443, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyLong_As_int(__pyx_v_max_frag_len); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 447, __pyx_L1_error)
     __pyx_v_map_opt.max_frag_len = __pyx_t_1;
   }
 
-  /* "mappy.pyx":444
+  /* "mappy.pyx":448
  *         map_opt = self.map_opt
  *         if max_frag_len is not None: map_opt.max_frag_len = max_frag_len
  *         if extra_flags is not None: map_opt.flag |= extra_flags             # <<<<<<<<<<<<<<
@@ -12035,17 +12188,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __pyx_t_2 = (__pyx_v_extra_flags != Py_None);
   if (__pyx_t_2) {
-    __pyx_t_3 = __Pyx_PyLong_From_int64_t(__pyx_v_map_opt.flag); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 444, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyLong_From_int64_t(__pyx_v_map_opt.flag); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyNumber_InPlaceOr(__pyx_t_3, __pyx_v_extra_flags); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 444, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_InPlaceOr(__pyx_t_3, __pyx_v_extra_flags); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 448, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_t_4); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 444, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_t_4); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 448, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_v_map_opt.flag = __pyx_t_8;
   }
 
-  /* "mappy.pyx":445
+  /* "mappy.pyx":449
  *         if max_frag_len is not None: map_opt.max_frag_len = max_frag_len
  *         if extra_flags is not None: map_opt.flag |= extra_flags
  *         if output_code == MAPPY_OUTPUT_SAM:             # <<<<<<<<<<<<<<
@@ -12055,7 +12208,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_t_2 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_SAM);
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":446
+    /* "mappy.pyx":450
  *         if extra_flags is not None: map_opt.flag |= extra_flags
  *         if output_code == MAPPY_OUTPUT_SAM:
  *             map_opt.flag |= MM_F_OUT_SAM             # <<<<<<<<<<<<<<
@@ -12064,7 +12217,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     __pyx_v_map_opt.flag = (__pyx_v_map_opt.flag | __pyx_v_5mappy_MM_F_OUT_SAM);
 
-    /* "mappy.pyx":445
+    /* "mappy.pyx":449
  *         if max_frag_len is not None: map_opt.max_frag_len = max_frag_len
  *         if extra_flags is not None: map_opt.flag |= extra_flags
  *         if output_code == MAPPY_OUTPUT_SAM:             # <<<<<<<<<<<<<<
@@ -12074,7 +12227,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
     goto __pyx_L21;
   }
 
-  /* "mappy.pyx":447
+  /* "mappy.pyx":451
  *         if output_code == MAPPY_OUTPUT_SAM:
  *             map_opt.flag |= MM_F_OUT_SAM
  *         elif output_code == MAPPY_OUTPUT_PAF:             # <<<<<<<<<<<<<<
@@ -12084,7 +12237,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_t_2 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_PAF);
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":448
+    /* "mappy.pyx":452
  *             map_opt.flag |= MM_F_OUT_SAM
  *         elif output_code == MAPPY_OUTPUT_PAF:
  *             map_opt.flag |= MM_F_OUT_CG             # <<<<<<<<<<<<<<
@@ -12093,7 +12246,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     __pyx_v_map_opt.flag = (__pyx_v_map_opt.flag | __pyx_v_5mappy_MM_F_OUT_CG);
 
-    /* "mappy.pyx":447
+    /* "mappy.pyx":451
  *         if output_code == MAPPY_OUTPUT_SAM:
  *             map_opt.flag |= MM_F_OUT_SAM
  *         elif output_code == MAPPY_OUTPUT_PAF:             # <<<<<<<<<<<<<<
@@ -12103,17 +12256,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   }
   __pyx_L21:;
 
-  /* "mappy.pyx":449
+  /* "mappy.pyx":453
  *         elif output_code == MAPPY_OUTPUT_PAF:
  *             map_opt.flag |= MM_F_OUT_CG
  *         if cs:             # <<<<<<<<<<<<<<
  *             map_opt.flag |= MM_F_OUT_CS
  *         if MD:
 */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_cs); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 449, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_cs); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 453, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":450
+    /* "mappy.pyx":454
  *             map_opt.flag |= MM_F_OUT_CG
  *         if cs:
  *             map_opt.flag |= MM_F_OUT_CS             # <<<<<<<<<<<<<<
@@ -12122,7 +12275,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     __pyx_v_map_opt.flag = (__pyx_v_map_opt.flag | __pyx_v_5mappy_MM_F_OUT_CS);
 
-    /* "mappy.pyx":449
+    /* "mappy.pyx":453
  *         elif output_code == MAPPY_OUTPUT_PAF:
  *             map_opt.flag |= MM_F_OUT_CG
  *         if cs:             # <<<<<<<<<<<<<<
@@ -12131,26 +12284,26 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":451
+  /* "mappy.pyx":455
  *         if cs:
  *             map_opt.flag |= MM_F_OUT_CS
  *         if MD:             # <<<<<<<<<<<<<<
  *             map_opt.flag |= MM_F_OUT_MD
  * 
 */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_MD); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 451, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_MD); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 455, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "mappy.pyx":452
+    /* "mappy.pyx":456
  *             map_opt.flag |= MM_F_OUT_CS
  *         if MD:
  *             map_opt.flag |= MM_F_OUT_MD             # <<<<<<<<<<<<<<
  * 
- *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+ *         if ref_analysis_prefix not in (None, ''):
 */
     __pyx_v_map_opt.flag = (__pyx_v_map_opt.flag | __pyx_v_5mappy_MM_F_OUT_MD);
 
-    /* "mappy.pyx":451
+    /* "mappy.pyx":455
  *         if cs:
  *             map_opt.flag |= MM_F_OUT_CS
  *         if MD:             # <<<<<<<<<<<<<<
@@ -12159,33 +12312,217 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":454
+  /* "mappy.pyx":458
  *             map_opt.flag |= MM_F_OUT_MD
+ * 
+ *         if ref_analysis_prefix not in (None, ''):             # <<<<<<<<<<<<<<
+ *             cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+*/
+  __Pyx_INCREF(__pyx_v_ref_analysis_prefix);
+  __pyx_t_4 = __pyx_v_ref_analysis_prefix;
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_4, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 458, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 458, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_6) {
+  } else {
+    __pyx_t_2 = __pyx_t_6;
+    goto __pyx_L25_bool_binop_done;
+  }
+  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_t_4, __pyx_mstate_global->__pyx_kp_u__2, Py_NE)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 458, __pyx_L1_error)
+  __pyx_t_2 = __pyx_t_6;
+  __pyx_L25_bool_binop_done:;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_6 = __pyx_t_2;
+  if (__pyx_t_6) {
+
+    /* "mappy.pyx":459
+ * 
+ *         if ref_analysis_prefix not in (None, ''):
+ *             cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)             # <<<<<<<<<<<<<<
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+ *             ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len
+*/
+    mm_ref_analysis_opt_init((&__pyx_v_ref_analysis_opt));
+
+    /* "mappy.pyx":460
+ *         if ref_analysis_prefix not in (None, ''):
+ *             cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq             # <<<<<<<<<<<<<<
+ *             ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len
+ *             ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0
+*/
+    __pyx_t_9 = __Pyx_PyLong_As_int32_t(__pyx_v_ref_analysis_min_mapq); if (unlikely((__pyx_t_9 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 460, __pyx_L1_error)
+    __pyx_v_ref_analysis_opt.min_mapq = __pyx_t_9;
+
+    /* "mappy.pyx":461
+ *             cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+ *             ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len             # <<<<<<<<<<<<<<
+ *             ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+*/
+    __pyx_t_9 = __Pyx_PyLong_As_int32_t(__pyx_v_ref_analysis_min_aln_len); if (unlikely((__pyx_t_9 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 461, __pyx_L1_error)
+    __pyx_v_ref_analysis_opt.min_aln_len = __pyx_t_9;
+
+    /* "mappy.pyx":462
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+ *             ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len
+ *             ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0             # <<<<<<<<<<<<<<
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+*/
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_ref_analysis_use_qual); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 462, __pyx_L1_error)
+    if (__pyx_t_6) {
+      __pyx_t_9 = 1;
+    } else {
+      __pyx_t_9 = 0;
+    }
+    __pyx_v_ref_analysis_opt.use_qual = __pyx_t_9;
+
+    /* "mappy.pyx":463
+ *             ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len
+ *             ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0             # <<<<<<<<<<<<<<
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+ *             if ref_collect == NULL:
+*/
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_ref_analysis_count_reads); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 463, __pyx_L1_error)
+    if (__pyx_t_6) {
+      __pyx_t_9 = 1;
+    } else {
+      __pyx_t_9 = 0;
+    }
+    __pyx_v_ref_analysis_opt.count_reads_for_eta = __pyx_t_9;
+
+    /* "mappy.pyx":464
+ *             ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)             # <<<<<<<<<<<<<<
+ *             if ref_collect == NULL:
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+*/
+    __pyx_v_ref_collect = mm_ref_analysis_collect_init(__pyx_v_self->_idx, (&__pyx_v_ref_analysis_opt));
+
+    /* "mappy.pyx":465
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+ *             if ref_collect == NULL:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+ *             if total_reads > 0:
+*/
+    __pyx_t_6 = (__pyx_v_ref_collect == NULL);
+    if (unlikely(__pyx_t_6)) {
+
+      /* "mappy.pyx":466
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+ *             if ref_collect == NULL:
+ *                 raise MemoryError('unable to initialize reference analysis collector')             # <<<<<<<<<<<<<<
+ *             if total_reads > 0:
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)
+*/
+      __pyx_t_3 = NULL;
+      __pyx_t_5 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_mstate_global->__pyx_kp_u_unable_to_initialize_reference_a};
+        __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 466, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+      }
+      __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_ERR(0, 466, __pyx_L1_error)
+
+      /* "mappy.pyx":465
+ *             ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+ *             ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+ *             if ref_collect == NULL:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+ *             if total_reads > 0:
+*/
+    }
+
+    /* "mappy.pyx":467
+ *             if ref_collect == NULL:
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+ *             if total_reads > 0:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)
+ *             else:
+*/
+    __pyx_t_4 = PyObject_RichCompare(__pyx_v_total_reads, __pyx_mstate_global->__pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 467, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 467, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (__pyx_t_6) {
+
+      /* "mappy.pyx":468
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+ *             if total_reads > 0:
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, 0)
+*/
+      __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_v_total_reads); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 468, __pyx_L1_error)
+      mm_ref_analysis_collect_set_total(__pyx_v_ref_collect, __pyx_t_8);
+
+      /* "mappy.pyx":467
+ *             if ref_collect == NULL:
+ *                 raise MemoryError('unable to initialize reference analysis collector')
+ *             if total_reads > 0:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)
+ *             else:
+*/
+      goto __pyx_L28;
+    }
+
+    /* "mappy.pyx":470
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)
+ *             else:
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, 0)             # <<<<<<<<<<<<<<
+ * 
+ *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+*/
+    /*else*/ {
+      mm_ref_analysis_collect_set_total(__pyx_v_ref_collect, 0);
+    }
+    __pyx_L28:;
+
+    /* "mappy.pyx":458
+ *             map_opt.flag |= MM_F_OUT_MD
+ * 
+ *         if ref_analysis_prefix not in (None, ''):             # <<<<<<<<<<<<<<
+ *             cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)
+ *             ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+*/
+  }
+
+  /* "mappy.pyx":472
+ *                 cmappy.mm_ref_analysis_collect_set_total(ref_collect, 0)
  * 
  *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()             # <<<<<<<<<<<<<<
  *         reader = cmappy.mm_bseq_open(query_b)
  *         if reader is NULL:
 */
-  __pyx_t_2 = PyBytes_Check(__pyx_v_query_path); 
-  if (__pyx_t_2) {
+  __pyx_t_6 = PyBytes_Check(__pyx_v_query_path); 
+  if (__pyx_t_6) {
     __pyx_t_3 = __pyx_v_query_path;
     __Pyx_INCREF(__pyx_t_3);
-    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_3))) __PYX_ERR(0, 454, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_3))) __PYX_ERR(0, 472, __pyx_L1_error)
     __pyx_t_4 = __pyx_t_3;
     __pyx_t_3 = 0;
   } else {
-    __pyx_t_3 = __Pyx_PyObject_Unicode(__pyx_v_query_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 454, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Unicode(__pyx_v_query_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 472, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_9 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_3), NULL, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 454, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_10 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_3), NULL, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 472, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_4 = __pyx_t_9;
-    __pyx_t_9 = 0;
+    __pyx_t_4 = __pyx_t_10;
+    __pyx_t_10 = 0;
   }
   __pyx_v_query_b = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "mappy.pyx":455
+  /* "mappy.pyx":473
  * 
  *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
  *         reader = cmappy.mm_bseq_open(query_b)             # <<<<<<<<<<<<<<
@@ -12194,48 +12531,48 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   if (unlikely(__pyx_v_query_b == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 455, __pyx_L1_error)
+    __PYX_ERR(0, 473, __pyx_L1_error)
   }
-  __pyx_t_10 = __Pyx_PyBytes_AsString(__pyx_v_query_b); if (unlikely((!__pyx_t_10) && PyErr_Occurred())) __PYX_ERR(0, 455, __pyx_L1_error)
-  __pyx_v_reader = mm_bseq_open(__pyx_t_10);
+  __pyx_t_11 = __Pyx_PyBytes_AsString(__pyx_v_query_b); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 473, __pyx_L1_error)
+  __pyx_v_reader = mm_bseq_open(__pyx_t_11);
 
-  /* "mappy.pyx":456
+  /* "mappy.pyx":474
  *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
  *         reader = cmappy.mm_bseq_open(query_b)
  *         if reader is NULL:             # <<<<<<<<<<<<<<
  *             raise OSError(f"failed to open query file: {query_path}")
  * 
 */
-  __pyx_t_2 = (__pyx_v_reader == NULL);
-  if (unlikely(__pyx_t_2)) {
+  __pyx_t_6 = (__pyx_v_reader == NULL);
+  if (unlikely(__pyx_t_6)) {
 
-    /* "mappy.pyx":457
+    /* "mappy.pyx":475
  *         reader = cmappy.mm_bseq_open(query_b)
  *         if reader is NULL:
  *             raise OSError(f"failed to open query file: {query_path}")             # <<<<<<<<<<<<<<
  * 
  *         if output_path not in (None, '-'):
 */
-    __pyx_t_9 = NULL;
-    __pyx_t_3 = __Pyx_PyObject_FormatSimple(__pyx_v_query_path, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 457, __pyx_L1_error)
+    __pyx_t_10 = NULL;
+    __pyx_t_3 = __Pyx_PyObject_FormatSimple(__pyx_v_query_path, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 475, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_11 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_failed_to_open_query_file, __pyx_t_3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 457, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
+    __pyx_t_12 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_failed_to_open_query_file, __pyx_t_3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_5 = 1;
     {
-      PyObject *__pyx_callargs[2] = {__pyx_t_9, __pyx_t_11};
+      PyObject *__pyx_callargs[2] = {__pyx_t_10, __pyx_t_12};
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_OSError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 457, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 475, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 475, __pyx_L1_error)
 
-    /* "mappy.pyx":456
+    /* "mappy.pyx":474
  *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
  *         reader = cmappy.mm_bseq_open(query_b)
  *         if reader is NULL:             # <<<<<<<<<<<<<<
@@ -12244,7 +12581,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":459
+  /* "mappy.pyx":477
  *             raise OSError(f"failed to open query file: {query_path}")
  * 
  *         if output_path not in (None, '-'):             # <<<<<<<<<<<<<<
@@ -12253,48 +12590,48 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   __Pyx_INCREF(__pyx_v_output_path);
   __pyx_t_4 = __pyx_v_output_path;
-  __pyx_t_11 = PyObject_RichCompare(__pyx_t_4, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 459, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 459, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (__pyx_t_6) {
+  __pyx_t_12 = PyObject_RichCompare(__pyx_t_4, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 477, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 477, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+  if (__pyx_t_2) {
   } else {
-    __pyx_t_2 = __pyx_t_6;
-    goto __pyx_L26_bool_binop_done;
+    __pyx_t_6 = __pyx_t_2;
+    goto __pyx_L31_bool_binop_done;
   }
-  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_t_4, __pyx_mstate_global->__pyx_kp_u__4, Py_NE)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 459, __pyx_L1_error)
-  __pyx_t_2 = __pyx_t_6;
-  __pyx_L26_bool_binop_done:;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_t_4, __pyx_mstate_global->__pyx_kp_u__4, Py_NE)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 477, __pyx_L1_error)
   __pyx_t_6 = __pyx_t_2;
-  if (__pyx_t_6) {
+  __pyx_L31_bool_binop_done:;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_2 = __pyx_t_6;
+  if (__pyx_t_2) {
 
-    /* "mappy.pyx":460
+    /* "mappy.pyx":478
  * 
  *         if output_path not in (None, '-'):
  *             output_b = output_path if isinstance(output_path, bytes) else str(output_path).encode()             # <<<<<<<<<<<<<<
  *             out_fp = fopen(output_b, b"wb")
  *             if out_fp == NULL:
 */
-    __pyx_t_6 = PyBytes_Check(__pyx_v_output_path); 
-    if (__pyx_t_6) {
-      __pyx_t_11 = __pyx_v_output_path;
-      __Pyx_INCREF(__pyx_t_11);
-      if (!(likely(PyBytes_CheckExact(__pyx_t_11))||((__pyx_t_11) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_11))) __PYX_ERR(0, 460, __pyx_L1_error)
-      __pyx_t_4 = __pyx_t_11;
-      __pyx_t_11 = 0;
+    __pyx_t_2 = PyBytes_Check(__pyx_v_output_path); 
+    if (__pyx_t_2) {
+      __pyx_t_12 = __pyx_v_output_path;
+      __Pyx_INCREF(__pyx_t_12);
+      if (!(likely(PyBytes_CheckExact(__pyx_t_12))||((__pyx_t_12) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_12))) __PYX_ERR(0, 478, __pyx_L1_error)
+      __pyx_t_4 = __pyx_t_12;
+      __pyx_t_12 = 0;
     } else {
-      __pyx_t_11 = __Pyx_PyObject_Unicode(__pyx_v_output_path); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 460, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_9 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_11), NULL, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 460, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_t_4 = __pyx_t_9;
-      __pyx_t_9 = 0;
+      __pyx_t_12 = __Pyx_PyObject_Unicode(__pyx_v_output_path); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 478, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
+      __pyx_t_10 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_12), NULL, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 478, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_4 = __pyx_t_10;
+      __pyx_t_10 = 0;
     }
     __pyx_v_output_b = ((PyObject*)__pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "mappy.pyx":461
+    /* "mappy.pyx":479
  *         if output_path not in (None, '-'):
  *             output_b = output_path if isinstance(output_path, bytes) else str(output_path).encode()
  *             out_fp = fopen(output_b, b"wb")             # <<<<<<<<<<<<<<
@@ -12303,22 +12640,22 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     if (unlikely(__pyx_v_output_b == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 461, __pyx_L1_error)
+      __PYX_ERR(0, 479, __pyx_L1_error)
     }
-    __pyx_t_12 = __Pyx_PyBytes_AsString(__pyx_v_output_b); if (unlikely((!__pyx_t_12) && PyErr_Occurred())) __PYX_ERR(0, 461, __pyx_L1_error)
-    __pyx_v_out_fp = fopen(__pyx_t_12, __pyx_k_wb);
+    __pyx_t_13 = __Pyx_PyBytes_AsString(__pyx_v_output_b); if (unlikely((!__pyx_t_13) && PyErr_Occurred())) __PYX_ERR(0, 479, __pyx_L1_error)
+    __pyx_v_out_fp = fopen(__pyx_t_13, __pyx_k_wb);
 
-    /* "mappy.pyx":462
+    /* "mappy.pyx":480
  *             output_b = output_path if isinstance(output_path, bytes) else str(output_path).encode()
  *             out_fp = fopen(output_b, b"wb")
  *             if out_fp == NULL:             # <<<<<<<<<<<<<<
  *                 cmappy.mm_bseq_close(reader)
  *                 raise OSError(f"failed to open output file: {output_path}")
 */
-    __pyx_t_6 = (__pyx_v_out_fp == NULL);
-    if (unlikely(__pyx_t_6)) {
+    __pyx_t_2 = (__pyx_v_out_fp == NULL);
+    if (unlikely(__pyx_t_2)) {
 
-      /* "mappy.pyx":463
+      /* "mappy.pyx":481
  *             out_fp = fopen(output_b, b"wb")
  *             if out_fp == NULL:
  *                 cmappy.mm_bseq_close(reader)             # <<<<<<<<<<<<<<
@@ -12327,33 +12664,33 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       mm_bseq_close(__pyx_v_reader);
 
-      /* "mappy.pyx":464
+      /* "mappy.pyx":482
  *             if out_fp == NULL:
  *                 cmappy.mm_bseq_close(reader)
  *                 raise OSError(f"failed to open output file: {output_path}")             # <<<<<<<<<<<<<<
  * 
  *         with_qual = 1 if output_code == MAPPY_OUTPUT_SAM else 0
 */
-      __pyx_t_9 = NULL;
-      __pyx_t_11 = __Pyx_PyObject_FormatSimple(__pyx_v_output_path, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 464, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_failed_to_open_output_file, __pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 464, __pyx_L1_error)
+      __pyx_t_10 = NULL;
+      __pyx_t_12 = __Pyx_PyObject_FormatSimple(__pyx_v_output_path, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 482, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
+      __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_failed_to_open_output_file, __pyx_t_12); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 482, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       __pyx_t_5 = 1;
       {
-        PyObject *__pyx_callargs[2] = {__pyx_t_9, __pyx_t_3};
+        PyObject *__pyx_callargs[2] = {__pyx_t_10, __pyx_t_3};
         __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_OSError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+        __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 464, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 482, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
       }
       __Pyx_Raise(__pyx_t_4, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 464, __pyx_L1_error)
+      __PYX_ERR(0, 482, __pyx_L1_error)
 
-      /* "mappy.pyx":462
+      /* "mappy.pyx":480
  *             output_b = output_path if isinstance(output_path, bytes) else str(output_path).encode()
  *             out_fp = fopen(output_b, b"wb")
  *             if out_fp == NULL:             # <<<<<<<<<<<<<<
@@ -12362,7 +12699,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     }
 
-    /* "mappy.pyx":459
+    /* "mappy.pyx":477
  *             raise OSError(f"failed to open query file: {query_path}")
  * 
  *         if output_path not in (None, '-'):             # <<<<<<<<<<<<<<
@@ -12371,22 +12708,22 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   }
 
-  /* "mappy.pyx":466
+  /* "mappy.pyx":484
  *                 raise OSError(f"failed to open output file: {output_path}")
  * 
  *         with_qual = 1 if output_code == MAPPY_OUTPUT_SAM else 0             # <<<<<<<<<<<<<<
  *         start_time = time.perf_counter()
  * 
 */
-  __pyx_t_6 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_SAM);
-  if (__pyx_t_6) {
+  __pyx_t_2 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_SAM);
+  if (__pyx_t_2) {
     __pyx_t_1 = 1;
   } else {
     __pyx_t_1 = 0;
   }
   __pyx_v_with_qual = __pyx_t_1;
 
-  /* "mappy.pyx":467
+  /* "mappy.pyx":485
  * 
  *         with_qual = 1 if output_code == MAPPY_OUTPUT_SAM else 0
  *         start_time = time.perf_counter()             # <<<<<<<<<<<<<<
@@ -12394,35 +12731,35 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *         try:
 */
   __pyx_t_3 = NULL;
-  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_12);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __pyx_t_5 = 1;
   #if CYTHON_UNPACK_METHODS
-  if (unlikely(PyMethod_Check(__pyx_t_11))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_11);
+  if (unlikely(PyMethod_Check(__pyx_t_12))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_12);
     assert(__pyx_t_3);
-    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_11);
+    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_12);
     __Pyx_INCREF(__pyx_t_3);
     __Pyx_INCREF(__pyx__function);
-    __Pyx_DECREF_SET(__pyx_t_11, __pyx__function);
+    __Pyx_DECREF_SET(__pyx_t_12, __pyx__function);
     __pyx_t_5 = 0;
   }
   #endif
   {
     PyObject *__pyx_callargs[2] = {__pyx_t_3, NULL};
-    __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_11, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_12, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 467, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 485, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
   }
   __pyx_v_start_time = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "mappy.pyx":469
+  /* "mappy.pyx":487
  *         start_time = time.perf_counter()
  * 
  *         try:             # <<<<<<<<<<<<<<
@@ -12431,17 +12768,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   /*try:*/ {
 
-    /* "mappy.pyx":470
+    /* "mappy.pyx":488
  * 
  *         try:
  *             if output_code == MAPPY_OUTPUT_SAM:             # <<<<<<<<<<<<<<
  *                 rc = cmappy.mappy_write_sam_header(out_fp, self._idx)
  *                 if rc != 0:
 */
-    __pyx_t_6 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_SAM);
-    if (__pyx_t_6) {
+    __pyx_t_2 = (__pyx_v_output_code == __pyx_v_5mappy_MAPPY_OUTPUT_SAM);
+    if (__pyx_t_2) {
 
-      /* "mappy.pyx":471
+      /* "mappy.pyx":489
  *         try:
  *             if output_code == MAPPY_OUTPUT_SAM:
  *                 rc = cmappy.mappy_write_sam_header(out_fp, self._idx)             # <<<<<<<<<<<<<<
@@ -12450,37 +12787,37 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       __pyx_v_rc = mappy_write_sam_header(__pyx_v_out_fp, __pyx_v_self->_idx);
 
-      /* "mappy.pyx":472
+      /* "mappy.pyx":490
  *             if output_code == MAPPY_OUTPUT_SAM:
  *                 rc = cmappy.mappy_write_sam_header(out_fp, self._idx)
  *                 if rc != 0:             # <<<<<<<<<<<<<<
  *                     raise RuntimeError('failed to write SAM header')
  * 
 */
-      __pyx_t_6 = (__pyx_v_rc != 0);
-      if (unlikely(__pyx_t_6)) {
+      __pyx_t_2 = (__pyx_v_rc != 0);
+      if (unlikely(__pyx_t_2)) {
 
-        /* "mappy.pyx":473
+        /* "mappy.pyx":491
  *                 rc = cmappy.mappy_write_sam_header(out_fp, self._idx)
  *                 if rc != 0:
  *                     raise RuntimeError('failed to write SAM header')             # <<<<<<<<<<<<<<
  * 
  *             while True:
 */
-        __pyx_t_11 = NULL;
+        __pyx_t_12 = NULL;
         __pyx_t_5 = 1;
         {
-          PyObject *__pyx_callargs[2] = {__pyx_t_11, __pyx_mstate_global->__pyx_kp_u_failed_to_write_SAM_header};
+          PyObject *__pyx_callargs[2] = {__pyx_t_12, __pyx_mstate_global->__pyx_kp_u_failed_to_write_SAM_header};
           __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-          __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 473, __pyx_L30_error)
+          __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
+          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 491, __pyx_L35_error)
           __Pyx_GOTREF(__pyx_t_4);
         }
         __Pyx_Raise(__pyx_t_4, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __PYX_ERR(0, 473, __pyx_L30_error)
+        __PYX_ERR(0, 491, __pyx_L35_error)
 
-        /* "mappy.pyx":472
+        /* "mappy.pyx":490
  *             if output_code == MAPPY_OUTPUT_SAM:
  *                 rc = cmappy.mappy_write_sam_header(out_fp, self._idx)
  *                 if rc != 0:             # <<<<<<<<<<<<<<
@@ -12489,7 +12826,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       }
 
-      /* "mappy.pyx":470
+      /* "mappy.pyx":488
  * 
  *         try:
  *             if output_code == MAPPY_OUTPUT_SAM:             # <<<<<<<<<<<<<<
@@ -12498,7 +12835,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     }
 
-    /* "mappy.pyx":475
+    /* "mappy.pyx":493
  *                     raise RuntimeError('failed to write SAM header')
  * 
  *             while True:             # <<<<<<<<<<<<<<
@@ -12507,7 +12844,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
     while (1) {
 
-      /* "mappy.pyx":476
+      /* "mappy.pyx":494
  * 
  *             while True:
  *                 n_batch = 0             # <<<<<<<<<<<<<<
@@ -12516,44 +12853,44 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       __pyx_v_n_batch = 0;
 
-      /* "mappy.pyx":477
+      /* "mappy.pyx":495
  *             while True:
  *                 n_batch = 0
  *                 seqs = cmappy.mm_bseq_read3(reader, batch_bases, with_qual, 0, 0, &n_batch)             # <<<<<<<<<<<<<<
  *                 if seqs == NULL or n_batch <= 0:
  *                     break
 */
-      __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_v_batch_bases); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 477, __pyx_L30_error)
+      __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_v_batch_bases); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 495, __pyx_L35_error)
       __pyx_v_seqs = mm_bseq_read3(__pyx_v_reader, __pyx_t_8, __pyx_v_with_qual, 0, 0, (&__pyx_v_n_batch));
 
-      /* "mappy.pyx":478
+      /* "mappy.pyx":496
  *                 n_batch = 0
  *                 seqs = cmappy.mm_bseq_read3(reader, batch_bases, with_qual, 0, 0, &n_batch)
  *                 if seqs == NULL or n_batch <= 0:             # <<<<<<<<<<<<<<
  *                     break
  *                 try:
 */
-      __pyx_t_2 = (__pyx_v_seqs == NULL);
-      if (!__pyx_t_2) {
+      __pyx_t_6 = (__pyx_v_seqs == NULL);
+      if (!__pyx_t_6) {
       } else {
-        __pyx_t_6 = __pyx_t_2;
-        goto __pyx_L37_bool_binop_done;
+        __pyx_t_2 = __pyx_t_6;
+        goto __pyx_L42_bool_binop_done;
       }
-      __pyx_t_2 = (__pyx_v_n_batch <= 0);
-      __pyx_t_6 = __pyx_t_2;
-      __pyx_L37_bool_binop_done:;
-      if (__pyx_t_6) {
+      __pyx_t_6 = (__pyx_v_n_batch <= 0);
+      __pyx_t_2 = __pyx_t_6;
+      __pyx_L42_bool_binop_done:;
+      if (__pyx_t_2) {
 
-        /* "mappy.pyx":479
+        /* "mappy.pyx":497
  *                 seqs = cmappy.mm_bseq_read3(reader, batch_bases, with_qual, 0, 0, &n_batch)
  *                 if seqs == NULL or n_batch <= 0:
  *                     break             # <<<<<<<<<<<<<<
  *                 try:
  *                     offset = 0
 */
-        goto __pyx_L35_break;
+        goto __pyx_L40_break;
 
-        /* "mappy.pyx":478
+        /* "mappy.pyx":496
  *                 n_batch = 0
  *                 seqs = cmappy.mm_bseq_read3(reader, batch_bases, with_qual, 0, 0, &n_batch)
  *                 if seqs == NULL or n_batch <= 0:             # <<<<<<<<<<<<<<
@@ -12562,7 +12899,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       }
 
-      /* "mappy.pyx":480
+      /* "mappy.pyx":498
  *                 if seqs == NULL or n_batch <= 0:
  *                     break
  *                 try:             # <<<<<<<<<<<<<<
@@ -12571,7 +12908,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       /*try:*/ {
 
-        /* "mappy.pyx":481
+        /* "mappy.pyx":499
  *                     break
  *                 try:
  *                     offset = 0             # <<<<<<<<<<<<<<
@@ -12580,7 +12917,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
         __pyx_v_offset = 0;
 
-        /* "mappy.pyx":482
+        /* "mappy.pyx":500
  *                 try:
  *                     offset = 0
  *                     while offset < n_batch:             # <<<<<<<<<<<<<<
@@ -12588,31 +12925,31 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                         chunk_seqs = seqs + offset
 */
         while (1) {
-          __pyx_t_6 = (__pyx_v_offset < __pyx_v_n_batch);
-          if (!__pyx_t_6) break;
+          __pyx_t_2 = (__pyx_v_offset < __pyx_v_n_batch);
+          if (!__pyx_t_2) break;
 
-          /* "mappy.pyx":483
+          /* "mappy.pyx":501
  *                     offset = 0
  *                     while offset < n_batch:
  *                         chunk_n = batch_reads if n_batch - offset > batch_reads else n_batch - offset             # <<<<<<<<<<<<<<
  *                         chunk_seqs = seqs + offset
  *                         results = <cmappy.mappy_map_result_t*>calloc(chunk_n, sizeof(cmappy.mappy_map_result_t))
 */
-          __pyx_t_4 = __Pyx_PyLong_From_int((__pyx_v_n_batch - __pyx_v_offset)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 483, __pyx_L42_error)
+          __pyx_t_4 = __Pyx_PyLong_From_int((__pyx_v_n_batch - __pyx_v_offset)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 501, __pyx_L47_error)
           __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_11 = PyObject_RichCompare(__pyx_t_4, __pyx_v_batch_reads, Py_GT); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 483, __pyx_L42_error)
+          __pyx_t_12 = PyObject_RichCompare(__pyx_t_4, __pyx_v_batch_reads, Py_GT); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 501, __pyx_L47_error)
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 483, __pyx_L42_error)
-          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          if (__pyx_t_6) {
-            __pyx_t_13 = __Pyx_PyLong_As_int(__pyx_v_batch_reads); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 483, __pyx_L42_error)
-            __pyx_t_1 = __pyx_t_13;
+          __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 501, __pyx_L47_error)
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          if (__pyx_t_2) {
+            __pyx_t_14 = __Pyx_PyLong_As_int(__pyx_v_batch_reads); if (unlikely((__pyx_t_14 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 501, __pyx_L47_error)
+            __pyx_t_1 = __pyx_t_14;
           } else {
             __pyx_t_1 = (__pyx_v_n_batch - __pyx_v_offset);
           }
           __pyx_v_chunk_n = __pyx_t_1;
 
-          /* "mappy.pyx":484
+          /* "mappy.pyx":502
  *                     while offset < n_batch:
  *                         chunk_n = batch_reads if n_batch - offset > batch_reads else n_batch - offset
  *                         chunk_seqs = seqs + offset             # <<<<<<<<<<<<<<
@@ -12621,7 +12958,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           __pyx_v_chunk_seqs = (__pyx_v_seqs + __pyx_v_offset);
 
-          /* "mappy.pyx":485
+          /* "mappy.pyx":503
  *                         chunk_n = batch_reads if n_batch - offset > batch_reads else n_batch - offset
  *                         chunk_seqs = seqs + offset
  *                         results = <cmappy.mappy_map_result_t*>calloc(chunk_n, sizeof(cmappy.mappy_map_result_t))             # <<<<<<<<<<<<<<
@@ -12630,17 +12967,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           __pyx_v_results = ((mappy_map_result_t *)calloc(__pyx_v_chunk_n, (sizeof(mappy_map_result_t))));
 
-          /* "mappy.pyx":486
+          /* "mappy.pyx":504
  *                         chunk_seqs = seqs + offset
  *                         results = <cmappy.mappy_map_result_t*>calloc(chunk_n, sizeof(cmappy.mappy_map_result_t))
  *                         if results == NULL:             # <<<<<<<<<<<<<<
  *                             raise MemoryError('unable to allocate threaded mapping results')
  *                         try:
 */
-          __pyx_t_6 = (__pyx_v_results == NULL);
-          if (unlikely(__pyx_t_6)) {
+          __pyx_t_2 = (__pyx_v_results == NULL);
+          if (unlikely(__pyx_t_2)) {
 
-            /* "mappy.pyx":487
+            /* "mappy.pyx":505
  *                         results = <cmappy.mappy_map_result_t*>calloc(chunk_n, sizeof(cmappy.mappy_map_result_t))
  *                         if results == NULL:
  *                             raise MemoryError('unable to allocate threaded mapping results')             # <<<<<<<<<<<<<<
@@ -12651,16 +12988,16 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
             __pyx_t_5 = 1;
             {
               PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_unable_to_allocate_threaded_mapp};
-              __pyx_t_11 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+              __pyx_t_12 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
               __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-              if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 487, __pyx_L42_error)
-              __Pyx_GOTREF(__pyx_t_11);
+              if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 505, __pyx_L47_error)
+              __Pyx_GOTREF(__pyx_t_12);
             }
-            __Pyx_Raise(__pyx_t_11, 0, 0, 0);
-            __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-            __PYX_ERR(0, 487, __pyx_L42_error)
+            __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+            __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+            __PYX_ERR(0, 505, __pyx_L47_error)
 
-            /* "mappy.pyx":486
+            /* "mappy.pyx":504
  *                         chunk_seqs = seqs + offset
  *                         results = <cmappy.mappy_map_result_t*>calloc(chunk_n, sizeof(cmappy.mappy_map_result_t))
  *                         if results == NULL:             # <<<<<<<<<<<<<<
@@ -12669,7 +13006,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           }
 
-          /* "mappy.pyx":488
+          /* "mappy.pyx":506
  *                         if results == NULL:
  *                             raise MemoryError('unable to allocate threaded mapping results')
  *                         try:             # <<<<<<<<<<<<<<
@@ -12678,7 +13015,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           /*try:*/ {
 
-            /* "mappy.pyx":489
+            /* "mappy.pyx":507
  *                             raise MemoryError('unable to allocate threaded mapping results')
  *                         try:
  *                             with nogil:             # <<<<<<<<<<<<<<
@@ -12691,7 +13028,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 __Pyx_FastGIL_Remember();
                 /*try:*/ {
 
-                  /* "mappy.pyx":490
+                  /* "mappy.pyx":508
  *                         try:
  *                             with nogil:
  *                                 rc = cmappy.mappy_map_batch(self._idx, &map_opt, chunk_seqs, chunk_n, thread_count, results)             # <<<<<<<<<<<<<<
@@ -12701,7 +13038,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                   __pyx_v_rc = mappy_map_batch(__pyx_v_self->_idx, (&__pyx_v_map_opt), __pyx_v_chunk_seqs, __pyx_v_chunk_n, __pyx_v_thread_count, __pyx_v_results);
                 }
 
-                /* "mappy.pyx":489
+                /* "mappy.pyx":507
  *                             raise MemoryError('unable to allocate threaded mapping results')
  *                         try:
  *                             with nogil:             # <<<<<<<<<<<<<<
@@ -12712,23 +13049,23 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                   /*normal exit:*/{
                     __Pyx_FastGIL_Forget();
                     PyEval_RestoreThread(_save);
-                    goto __pyx_L56;
+                    goto __pyx_L61;
                   }
-                  __pyx_L56:;
+                  __pyx_L61:;
                 }
             }
 
-            /* "mappy.pyx":491
+            /* "mappy.pyx":509
  *                             with nogil:
  *                                 rc = cmappy.mappy_map_batch(self._idx, &map_opt, chunk_seqs, chunk_n, thread_count, results)
  *                             if rc != 0:             # <<<<<<<<<<<<<<
  *                                 raise RuntimeError('threaded file mapping failed')
  *                             with nogil:
 */
-            __pyx_t_6 = (__pyx_v_rc != 0);
-            if (unlikely(__pyx_t_6)) {
+            __pyx_t_2 = (__pyx_v_rc != 0);
+            if (unlikely(__pyx_t_2)) {
 
-              /* "mappy.pyx":492
+              /* "mappy.pyx":510
  *                                 rc = cmappy.mappy_map_batch(self._idx, &map_opt, chunk_seqs, chunk_n, thread_count, results)
  *                             if rc != 0:
  *                                 raise RuntimeError('threaded file mapping failed')             # <<<<<<<<<<<<<<
@@ -12739,16 +13076,16 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               __pyx_t_5 = 1;
               {
                 PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_threaded_file_mapping_failed};
-                __pyx_t_11 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+                __pyx_t_12 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
                 __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-                if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 492, __pyx_L50_error)
-                __Pyx_GOTREF(__pyx_t_11);
+                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 510, __pyx_L55_error)
+                __Pyx_GOTREF(__pyx_t_12);
               }
-              __Pyx_Raise(__pyx_t_11, 0, 0, 0);
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __PYX_ERR(0, 492, __pyx_L50_error)
+              __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __PYX_ERR(0, 510, __pyx_L55_error)
 
-              /* "mappy.pyx":491
+              /* "mappy.pyx":509
  *                             with nogil:
  *                                 rc = cmappy.mappy_map_batch(self._idx, &map_opt, chunk_seqs, chunk_n, thread_count, results)
  *                             if rc != 0:             # <<<<<<<<<<<<<<
@@ -12757,7 +13094,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             }
 
-            /* "mappy.pyx":493
+            /* "mappy.pyx":511
  *                             if rc != 0:
  *                                 raise RuntimeError('threaded file mapping failed')
  *                             with nogil:             # <<<<<<<<<<<<<<
@@ -12770,7 +13107,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 __Pyx_FastGIL_Remember();
                 /*try:*/ {
 
-                  /* "mappy.pyx":494
+                  /* "mappy.pyx":512
  *                                 raise RuntimeError('threaded file mapping failed')
  *                             with nogil:
  *                                 write_rc = cmappy.mappy_write_batch(out_fp, self._idx, &map_opt, chunk_seqs, results, chunk_n, output_code)             # <<<<<<<<<<<<<<
@@ -12780,7 +13117,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                   __pyx_v_write_rc = mappy_write_batch(__pyx_v_out_fp, __pyx_v_self->_idx, (&__pyx_v_map_opt), __pyx_v_chunk_seqs, __pyx_v_results, __pyx_v_chunk_n, __pyx_v_output_code);
                 }
 
-                /* "mappy.pyx":493
+                /* "mappy.pyx":511
  *                             if rc != 0:
  *                                 raise RuntimeError('threaded file mapping failed')
  *                             with nogil:             # <<<<<<<<<<<<<<
@@ -12791,23 +13128,23 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                   /*normal exit:*/{
                     __Pyx_FastGIL_Forget();
                     PyEval_RestoreThread(_save);
-                    goto __pyx_L62;
+                    goto __pyx_L67;
                   }
-                  __pyx_L62:;
+                  __pyx_L67:;
                 }
             }
 
-            /* "mappy.pyx":495
+            /* "mappy.pyx":513
  *                             with nogil:
  *                                 write_rc = cmappy.mappy_write_batch(out_fp, self._idx, &map_opt, chunk_seqs, results, chunk_n, output_code)
  *                             if write_rc < 0:             # <<<<<<<<<<<<<<
  *                                 raise RuntimeError('failed to write mapped output batch')
  * 
 */
-            __pyx_t_6 = (__pyx_v_write_rc < 0);
-            if (unlikely(__pyx_t_6)) {
+            __pyx_t_2 = (__pyx_v_write_rc < 0);
+            if (unlikely(__pyx_t_2)) {
 
-              /* "mappy.pyx":496
+              /* "mappy.pyx":514
  *                                 write_rc = cmappy.mappy_write_batch(out_fp, self._idx, &map_opt, chunk_seqs, results, chunk_n, output_code)
  *                             if write_rc < 0:
  *                                 raise RuntimeError('failed to write mapped output batch')             # <<<<<<<<<<<<<<
@@ -12818,16 +13155,16 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               __pyx_t_5 = 1;
               {
                 PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_failed_to_write_mapped_output_ba};
-                __pyx_t_11 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+                __pyx_t_12 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
                 __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-                if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 496, __pyx_L50_error)
-                __Pyx_GOTREF(__pyx_t_11);
+                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 514, __pyx_L55_error)
+                __Pyx_GOTREF(__pyx_t_12);
               }
-              __Pyx_Raise(__pyx_t_11, 0, 0, 0);
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __PYX_ERR(0, 496, __pyx_L50_error)
+              __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __PYX_ERR(0, 514, __pyx_L55_error)
 
-              /* "mappy.pyx":495
+              /* "mappy.pyx":513
  *                             with nogil:
  *                                 write_rc = cmappy.mappy_write_batch(out_fp, self._idx, &map_opt, chunk_seqs, results, chunk_n, output_code)
  *                             if write_rc < 0:             # <<<<<<<<<<<<<<
@@ -12836,7 +13173,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             }
 
-            /* "mappy.pyx":498
+            /* "mappy.pyx":516
  *                                 raise RuntimeError('failed to write mapped output batch')
  * 
  *                             chunk_mapped = 0             # <<<<<<<<<<<<<<
@@ -12845,7 +13182,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             __pyx_v_chunk_mapped = 0;
 
-            /* "mappy.pyx":499
+            /* "mappy.pyx":517
  * 
  *                             chunk_mapped = 0
  *                             for i in range(chunk_n):             # <<<<<<<<<<<<<<
@@ -12853,50 +13190,78 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                                     chunk_mapped += 1
 */
             __pyx_t_1 = __pyx_v_chunk_n;
-            __pyx_t_13 = __pyx_t_1;
-            for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
-              __pyx_v_i = __pyx_t_14;
+            __pyx_t_14 = __pyx_t_1;
+            for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
+              __pyx_v_i = __pyx_t_15;
 
-              /* "mappy.pyx":500
+              /* "mappy.pyx":518
  *                             chunk_mapped = 0
  *                             for i in range(chunk_n):
  *                                 if results[i].n_regs > 0:             # <<<<<<<<<<<<<<
  *                                     chunk_mapped += 1
- *                             processed += chunk_n
+ *                                 if ref_collect != NULL:
 */
-              __pyx_t_6 = ((__pyx_v_results[__pyx_v_i]).n_regs > 0);
-              if (__pyx_t_6) {
+              __pyx_t_2 = ((__pyx_v_results[__pyx_v_i]).n_regs > 0);
+              if (__pyx_t_2) {
 
-                /* "mappy.pyx":501
+                /* "mappy.pyx":519
  *                             for i in range(chunk_n):
  *                                 if results[i].n_regs > 0:
  *                                     chunk_mapped += 1             # <<<<<<<<<<<<<<
- *                             processed += chunk_n
- *                             mapped += chunk_mapped
+ *                                 if ref_collect != NULL:
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
 */
                 __pyx_v_chunk_mapped = (__pyx_v_chunk_mapped + 1);
 
-                /* "mappy.pyx":500
+                /* "mappy.pyx":518
  *                             chunk_mapped = 0
  *                             for i in range(chunk_n):
  *                                 if results[i].n_regs > 0:             # <<<<<<<<<<<<<<
  *                                     chunk_mapped += 1
+ *                                 if ref_collect != NULL:
+*/
+              }
+
+              /* "mappy.pyx":520
+ *                                 if results[i].n_regs > 0:
+ *                                     chunk_mapped += 1
+ *                                 if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
+ *                             processed += chunk_n
+*/
+              __pyx_t_2 = (__pyx_v_ref_collect != NULL);
+              if (__pyx_t_2) {
+
+                /* "mappy.pyx":521
+ *                                     chunk_mapped += 1
+ *                                 if ref_collect != NULL:
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)             # <<<<<<<<<<<<<<
+ *                             processed += chunk_n
+ *                             mapped += chunk_mapped
+*/
+                mm_ref_analysis_step(__pyx_v_ref_collect, (&(__pyx_v_chunk_seqs[__pyx_v_i])), (__pyx_v_results[__pyx_v_i]).n_regs, (__pyx_v_results[__pyx_v_i]).regs);
+
+                /* "mappy.pyx":520
+ *                                 if results[i].n_regs > 0:
+ *                                     chunk_mapped += 1
+ *                                 if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
  *                             processed += chunk_n
 */
               }
             }
 
-            /* "mappy.pyx":502
- *                                 if results[i].n_regs > 0:
- *                                     chunk_mapped += 1
+            /* "mappy.pyx":522
+ *                                 if ref_collect != NULL:
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
  *                             processed += chunk_n             # <<<<<<<<<<<<<<
  *                             mapped += chunk_mapped
  *                             batch_no += 1
 */
             __pyx_v_processed = (__pyx_v_processed + __pyx_v_chunk_n);
 
-            /* "mappy.pyx":503
- *                                     chunk_mapped += 1
+            /* "mappy.pyx":523
+ *                                     cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
  *                             processed += chunk_n
  *                             mapped += chunk_mapped             # <<<<<<<<<<<<<<
  *                             batch_no += 1
@@ -12904,7 +13269,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             __pyx_v_mapped = (__pyx_v_mapped + __pyx_v_chunk_mapped);
 
-            /* "mappy.pyx":504
+            /* "mappy.pyx":524
  *                             processed += chunk_n
  *                             mapped += chunk_mapped
  *                             batch_no += 1             # <<<<<<<<<<<<<<
@@ -12913,51 +13278,51 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             __pyx_v_batch_no = (__pyx_v_batch_no + 1);
 
-            /* "mappy.pyx":506
+            /* "mappy.pyx":526
  *                             batch_no += 1
  * 
  *                             if verbose:             # <<<<<<<<<<<<<<
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, batch_no=batch_no, verbose=True)
 */
-            __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_verbose); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 506, __pyx_L50_error)
-            if (__pyx_t_6) {
+            __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_verbose); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 526, __pyx_L55_error)
+            if (__pyx_t_2) {
 
-              /* "mappy.pyx":507
+              /* "mappy.pyx":527
  * 
  *                             if verbose:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):             # <<<<<<<<<<<<<<
  *                                     _emit_progress(processed, mapped, total_reads, start_time, batch_no=batch_no, verbose=True)
  *                                     last_reported = processed
 */
-              __pyx_t_11 = __Pyx_PyLong_From_long((__pyx_v_processed - __pyx_v_last_reported)); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 507, __pyx_L50_error)
-              __Pyx_GOTREF(__pyx_t_11);
-              __pyx_t_4 = PyObject_RichCompare(__pyx_t_11, __pyx_v_progress_every, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 507, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 507, __pyx_L50_error)
+              __pyx_t_12 = __Pyx_PyLong_From_long((__pyx_v_processed - __pyx_v_last_reported)); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 527, __pyx_L55_error)
+              __Pyx_GOTREF(__pyx_t_12);
+              __pyx_t_4 = PyObject_RichCompare(__pyx_t_12, __pyx_v_progress_every, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 527, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 527, __pyx_L55_error)
               __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-              if (!__pyx_t_2) {
+              if (!__pyx_t_6) {
               } else {
-                __pyx_t_6 = __pyx_t_2;
-                goto __pyx_L69_bool_binop_done;
+                __pyx_t_2 = __pyx_t_6;
+                goto __pyx_L75_bool_binop_done;
               }
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_total_reads); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 507, __pyx_L50_error)
-              if (__pyx_t_2) {
-              } else {
-                __pyx_t_6 = __pyx_t_2;
-                goto __pyx_L69_bool_binop_done;
-              }
-              __pyx_t_4 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 507, __pyx_L50_error)
-              __Pyx_GOTREF(__pyx_t_4);
-              __pyx_t_11 = PyObject_RichCompare(__pyx_t_4, __pyx_v_total_reads, Py_GE); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 507, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 507, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __pyx_t_6 = __pyx_t_2;
-              __pyx_L69_bool_binop_done:;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_total_reads); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 527, __pyx_L55_error)
               if (__pyx_t_6) {
+              } else {
+                __pyx_t_2 = __pyx_t_6;
+                goto __pyx_L75_bool_binop_done;
+              }
+              __pyx_t_4 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 527, __pyx_L55_error)
+              __Pyx_GOTREF(__pyx_t_4);
+              __pyx_t_12 = PyObject_RichCompare(__pyx_t_4, __pyx_v_total_reads, Py_GE); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 527, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 527, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __pyx_t_2 = __pyx_t_6;
+              __pyx_L75_bool_binop_done:;
+              if (__pyx_t_2) {
 
-                /* "mappy.pyx":508
+                /* "mappy.pyx":528
  *                             if verbose:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, batch_no=batch_no, verbose=True)             # <<<<<<<<<<<<<<
@@ -12965,14 +13330,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                             else:
 */
                 __pyx_t_4 = NULL;
-                __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 508, __pyx_L50_error)
+                __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 528, __pyx_L55_error)
                 __Pyx_GOTREF(__pyx_t_3);
-                __pyx_t_9 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 508, __pyx_L50_error)
-                __Pyx_GOTREF(__pyx_t_9);
-                __pyx_t_15 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 508, __pyx_L50_error)
-                __Pyx_GOTREF(__pyx_t_15);
-                __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_batch_no); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 508, __pyx_L50_error)
+                __pyx_t_10 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 528, __pyx_L55_error)
+                __Pyx_GOTREF(__pyx_t_10);
+                __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 528, __pyx_L55_error)
                 __Pyx_GOTREF(__pyx_t_16);
+                __pyx_t_17 = __Pyx_PyLong_From_long(__pyx_v_batch_no); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 528, __pyx_L55_error)
+                __Pyx_GOTREF(__pyx_t_17);
                 __pyx_t_5 = 1;
                 #if CYTHON_UNPACK_METHODS
                 if (unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -12986,24 +13351,24 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 }
                 #endif
                 {
-                  PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_4, __pyx_t_9, __pyx_t_15, __pyx_v_total_reads, __pyx_v_start_time};
-                  __pyx_t_17 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 508, __pyx_L50_error)
-                  __Pyx_GOTREF(__pyx_t_17);
-                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_batch_no, __pyx_t_16, __pyx_t_17, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 508, __pyx_L50_error)
-                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, Py_True, __pyx_t_17, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 508, __pyx_L50_error)
-                  __pyx_t_11 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_3, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_17);
+                  PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_4, __pyx_t_10, __pyx_t_16, __pyx_v_total_reads, __pyx_v_start_time};
+                  __pyx_t_18 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 528, __pyx_L55_error)
+                  __Pyx_GOTREF(__pyx_t_18);
+                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_batch_no, __pyx_t_17, __pyx_t_18, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 528, __pyx_L55_error)
+                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, Py_True, __pyx_t_18, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 528, __pyx_L55_error)
+                  __pyx_t_12 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_3, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_18);
                   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-                  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-                  __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+                  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
                   __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
                   __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+                  __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
                   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-                  if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 508, __pyx_L50_error)
-                  __Pyx_GOTREF(__pyx_t_11);
+                  if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 528, __pyx_L55_error)
+                  __Pyx_GOTREF(__pyx_t_12);
                 }
-                __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+                __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-                /* "mappy.pyx":509
+                /* "mappy.pyx":529
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, batch_no=batch_no, verbose=True)
  *                                     last_reported = processed             # <<<<<<<<<<<<<<
@@ -13012,7 +13377,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
                 __pyx_v_last_reported = __pyx_v_processed;
 
-                /* "mappy.pyx":507
+                /* "mappy.pyx":527
  * 
  *                             if verbose:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):             # <<<<<<<<<<<<<<
@@ -13021,17 +13386,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
               }
 
-              /* "mappy.pyx":506
+              /* "mappy.pyx":526
  *                             batch_no += 1
  * 
  *                             if verbose:             # <<<<<<<<<<<<<<
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, batch_no=batch_no, verbose=True)
 */
-              goto __pyx_L67;
+              goto __pyx_L73;
             }
 
-            /* "mappy.pyx":511
+            /* "mappy.pyx":531
  *                                     last_reported = processed
  *                             else:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):             # <<<<<<<<<<<<<<
@@ -13039,34 +13404,34 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                                     last_reported = processed
 */
             /*else*/ {
-              __pyx_t_11 = __Pyx_PyLong_From_long((__pyx_v_processed - __pyx_v_last_reported)); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 511, __pyx_L50_error)
-              __Pyx_GOTREF(__pyx_t_11);
-              __pyx_t_3 = PyObject_RichCompare(__pyx_t_11, __pyx_v_progress_every, Py_GE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 511, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 511, __pyx_L50_error)
+              __pyx_t_12 = __Pyx_PyLong_From_long((__pyx_v_processed - __pyx_v_last_reported)); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 531, __pyx_L55_error)
+              __Pyx_GOTREF(__pyx_t_12);
+              __pyx_t_3 = PyObject_RichCompare(__pyx_t_12, __pyx_v_progress_every, Py_GE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 531, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 531, __pyx_L55_error)
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-              if (!__pyx_t_2) {
+              if (!__pyx_t_6) {
               } else {
-                __pyx_t_6 = __pyx_t_2;
-                goto __pyx_L73_bool_binop_done;
+                __pyx_t_2 = __pyx_t_6;
+                goto __pyx_L79_bool_binop_done;
               }
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_total_reads); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 511, __pyx_L50_error)
-              if (__pyx_t_2) {
-              } else {
-                __pyx_t_6 = __pyx_t_2;
-                goto __pyx_L73_bool_binop_done;
-              }
-              __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 511, __pyx_L50_error)
-              __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_11 = PyObject_RichCompare(__pyx_t_3, __pyx_v_total_reads, Py_GE); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 511, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-              __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 511, __pyx_L50_error)
-              __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __pyx_t_6 = __pyx_t_2;
-              __pyx_L73_bool_binop_done:;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_total_reads); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 531, __pyx_L55_error)
               if (__pyx_t_6) {
+              } else {
+                __pyx_t_2 = __pyx_t_6;
+                goto __pyx_L79_bool_binop_done;
+              }
+              __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 531, __pyx_L55_error)
+              __Pyx_GOTREF(__pyx_t_3);
+              __pyx_t_12 = PyObject_RichCompare(__pyx_t_3, __pyx_v_total_reads, Py_GE); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 531, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+              __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 531, __pyx_L55_error)
+              __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+              __pyx_t_2 = __pyx_t_6;
+              __pyx_L79_bool_binop_done:;
+              if (__pyx_t_2) {
 
-                /* "mappy.pyx":512
+                /* "mappy.pyx":532
  *                             else:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, verbose=False)             # <<<<<<<<<<<<<<
@@ -13074,41 +13439,41 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                         finally:
 */
                 __pyx_t_3 = NULL;
-                __Pyx_GetModuleGlobalName(__pyx_t_17, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 512, __pyx_L50_error)
+                __Pyx_GetModuleGlobalName(__pyx_t_18, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 532, __pyx_L55_error)
+                __Pyx_GOTREF(__pyx_t_18);
+                __pyx_t_17 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 532, __pyx_L55_error)
                 __Pyx_GOTREF(__pyx_t_17);
-                __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 512, __pyx_L50_error)
+                __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 532, __pyx_L55_error)
                 __Pyx_GOTREF(__pyx_t_16);
-                __pyx_t_15 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 512, __pyx_L50_error)
-                __Pyx_GOTREF(__pyx_t_15);
                 __pyx_t_5 = 1;
                 #if CYTHON_UNPACK_METHODS
-                if (unlikely(PyMethod_Check(__pyx_t_17))) {
-                  __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_17);
+                if (unlikely(PyMethod_Check(__pyx_t_18))) {
+                  __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_18);
                   assert(__pyx_t_3);
-                  PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_17);
+                  PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_18);
                   __Pyx_INCREF(__pyx_t_3);
                   __Pyx_INCREF(__pyx__function);
-                  __Pyx_DECREF_SET(__pyx_t_17, __pyx__function);
+                  __Pyx_DECREF_SET(__pyx_t_18, __pyx__function);
                   __pyx_t_5 = 0;
                 }
                 #endif
                 {
-                  PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 1 : 0)] = {__pyx_t_3, __pyx_t_16, __pyx_t_15, __pyx_v_total_reads, __pyx_v_start_time};
-                  __pyx_t_9 = __Pyx_MakeVectorcallBuilderKwds(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 512, __pyx_L50_error)
-                  __Pyx_GOTREF(__pyx_t_9);
-                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, Py_False, __pyx_t_9, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 512, __pyx_L50_error)
-                  __pyx_t_11 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_17, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_9);
+                  PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 1 : 0)] = {__pyx_t_3, __pyx_t_17, __pyx_t_16, __pyx_v_total_reads, __pyx_v_start_time};
+                  __pyx_t_10 = __Pyx_MakeVectorcallBuilderKwds(1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 532, __pyx_L55_error)
+                  __Pyx_GOTREF(__pyx_t_10);
+                  if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, Py_False, __pyx_t_10, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 532, __pyx_L55_error)
+                  __pyx_t_12 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_18, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_10);
                   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-                  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-                  __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-                  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
                   __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
-                  if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 512, __pyx_L50_error)
-                  __Pyx_GOTREF(__pyx_t_11);
+                  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+                  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+                  __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+                  if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 532, __pyx_L55_error)
+                  __Pyx_GOTREF(__pyx_t_12);
                 }
-                __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+                __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-                /* "mappy.pyx":513
+                /* "mappy.pyx":533
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):
  *                                     _emit_progress(processed, mapped, total_reads, start_time, verbose=False)
  *                                     last_reported = processed             # <<<<<<<<<<<<<<
@@ -13117,7 +13482,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
                 __pyx_v_last_reported = __pyx_v_processed;
 
-                /* "mappy.pyx":511
+                /* "mappy.pyx":531
  *                                     last_reported = processed
  *                             else:
  *                                 if processed - last_reported >= progress_every or (total_reads and processed >= total_reads):             # <<<<<<<<<<<<<<
@@ -13126,10 +13491,10 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
               }
             }
-            __pyx_L67:;
+            __pyx_L73:;
           }
 
-          /* "mappy.pyx":515
+          /* "mappy.pyx":535
  *                                     last_reported = processed
  *                         finally:
  *                             if results != NULL:             # <<<<<<<<<<<<<<
@@ -13138,10 +13503,10 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           /*finally:*/ {
             /*normal exit:*/{
-              __pyx_t_6 = (__pyx_v_results != NULL);
-              if (__pyx_t_6) {
+              __pyx_t_2 = (__pyx_v_results != NULL);
+              if (__pyx_t_2) {
 
-                /* "mappy.pyx":516
+                /* "mappy.pyx":536
  *                         finally:
  *                             if results != NULL:
  *                                 with nogil:             # <<<<<<<<<<<<<<
@@ -13154,7 +13519,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                     __Pyx_FastGIL_Remember();
                     /*try:*/ {
 
-                      /* "mappy.pyx":517
+                      /* "mappy.pyx":537
  *                             if results != NULL:
  *                                 with nogil:
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)             # <<<<<<<<<<<<<<
@@ -13164,7 +13529,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                       mappy_batch_results_free(__pyx_v_results, __pyx_v_chunk_n);
                     }
 
-                    /* "mappy.pyx":516
+                    /* "mappy.pyx":536
  *                         finally:
  *                             if results != NULL:
  *                                 with nogil:             # <<<<<<<<<<<<<<
@@ -13175,13 +13540,13 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                       /*normal exit:*/{
                         __Pyx_FastGIL_Forget();
                         PyEval_RestoreThread(_save);
-                        goto __pyx_L81;
+                        goto __pyx_L87;
                       }
-                      __pyx_L81:;
+                      __pyx_L87:;
                     }
                 }
 
-                /* "mappy.pyx":518
+                /* "mappy.pyx":538
  *                                 with nogil:
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)
  *                                 results = NULL             # <<<<<<<<<<<<<<
@@ -13190,7 +13555,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
                 __pyx_v_results = NULL;
 
-                /* "mappy.pyx":515
+                /* "mappy.pyx":535
  *                                     last_reported = processed
  *                         finally:
  *                             if results != NULL:             # <<<<<<<<<<<<<<
@@ -13198,34 +13563,34 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)
 */
               }
-              goto __pyx_L51;
+              goto __pyx_L56;
             }
-            __pyx_L50_error:;
+            __pyx_L55_error:;
             /*exception exit:*/{
               __Pyx_PyThreadState_declare
               __Pyx_PyThreadState_assign
-              __pyx_t_19 = 0; __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0;
-              __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-              __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+              __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0;
+              __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+              __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
               __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
               __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+              __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
               __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
               __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-              __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-               __Pyx_ExceptionSwap(&__pyx_t_22, &__pyx_t_23, &__pyx_t_24);
-              if ( unlikely(__Pyx_GetException(&__pyx_t_19, &__pyx_t_20, &__pyx_t_21) < 0)) __Pyx_ErrFetch(&__pyx_t_19, &__pyx_t_20, &__pyx_t_21);
-              __Pyx_XGOTREF(__pyx_t_19);
+               __Pyx_ExceptionSwap(&__pyx_t_23, &__pyx_t_24, &__pyx_t_25);
+              if ( unlikely(__Pyx_GetException(&__pyx_t_20, &__pyx_t_21, &__pyx_t_22) < 0)) __Pyx_ErrFetch(&__pyx_t_20, &__pyx_t_21, &__pyx_t_22);
               __Pyx_XGOTREF(__pyx_t_20);
               __Pyx_XGOTREF(__pyx_t_21);
               __Pyx_XGOTREF(__pyx_t_22);
               __Pyx_XGOTREF(__pyx_t_23);
               __Pyx_XGOTREF(__pyx_t_24);
-              __pyx_t_1 = __pyx_lineno; __pyx_t_13 = __pyx_clineno; __pyx_t_18 = __pyx_filename;
+              __Pyx_XGOTREF(__pyx_t_25);
+              __pyx_t_1 = __pyx_lineno; __pyx_t_14 = __pyx_clineno; __pyx_t_19 = __pyx_filename;
               {
-                __pyx_t_6 = (__pyx_v_results != NULL);
-                if (__pyx_t_6) {
+                __pyx_t_2 = (__pyx_v_results != NULL);
+                if (__pyx_t_2) {
 
-                  /* "mappy.pyx":516
+                  /* "mappy.pyx":536
  *                         finally:
  *                             if results != NULL:
  *                                 with nogil:             # <<<<<<<<<<<<<<
@@ -13238,7 +13603,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                       __Pyx_FastGIL_Remember();
                       /*try:*/ {
 
-                        /* "mappy.pyx":517
+                        /* "mappy.pyx":537
  *                             if results != NULL:
  *                                 with nogil:
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)             # <<<<<<<<<<<<<<
@@ -13248,7 +13613,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                         mappy_batch_results_free(__pyx_v_results, __pyx_v_chunk_n);
                       }
 
-                      /* "mappy.pyx":516
+                      /* "mappy.pyx":536
  *                         finally:
  *                             if results != NULL:
  *                                 with nogil:             # <<<<<<<<<<<<<<
@@ -13259,13 +13624,13 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                         /*normal exit:*/{
                           __Pyx_FastGIL_Forget();
                           PyEval_RestoreThread(_save);
-                          goto __pyx_L91;
+                          goto __pyx_L97;
                         }
-                        __pyx_L91:;
+                        __pyx_L97:;
                       }
                   }
 
-                  /* "mappy.pyx":518
+                  /* "mappy.pyx":538
  *                                 with nogil:
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)
  *                                 results = NULL             # <<<<<<<<<<<<<<
@@ -13274,7 +13639,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
                   __pyx_v_results = NULL;
 
-                  /* "mappy.pyx":515
+                  /* "mappy.pyx":535
  *                                     last_reported = processed
  *                         finally:
  *                             if results != NULL:             # <<<<<<<<<<<<<<
@@ -13283,22 +13648,22 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
                 }
               }
-              __Pyx_XGIVEREF(__pyx_t_22);
               __Pyx_XGIVEREF(__pyx_t_23);
               __Pyx_XGIVEREF(__pyx_t_24);
-              __Pyx_ExceptionReset(__pyx_t_22, __pyx_t_23, __pyx_t_24);
-              __Pyx_XGIVEREF(__pyx_t_19);
+              __Pyx_XGIVEREF(__pyx_t_25);
+              __Pyx_ExceptionReset(__pyx_t_23, __pyx_t_24, __pyx_t_25);
               __Pyx_XGIVEREF(__pyx_t_20);
               __Pyx_XGIVEREF(__pyx_t_21);
-              __Pyx_ErrRestore(__pyx_t_19, __pyx_t_20, __pyx_t_21);
-              __pyx_t_19 = 0; __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0;
-              __pyx_lineno = __pyx_t_1; __pyx_clineno = __pyx_t_13; __pyx_filename = __pyx_t_18;
-              goto __pyx_L42_error;
+              __Pyx_XGIVEREF(__pyx_t_22);
+              __Pyx_ErrRestore(__pyx_t_20, __pyx_t_21, __pyx_t_22);
+              __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0;
+              __pyx_lineno = __pyx_t_1; __pyx_clineno = __pyx_t_14; __pyx_filename = __pyx_t_19;
+              goto __pyx_L47_error;
             }
-            __pyx_L51:;
+            __pyx_L56:;
           }
 
-          /* "mappy.pyx":519
+          /* "mappy.pyx":539
  *                                     cmappy.mappy_batch_results_free(results, chunk_n)
  *                                 results = NULL
  *                         offset += chunk_n             # <<<<<<<<<<<<<<
@@ -13309,7 +13674,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
         }
       }
 
-      /* "mappy.pyx":521
+      /* "mappy.pyx":541
  *                         offset += chunk_n
  *                 finally:
  *                     with nogil:             # <<<<<<<<<<<<<<
@@ -13324,17 +13689,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               __Pyx_FastGIL_Remember();
               /*try:*/ {
 
-                /* "mappy.pyx":522
+                /* "mappy.pyx":542
  *                 finally:
  *                     with nogil:
  *                         cmappy.mappy_bseq_free_records(seqs, n_batch)             # <<<<<<<<<<<<<<
  *                     seqs = NULL
- *         finally:
+ * 
 */
                 mappy_bseq_free_records(__pyx_v_seqs, __pyx_v_n_batch);
               }
 
-              /* "mappy.pyx":521
+              /* "mappy.pyx":541
  *                         offset += chunk_n
  *                 finally:
  *                     with nogil:             # <<<<<<<<<<<<<<
@@ -13345,46 +13710,46 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 /*normal exit:*/{
                   __Pyx_FastGIL_Forget();
                   PyEval_RestoreThread(_save);
-                  goto __pyx_L96;
+                  goto __pyx_L102;
                 }
-                __pyx_L96:;
+                __pyx_L102:;
               }
           }
 
-          /* "mappy.pyx":523
+          /* "mappy.pyx":543
  *                     with nogil:
  *                         cmappy.mappy_bseq_free_records(seqs, n_batch)
  *                     seqs = NULL             # <<<<<<<<<<<<<<
- *         finally:
- *             if seqs != NULL:
+ * 
+ *             if ref_collect != NULL:
 */
           __pyx_v_seqs = NULL;
-          goto __pyx_L43;
+          goto __pyx_L48;
         }
-        __pyx_L42_error:;
+        __pyx_L47_error:;
         /*exception exit:*/{
           __Pyx_PyThreadState_declare
           __Pyx_PyThreadState_assign
-          __pyx_t_24 = 0; __pyx_t_23 = 0; __pyx_t_22 = 0; __pyx_t_21 = 0; __pyx_t_20 = 0; __pyx_t_19 = 0;
-          __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+          __pyx_t_25 = 0; __pyx_t_24 = 0; __pyx_t_23 = 0; __pyx_t_22 = 0; __pyx_t_21 = 0; __pyx_t_20 = 0;
+          __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+          __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
           __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
           __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+          __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-           __Pyx_ExceptionSwap(&__pyx_t_21, &__pyx_t_20, &__pyx_t_19);
-          if ( unlikely(__Pyx_GetException(&__pyx_t_24, &__pyx_t_23, &__pyx_t_22) < 0)) __Pyx_ErrFetch(&__pyx_t_24, &__pyx_t_23, &__pyx_t_22);
+           __Pyx_ExceptionSwap(&__pyx_t_22, &__pyx_t_21, &__pyx_t_20);
+          if ( unlikely(__Pyx_GetException(&__pyx_t_25, &__pyx_t_24, &__pyx_t_23) < 0)) __Pyx_ErrFetch(&__pyx_t_25, &__pyx_t_24, &__pyx_t_23);
+          __Pyx_XGOTREF(__pyx_t_25);
           __Pyx_XGOTREF(__pyx_t_24);
           __Pyx_XGOTREF(__pyx_t_23);
           __Pyx_XGOTREF(__pyx_t_22);
           __Pyx_XGOTREF(__pyx_t_21);
           __Pyx_XGOTREF(__pyx_t_20);
-          __Pyx_XGOTREF(__pyx_t_19);
-          __pyx_t_13 = __pyx_lineno; __pyx_t_1 = __pyx_clineno; __pyx_t_25 = __pyx_filename;
+          __pyx_t_14 = __pyx_lineno; __pyx_t_1 = __pyx_clineno; __pyx_t_26 = __pyx_filename;
           {
 
-            /* "mappy.pyx":521
+            /* "mappy.pyx":541
  *                         offset += chunk_n
  *                 finally:
  *                     with nogil:             # <<<<<<<<<<<<<<
@@ -13397,17 +13762,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 __Pyx_FastGIL_Remember();
                 /*try:*/ {
 
-                  /* "mappy.pyx":522
+                  /* "mappy.pyx":542
  *                 finally:
  *                     with nogil:
  *                         cmappy.mappy_bseq_free_records(seqs, n_batch)             # <<<<<<<<<<<<<<
  *                     seqs = NULL
- *         finally:
+ * 
 */
                   mappy_bseq_free_records(__pyx_v_seqs, __pyx_v_n_batch);
                 }
 
-                /* "mappy.pyx":521
+                /* "mappy.pyx":541
  *                         offset += chunk_n
  *                 finally:
  *                     with nogil:             # <<<<<<<<<<<<<<
@@ -13418,41 +13783,279 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                   /*normal exit:*/{
                     __Pyx_FastGIL_Forget();
                     PyEval_RestoreThread(_save);
-                    goto __pyx_L105;
+                    goto __pyx_L111;
                   }
-                  __pyx_L105:;
+                  __pyx_L111:;
                 }
             }
 
-            /* "mappy.pyx":523
+            /* "mappy.pyx":543
  *                     with nogil:
  *                         cmappy.mappy_bseq_free_records(seqs, n_batch)
  *                     seqs = NULL             # <<<<<<<<<<<<<<
- *         finally:
- *             if seqs != NULL:
+ * 
+ *             if ref_collect != NULL:
 */
             __pyx_v_seqs = NULL;
           }
+          __Pyx_XGIVEREF(__pyx_t_22);
           __Pyx_XGIVEREF(__pyx_t_21);
           __Pyx_XGIVEREF(__pyx_t_20);
-          __Pyx_XGIVEREF(__pyx_t_19);
-          __Pyx_ExceptionReset(__pyx_t_21, __pyx_t_20, __pyx_t_19);
+          __Pyx_ExceptionReset(__pyx_t_22, __pyx_t_21, __pyx_t_20);
+          __Pyx_XGIVEREF(__pyx_t_25);
           __Pyx_XGIVEREF(__pyx_t_24);
           __Pyx_XGIVEREF(__pyx_t_23);
-          __Pyx_XGIVEREF(__pyx_t_22);
-          __Pyx_ErrRestore(__pyx_t_24, __pyx_t_23, __pyx_t_22);
-          __pyx_t_24 = 0; __pyx_t_23 = 0; __pyx_t_22 = 0; __pyx_t_21 = 0; __pyx_t_20 = 0; __pyx_t_19 = 0;
-          __pyx_lineno = __pyx_t_13; __pyx_clineno = __pyx_t_1; __pyx_filename = __pyx_t_25;
-          goto __pyx_L30_error;
+          __Pyx_ErrRestore(__pyx_t_25, __pyx_t_24, __pyx_t_23);
+          __pyx_t_25 = 0; __pyx_t_24 = 0; __pyx_t_23 = 0; __pyx_t_22 = 0; __pyx_t_21 = 0; __pyx_t_20 = 0;
+          __pyx_lineno = __pyx_t_14; __pyx_clineno = __pyx_t_1; __pyx_filename = __pyx_t_26;
+          goto __pyx_L35_error;
         }
-        __pyx_L43:;
+        __pyx_L48:;
       }
     }
-    __pyx_L35_break:;
+    __pyx_L40_break:;
+
+    /* "mappy.pyx":545
+ *                     seqs = NULL
+ * 
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+*/
+    __pyx_t_2 = (__pyx_v_ref_collect != NULL);
+    if (__pyx_t_2) {
+
+      /* "mappy.pyx":546
+ * 
+ *             if ref_collect != NULL:
+ *                 rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ *                 ref_collect = NULL
+*/
+      __pyx_v_rc = mm_ref_analysis_collect_finish(__pyx_v_ref_collect, (&__pyx_v_ref_result));
+
+      /* "mappy.pyx":547
+ *             if ref_collect != NULL:
+ *                 rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)             # <<<<<<<<<<<<<<
+ *                 ref_collect = NULL
+ *                 if rc != 0:
+*/
+      mm_ref_analysis_collect_destroy(__pyx_v_ref_collect);
+
+      /* "mappy.pyx":548
+ *                 rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ *                 ref_collect = NULL             # <<<<<<<<<<<<<<
+ *                 if rc != 0:
+ *                     if ref_result != NULL:
+*/
+      __pyx_v_ref_collect = NULL;
+
+      /* "mappy.pyx":549
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ *                 ref_collect = NULL
+ *                 if rc != 0:             # <<<<<<<<<<<<<<
+ *                     if ref_result != NULL:
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+*/
+      __pyx_t_2 = (__pyx_v_rc != 0);
+      if (__pyx_t_2) {
+
+        /* "mappy.pyx":550
+ *                 ref_collect = NULL
+ *                 if rc != 0:
+ *                     if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                         ref_result = NULL
+*/
+        __pyx_t_2 = (__pyx_v_ref_result != NULL);
+        if (__pyx_t_2) {
+
+          /* "mappy.pyx":551
+ *                 if rc != 0:
+ *                     if ref_result != NULL:
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)             # <<<<<<<<<<<<<<
+ *                         ref_result = NULL
+ *                     raise RuntimeError('failed to finalize reference analysis')
+*/
+          mm_ref_analysis_result_destroy(__pyx_v_ref_result);
+
+          /* "mappy.pyx":552
+ *                     if ref_result != NULL:
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                         ref_result = NULL             # <<<<<<<<<<<<<<
+ *                     raise RuntimeError('failed to finalize reference analysis')
+ *                 if ref_result != NULL:
+*/
+          __pyx_v_ref_result = NULL;
+
+          /* "mappy.pyx":550
+ *                 ref_collect = NULL
+ *                 if rc != 0:
+ *                     if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                         ref_result = NULL
+*/
+        }
+
+        /* "mappy.pyx":553
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                         ref_result = NULL
+ *                     raise RuntimeError('failed to finalize reference analysis')             # <<<<<<<<<<<<<<
+ *                 if ref_result != NULL:
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+*/
+        __pyx_t_18 = NULL;
+        __pyx_t_5 = 1;
+        {
+          PyObject *__pyx_callargs[2] = {__pyx_t_18, __pyx_mstate_global->__pyx_kp_u_failed_to_finalize_reference_ana};
+          __pyx_t_12 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+          __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
+          if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 553, __pyx_L35_error)
+          __Pyx_GOTREF(__pyx_t_12);
+        }
+        __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __PYX_ERR(0, 553, __pyx_L35_error)
+
+        /* "mappy.pyx":549
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ *                 ref_collect = NULL
+ *                 if rc != 0:             # <<<<<<<<<<<<<<
+ *                     if ref_result != NULL:
+ *                         cmappy.mm_ref_analysis_result_destroy(ref_result)
+*/
+      }
+
+      /* "mappy.pyx":554
+ *                         ref_result = NULL
+ *                     raise RuntimeError('failed to finalize reference analysis')
+ *                 if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+*/
+      __pyx_t_2 = (__pyx_v_ref_result != NULL);
+      if (__pyx_t_2) {
+
+        /* "mappy.pyx":555
+ *                     raise RuntimeError('failed to finalize reference analysis')
+ *                 if ref_result != NULL:
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()             # <<<<<<<<<<<<<<
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)
+*/
+        __pyx_t_2 = PyBytes_Check(__pyx_v_ref_analysis_prefix); 
+        if (__pyx_t_2) {
+          __pyx_t_18 = __pyx_v_ref_analysis_prefix;
+          __Pyx_INCREF(__pyx_t_18);
+          if (!(likely(PyBytes_CheckExact(__pyx_t_18))||((__pyx_t_18) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_18))) __PYX_ERR(0, 555, __pyx_L35_error)
+          __pyx_t_12 = __pyx_t_18;
+          __pyx_t_18 = 0;
+        } else {
+          __pyx_t_18 = __Pyx_PyObject_Unicode(__pyx_v_ref_analysis_prefix); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 555, __pyx_L35_error)
+          __Pyx_GOTREF(__pyx_t_18);
+          __pyx_t_10 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_18), NULL, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 555, __pyx_L35_error)
+          __Pyx_GOTREF(__pyx_t_10);
+          __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+          __pyx_t_12 = __pyx_t_10;
+          __pyx_t_10 = 0;
+        }
+        __pyx_v_ref_prefix_b = ((PyObject*)__pyx_t_12);
+        __pyx_t_12 = 0;
+
+        /* "mappy.pyx":556
+ *                 if ref_result != NULL:
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)             # <<<<<<<<<<<<<<
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                     ref_result = NULL
+*/
+        if (unlikely(__pyx_v_ref_prefix_b == Py_None)) {
+          PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+          __PYX_ERR(0, 556, __pyx_L35_error)
+        }
+        __pyx_t_27 = __Pyx_PyBytes_AsString(__pyx_v_ref_prefix_b); if (unlikely((!__pyx_t_27) && PyErr_Occurred())) __PYX_ERR(0, 556, __pyx_L35_error)
+        __pyx_v_rc = mm_ref_analysis_write(__pyx_v_ref_result, __pyx_t_27);
+
+        /* "mappy.pyx":557
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)             # <<<<<<<<<<<<<<
+ *                     ref_result = NULL
+ *                     if rc != 0:
+*/
+        mm_ref_analysis_result_destroy(__pyx_v_ref_result);
+
+        /* "mappy.pyx":558
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                     ref_result = NULL             # <<<<<<<<<<<<<<
+ *                     if rc != 0:
+ *                         raise RuntimeError('failed to write reference analysis outputs')
+*/
+        __pyx_v_ref_result = NULL;
+
+        /* "mappy.pyx":559
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                     ref_result = NULL
+ *                     if rc != 0:             # <<<<<<<<<<<<<<
+ *                         raise RuntimeError('failed to write reference analysis outputs')
+ *         finally:
+*/
+        __pyx_t_2 = (__pyx_v_rc != 0);
+        if (unlikely(__pyx_t_2)) {
+
+          /* "mappy.pyx":560
+ *                     ref_result = NULL
+ *                     if rc != 0:
+ *                         raise RuntimeError('failed to write reference analysis outputs')             # <<<<<<<<<<<<<<
+ *         finally:
+ *             if seqs != NULL:
+*/
+          __pyx_t_10 = NULL;
+          __pyx_t_5 = 1;
+          {
+            PyObject *__pyx_callargs[2] = {__pyx_t_10, __pyx_mstate_global->__pyx_kp_u_failed_to_write_reference_analys};
+            __pyx_t_12 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+            __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+            if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 560, __pyx_L35_error)
+            __Pyx_GOTREF(__pyx_t_12);
+          }
+          __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          __PYX_ERR(0, 560, __pyx_L35_error)
+
+          /* "mappy.pyx":559
+ *                     cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *                     ref_result = NULL
+ *                     if rc != 0:             # <<<<<<<<<<<<<<
+ *                         raise RuntimeError('failed to write reference analysis outputs')
+ *         finally:
+*/
+        }
+
+        /* "mappy.pyx":554
+ *                         ref_result = NULL
+ *                     raise RuntimeError('failed to finalize reference analysis')
+ *                 if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                     ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+ *                     rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+*/
+      }
+
+      /* "mappy.pyx":545
+ *                     seqs = NULL
+ * 
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+*/
+    }
   }
 
-  /* "mappy.pyx":525
- *                     seqs = NULL
+  /* "mappy.pyx":562
+ *                         raise RuntimeError('failed to write reference analysis outputs')
  *         finally:
  *             if seqs != NULL:             # <<<<<<<<<<<<<<
  *                 with nogil:
@@ -13460,10 +14063,10 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
   /*finally:*/ {
     /*normal exit:*/{
-      __pyx_t_6 = (__pyx_v_seqs != NULL);
-      if (__pyx_t_6) {
+      __pyx_t_2 = (__pyx_v_seqs != NULL);
+      if (__pyx_t_2) {
 
-        /* "mappy.pyx":526
+        /* "mappy.pyx":563
  *         finally:
  *             if seqs != NULL:
  *                 with nogil:             # <<<<<<<<<<<<<<
@@ -13476,7 +14079,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
             __Pyx_FastGIL_Remember();
             /*try:*/ {
 
-              /* "mappy.pyx":527
+              /* "mappy.pyx":564
  *             if seqs != NULL:
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)             # <<<<<<<<<<<<<<
@@ -13486,7 +14089,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               mappy_bseq_free_records(__pyx_v_seqs, __pyx_v_n_batch);
             }
 
-            /* "mappy.pyx":526
+            /* "mappy.pyx":563
  *         finally:
  *             if seqs != NULL:
  *                 with nogil:             # <<<<<<<<<<<<<<
@@ -13497,14 +14100,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               /*normal exit:*/{
                 __Pyx_FastGIL_Forget();
                 PyEval_RestoreThread(_save);
-                goto __pyx_L109;
+                goto __pyx_L120;
               }
-              __pyx_L109:;
+              __pyx_L120:;
             }
         }
 
-        /* "mappy.pyx":525
- *                     seqs = NULL
+        /* "mappy.pyx":562
+ *                         raise RuntimeError('failed to write reference analysis outputs')
  *         finally:
  *             if seqs != NULL:             # <<<<<<<<<<<<<<
  *                 with nogil:
@@ -13512,17 +14115,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       }
 
-      /* "mappy.pyx":528
+      /* "mappy.pyx":565
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:             # <<<<<<<<<<<<<<
  *                 fflush(out_fp)
  *                 if out_fp != stdout:
 */
-      __pyx_t_6 = (__pyx_v_out_fp != NULL);
-      if (__pyx_t_6) {
+      __pyx_t_2 = (__pyx_v_out_fp != NULL);
+      if (__pyx_t_2) {
 
-        /* "mappy.pyx":529
+        /* "mappy.pyx":566
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:
  *                 fflush(out_fp)             # <<<<<<<<<<<<<<
@@ -13531,17 +14134,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
         (void)(fflush(__pyx_v_out_fp));
 
-        /* "mappy.pyx":530
+        /* "mappy.pyx":567
  *             if out_fp != NULL:
  *                 fflush(out_fp)
  *                 if out_fp != stdout:             # <<<<<<<<<<<<<<
  *                     fclose(out_fp)
  *             if reader != NULL:
 */
-        __pyx_t_6 = (__pyx_v_out_fp != stdout);
-        if (__pyx_t_6) {
+        __pyx_t_2 = (__pyx_v_out_fp != stdout);
+        if (__pyx_t_2) {
 
-          /* "mappy.pyx":531
+          /* "mappy.pyx":568
  *                 fflush(out_fp)
  *                 if out_fp != stdout:
  *                     fclose(out_fp)             # <<<<<<<<<<<<<<
@@ -13550,7 +14153,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           (void)(fclose(__pyx_v_out_fp));
 
-          /* "mappy.pyx":530
+          /* "mappy.pyx":567
  *             if out_fp != NULL:
  *                 fflush(out_fp)
  *                 if out_fp != stdout:             # <<<<<<<<<<<<<<
@@ -13559,7 +14162,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
         }
 
-        /* "mappy.pyx":528
+        /* "mappy.pyx":565
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:             # <<<<<<<<<<<<<<
@@ -13568,69 +14171,125 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
       }
 
-      /* "mappy.pyx":532
+      /* "mappy.pyx":569
  *                 if out_fp != stdout:
  *                     fclose(out_fp)
  *             if reader != NULL:             # <<<<<<<<<<<<<<
  *                 cmappy.mm_bseq_close(reader)
- * 
+ *             if ref_result != NULL:
 */
-      __pyx_t_6 = (__pyx_v_reader != NULL);
-      if (__pyx_t_6) {
+      __pyx_t_2 = (__pyx_v_reader != NULL);
+      if (__pyx_t_2) {
 
-        /* "mappy.pyx":533
+        /* "mappy.pyx":570
  *                     fclose(out_fp)
  *             if reader != NULL:
  *                 cmappy.mm_bseq_close(reader)             # <<<<<<<<<<<<<<
- * 
- *         if processed != last_reported or processed == 0:
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
 */
         mm_bseq_close(__pyx_v_reader);
 
-        /* "mappy.pyx":532
+        /* "mappy.pyx":569
  *                 if out_fp != stdout:
  *                     fclose(out_fp)
  *             if reader != NULL:             # <<<<<<<<<<<<<<
  *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:
+*/
+      }
+
+      /* "mappy.pyx":571
+ *             if reader != NULL:
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+*/
+      __pyx_t_2 = (__pyx_v_ref_result != NULL);
+      if (__pyx_t_2) {
+
+        /* "mappy.pyx":572
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)             # <<<<<<<<<<<<<<
+ *             if ref_collect != NULL:
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+*/
+        mm_ref_analysis_result_destroy(__pyx_v_ref_result);
+
+        /* "mappy.pyx":571
+ *             if reader != NULL:
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+*/
+      }
+
+      /* "mappy.pyx":573
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ * 
+*/
+      __pyx_t_2 = (__pyx_v_ref_collect != NULL);
+      if (__pyx_t_2) {
+
+        /* "mappy.pyx":574
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)             # <<<<<<<<<<<<<<
+ * 
+ *         if processed != last_reported or processed == 0:
+*/
+        mm_ref_analysis_collect_destroy(__pyx_v_ref_collect);
+
+        /* "mappy.pyx":573
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
  * 
 */
       }
-      goto __pyx_L31;
+      goto __pyx_L36;
     }
-    __pyx_L30_error:;
+    __pyx_L35_error:;
     /*exception exit:*/{
       __Pyx_PyThreadState_declare
       __Pyx_PyThreadState_assign
-      __pyx_t_19 = 0; __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0;
-      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0;
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
       __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
       __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+      __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-       __Pyx_ExceptionSwap(&__pyx_t_22, &__pyx_t_23, &__pyx_t_24);
-      if ( unlikely(__Pyx_GetException(&__pyx_t_19, &__pyx_t_20, &__pyx_t_21) < 0)) __Pyx_ErrFetch(&__pyx_t_19, &__pyx_t_20, &__pyx_t_21);
-      __Pyx_XGOTREF(__pyx_t_19);
+       __Pyx_ExceptionSwap(&__pyx_t_23, &__pyx_t_24, &__pyx_t_25);
+      if ( unlikely(__Pyx_GetException(&__pyx_t_20, &__pyx_t_21, &__pyx_t_22) < 0)) __Pyx_ErrFetch(&__pyx_t_20, &__pyx_t_21, &__pyx_t_22);
       __Pyx_XGOTREF(__pyx_t_20);
       __Pyx_XGOTREF(__pyx_t_21);
       __Pyx_XGOTREF(__pyx_t_22);
       __Pyx_XGOTREF(__pyx_t_23);
       __Pyx_XGOTREF(__pyx_t_24);
-      __pyx_t_1 = __pyx_lineno; __pyx_t_13 = __pyx_clineno; __pyx_t_26 = __pyx_filename;
+      __Pyx_XGOTREF(__pyx_t_25);
+      __pyx_t_1 = __pyx_lineno; __pyx_t_14 = __pyx_clineno; __pyx_t_28 = __pyx_filename;
       {
 
-        /* "mappy.pyx":525
- *                     seqs = NULL
+        /* "mappy.pyx":562
+ *                         raise RuntimeError('failed to write reference analysis outputs')
  *         finally:
  *             if seqs != NULL:             # <<<<<<<<<<<<<<
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
 */
-        __pyx_t_6 = (__pyx_v_seqs != NULL);
-        if (__pyx_t_6) {
+        __pyx_t_2 = (__pyx_v_seqs != NULL);
+        if (__pyx_t_2) {
 
-          /* "mappy.pyx":526
+          /* "mappy.pyx":563
  *         finally:
  *             if seqs != NULL:
  *                 with nogil:             # <<<<<<<<<<<<<<
@@ -13643,7 +14302,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
               __Pyx_FastGIL_Remember();
               /*try:*/ {
 
-                /* "mappy.pyx":527
+                /* "mappy.pyx":564
  *             if seqs != NULL:
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)             # <<<<<<<<<<<<<<
@@ -13653,7 +14312,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 mappy_bseq_free_records(__pyx_v_seqs, __pyx_v_n_batch);
               }
 
-              /* "mappy.pyx":526
+              /* "mappy.pyx":563
  *         finally:
  *             if seqs != NULL:
  *                 with nogil:             # <<<<<<<<<<<<<<
@@ -13664,14 +14323,14 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
                 /*normal exit:*/{
                   __Pyx_FastGIL_Forget();
                   PyEval_RestoreThread(_save);
-                  goto __pyx_L118;
+                  goto __pyx_L131;
                 }
-                __pyx_L118:;
+                __pyx_L131:;
               }
           }
 
-          /* "mappy.pyx":525
- *                     seqs = NULL
+          /* "mappy.pyx":562
+ *                         raise RuntimeError('failed to write reference analysis outputs')
  *         finally:
  *             if seqs != NULL:             # <<<<<<<<<<<<<<
  *                 with nogil:
@@ -13679,17 +14338,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
         }
 
-        /* "mappy.pyx":528
+        /* "mappy.pyx":565
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:             # <<<<<<<<<<<<<<
  *                 fflush(out_fp)
  *                 if out_fp != stdout:
 */
-        __pyx_t_6 = (__pyx_v_out_fp != NULL);
-        if (__pyx_t_6) {
+        __pyx_t_2 = (__pyx_v_out_fp != NULL);
+        if (__pyx_t_2) {
 
-          /* "mappy.pyx":529
+          /* "mappy.pyx":566
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:
  *                 fflush(out_fp)             # <<<<<<<<<<<<<<
@@ -13698,17 +14357,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           (void)(fflush(__pyx_v_out_fp));
 
-          /* "mappy.pyx":530
+          /* "mappy.pyx":567
  *             if out_fp != NULL:
  *                 fflush(out_fp)
  *                 if out_fp != stdout:             # <<<<<<<<<<<<<<
  *                     fclose(out_fp)
  *             if reader != NULL:
 */
-          __pyx_t_6 = (__pyx_v_out_fp != stdout);
-          if (__pyx_t_6) {
+          __pyx_t_2 = (__pyx_v_out_fp != stdout);
+          if (__pyx_t_2) {
 
-            /* "mappy.pyx":531
+            /* "mappy.pyx":568
  *                 fflush(out_fp)
  *                 if out_fp != stdout:
  *                     fclose(out_fp)             # <<<<<<<<<<<<<<
@@ -13717,7 +14376,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
             (void)(fclose(__pyx_v_out_fp));
 
-            /* "mappy.pyx":530
+            /* "mappy.pyx":567
  *             if out_fp != NULL:
  *                 fflush(out_fp)
  *                 if out_fp != stdout:             # <<<<<<<<<<<<<<
@@ -13726,7 +14385,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
           }
 
-          /* "mappy.pyx":528
+          /* "mappy.pyx":565
  *                 with nogil:
  *                     cmappy.mappy_bseq_free_records(seqs, n_batch)
  *             if out_fp != NULL:             # <<<<<<<<<<<<<<
@@ -13735,121 +14394,177 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
         }
 
-        /* "mappy.pyx":532
+        /* "mappy.pyx":569
  *                 if out_fp != stdout:
  *                     fclose(out_fp)
  *             if reader != NULL:             # <<<<<<<<<<<<<<
  *                 cmappy.mm_bseq_close(reader)
- * 
+ *             if ref_result != NULL:
 */
-        __pyx_t_6 = (__pyx_v_reader != NULL);
-        if (__pyx_t_6) {
+        __pyx_t_2 = (__pyx_v_reader != NULL);
+        if (__pyx_t_2) {
 
-          /* "mappy.pyx":533
+          /* "mappy.pyx":570
  *                     fclose(out_fp)
  *             if reader != NULL:
  *                 cmappy.mm_bseq_close(reader)             # <<<<<<<<<<<<<<
- * 
- *         if processed != last_reported or processed == 0:
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
 */
           mm_bseq_close(__pyx_v_reader);
 
-          /* "mappy.pyx":532
+          /* "mappy.pyx":569
  *                 if out_fp != stdout:
  *                     fclose(out_fp)
  *             if reader != NULL:             # <<<<<<<<<<<<<<
  *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:
+*/
+        }
+
+        /* "mappy.pyx":571
+ *             if reader != NULL:
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+*/
+        __pyx_t_2 = (__pyx_v_ref_result != NULL);
+        if (__pyx_t_2) {
+
+          /* "mappy.pyx":572
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)             # <<<<<<<<<<<<<<
+ *             if ref_collect != NULL:
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+*/
+          mm_ref_analysis_result_destroy(__pyx_v_ref_result);
+
+          /* "mappy.pyx":571
+ *             if reader != NULL:
+ *                 cmappy.mm_bseq_close(reader)
+ *             if ref_result != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+*/
+        }
+
+        /* "mappy.pyx":573
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+ * 
+*/
+        __pyx_t_2 = (__pyx_v_ref_collect != NULL);
+        if (__pyx_t_2) {
+
+          /* "mappy.pyx":574
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)             # <<<<<<<<<<<<<<
+ * 
+ *         if processed != last_reported or processed == 0:
+*/
+          mm_ref_analysis_collect_destroy(__pyx_v_ref_collect);
+
+          /* "mappy.pyx":573
+ *             if ref_result != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(ref_result)
+ *             if ref_collect != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
  * 
 */
         }
       }
-      __Pyx_XGIVEREF(__pyx_t_22);
       __Pyx_XGIVEREF(__pyx_t_23);
       __Pyx_XGIVEREF(__pyx_t_24);
-      __Pyx_ExceptionReset(__pyx_t_22, __pyx_t_23, __pyx_t_24);
-      __Pyx_XGIVEREF(__pyx_t_19);
+      __Pyx_XGIVEREF(__pyx_t_25);
+      __Pyx_ExceptionReset(__pyx_t_23, __pyx_t_24, __pyx_t_25);
       __Pyx_XGIVEREF(__pyx_t_20);
       __Pyx_XGIVEREF(__pyx_t_21);
-      __Pyx_ErrRestore(__pyx_t_19, __pyx_t_20, __pyx_t_21);
-      __pyx_t_19 = 0; __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0;
-      __pyx_lineno = __pyx_t_1; __pyx_clineno = __pyx_t_13; __pyx_filename = __pyx_t_26;
+      __Pyx_XGIVEREF(__pyx_t_22);
+      __Pyx_ErrRestore(__pyx_t_20, __pyx_t_21, __pyx_t_22);
+      __pyx_t_20 = 0; __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0;
+      __pyx_lineno = __pyx_t_1; __pyx_clineno = __pyx_t_14; __pyx_filename = __pyx_t_28;
       goto __pyx_L1_error;
     }
-    __pyx_L31:;
+    __pyx_L36:;
   }
 
-  /* "mappy.pyx":535
- *                 cmappy.mm_bseq_close(reader)
+  /* "mappy.pyx":576
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
  * 
  *         if processed != last_reported or processed == 0:             # <<<<<<<<<<<<<<
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)
  *         else:
 */
-  __pyx_t_2 = (__pyx_v_processed != __pyx_v_last_reported);
-  if (!__pyx_t_2) {
+  __pyx_t_6 = (__pyx_v_processed != __pyx_v_last_reported);
+  if (!__pyx_t_6) {
   } else {
-    __pyx_t_6 = __pyx_t_2;
-    goto __pyx_L123_bool_binop_done;
+    __pyx_t_2 = __pyx_t_6;
+    goto __pyx_L138_bool_binop_done;
   }
-  __pyx_t_2 = (__pyx_v_processed == 0);
-  __pyx_t_6 = __pyx_t_2;
-  __pyx_L123_bool_binop_done:;
-  if (__pyx_t_6) {
+  __pyx_t_6 = (__pyx_v_processed == 0);
+  __pyx_t_2 = __pyx_t_6;
+  __pyx_L138_bool_binop_done:;
+  if (__pyx_t_2) {
 
-    /* "mappy.pyx":536
+    /* "mappy.pyx":577
  * 
  *         if processed != last_reported or processed == 0:
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)             # <<<<<<<<<<<<<<
  *         else:
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)
 */
-    __pyx_t_17 = NULL;
-    __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 536, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_15 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 536, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_15);
-    __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 536, __pyx_L1_error)
+    __pyx_t_10 = NULL;
+    __Pyx_GetModuleGlobalName(__pyx_t_18, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 577, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_18);
+    __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 577, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_16);
+    __pyx_t_17 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 577, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_17);
     __pyx_t_5 = 1;
     #if CYTHON_UNPACK_METHODS
-    if (unlikely(PyMethod_Check(__pyx_t_9))) {
-      __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_9);
-      assert(__pyx_t_17);
-      PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_9);
-      __Pyx_INCREF(__pyx_t_17);
+    if (unlikely(PyMethod_Check(__pyx_t_18))) {
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_18);
+      assert(__pyx_t_10);
+      PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_18);
+      __Pyx_INCREF(__pyx_t_10);
       __Pyx_INCREF(__pyx__function);
-      __Pyx_DECREF_SET(__pyx_t_9, __pyx__function);
+      __Pyx_DECREF_SET(__pyx_t_18, __pyx__function);
       __pyx_t_5 = 0;
     }
     #endif
     {
-      PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_17, __pyx_t_15, __pyx_t_16, __pyx_v_total_reads, __pyx_v_start_time};
-      __pyx_t_3 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 536, __pyx_L1_error)
+      PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_10, __pyx_t_16, __pyx_t_17, __pyx_v_total_reads, __pyx_v_start_time};
+      __pyx_t_3 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 577, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, __pyx_v_verbose, __pyx_t_3, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 536, __pyx_L1_error)
-      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_final, Py_True, __pyx_t_3, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 536, __pyx_L1_error)
-      __pyx_t_11 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_9, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_3);
-      __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
-      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, __pyx_v_verbose, __pyx_t_3, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 577, __pyx_L1_error)
+      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_final, Py_True, __pyx_t_3, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 577, __pyx_L1_error)
+      __pyx_t_12 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_18, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_3);
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 536, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+      if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 577, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
     }
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-    /* "mappy.pyx":535
- *                 cmappy.mm_bseq_close(reader)
+    /* "mappy.pyx":576
+ *                 cmappy.mm_ref_analysis_collect_destroy(ref_collect)
  * 
  *         if processed != last_reported or processed == 0:             # <<<<<<<<<<<<<<
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)
  *         else:
 */
-    goto __pyx_L122;
+    goto __pyx_L137;
   }
 
-  /* "mappy.pyx":538
+  /* "mappy.pyx":579
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)
  *         else:
  *             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)             # <<<<<<<<<<<<<<
@@ -13857,228 +14572,237 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
  *         stats = {
 */
   /*else*/ {
-    __pyx_t_9 = NULL;
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 538, __pyx_L1_error)
+    __pyx_t_18 = NULL;
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_mstate_global->__pyx_n_u_emit_progress); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 579, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 538, __pyx_L1_error)
+    __pyx_t_17 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 579, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_17);
+    __pyx_t_16 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 579, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_16);
-    __pyx_t_15 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 538, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_15);
     __pyx_t_5 = 1;
     #if CYTHON_UNPACK_METHODS
     if (unlikely(PyMethod_Check(__pyx_t_3))) {
-      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_3);
-      assert(__pyx_t_9);
+      __pyx_t_18 = PyMethod_GET_SELF(__pyx_t_3);
+      assert(__pyx_t_18);
       PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_9);
+      __Pyx_INCREF(__pyx_t_18);
       __Pyx_INCREF(__pyx__function);
       __Pyx_DECREF_SET(__pyx_t_3, __pyx__function);
       __pyx_t_5 = 0;
     }
     #endif
     {
-      PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_9, __pyx_t_16, __pyx_t_15, __pyx_v_total_reads, __pyx_v_start_time};
-      __pyx_t_17 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 538, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_17);
-      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, __pyx_v_verbose, __pyx_t_17, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 538, __pyx_L1_error)
-      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_final, Py_True, __pyx_t_17, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 538, __pyx_L1_error)
-      __pyx_t_11 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_3, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_17);
-      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      PyObject *__pyx_callargs[5 + ((CYTHON_VECTORCALL) ? 2 : 0)] = {__pyx_t_18, __pyx_t_17, __pyx_t_16, __pyx_v_total_reads, __pyx_v_start_time};
+      __pyx_t_10 = __Pyx_MakeVectorcallBuilderKwds(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 579, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_verbose, __pyx_v_verbose, __pyx_t_10, __pyx_callargs+5, 0) < (0)) __PYX_ERR(0, 579, __pyx_L1_error)
+      if (__Pyx_VectorcallBuilder_AddArg(__pyx_mstate_global->__pyx_n_u_final, Py_True, __pyx_t_10, __pyx_callargs+5, 1) < (0)) __PYX_ERR(0, 579, __pyx_L1_error)
+      __pyx_t_12 = __Pyx_Object_Vectorcall_CallFromBuilder((PyObject*)__pyx_t_3, __pyx_callargs+__pyx_t_5, (5-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET), __pyx_t_10);
+      __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 538, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
+      if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 579, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
     }
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   }
-  __pyx_L122:;
+  __pyx_L137:;
 
-  /* "mappy.pyx":541
+  /* "mappy.pyx":582
  * 
  *         stats = {
  *             'processed': processed,             # <<<<<<<<<<<<<<
  *             'mapped': mapped,
  *             'elapsed_sec': time.perf_counter() - start_time,
 */
-  __pyx_t_11 = __Pyx_PyDict_NewPresized(6); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 541, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 541, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_12);
+  __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 582, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_processed, __pyx_t_3) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_processed, __pyx_t_3) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "mappy.pyx":542
+  /* "mappy.pyx":583
  *         stats = {
  *             'processed': processed,
  *             'mapped': mapped,             # <<<<<<<<<<<<<<
  *             'elapsed_sec': time.perf_counter() - start_time,
  *             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,
 */
-  __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 542, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_mapped); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 583, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_mapped, __pyx_t_3) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_mapped, __pyx_t_3) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "mappy.pyx":543
+  /* "mappy.pyx":584
  *             'processed': processed,
  *             'mapped': mapped,
  *             'elapsed_sec': time.perf_counter() - start_time,             # <<<<<<<<<<<<<<
  *             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,
  *             'output_format': output_format,
 */
-  __pyx_t_17 = NULL;
-  __Pyx_GetModuleGlobalName(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 543, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_15);
-  __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 543, __pyx_L1_error)
+  __pyx_t_10 = NULL;
+  __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 584, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_16);
-  __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+  __pyx_t_17 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 584, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_17);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
   __pyx_t_5 = 1;
   #if CYTHON_UNPACK_METHODS
-  if (unlikely(PyMethod_Check(__pyx_t_16))) {
-    __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_16);
-    assert(__pyx_t_17);
-    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_16);
-    __Pyx_INCREF(__pyx_t_17);
+  if (unlikely(PyMethod_Check(__pyx_t_17))) {
+    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_17);
+    assert(__pyx_t_10);
+    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_17);
+    __Pyx_INCREF(__pyx_t_10);
     __Pyx_INCREF(__pyx__function);
-    __Pyx_DECREF_SET(__pyx_t_16, __pyx__function);
+    __Pyx_DECREF_SET(__pyx_t_17, __pyx__function);
     __pyx_t_5 = 0;
   }
   #endif
   {
-    PyObject *__pyx_callargs[2] = {__pyx_t_17, NULL};
-    __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_16, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-    __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
-    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 543, __pyx_L1_error)
+    PyObject *__pyx_callargs[2] = {__pyx_t_10, NULL};
+    __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_17, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 584, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
   }
-  __pyx_t_16 = PyNumber_Subtract(__pyx_t_3, __pyx_v_start_time); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 543, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_17 = PyNumber_Subtract(__pyx_t_3, __pyx_v_start_time); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 584, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_17);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_elapsed_sec, __pyx_t_16) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_elapsed_sec, __pyx_t_17) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
 
-  /* "mappy.pyx":544
+  /* "mappy.pyx":585
  *             'mapped': mapped,
  *             'elapsed_sec': time.perf_counter() - start_time,
  *             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,             # <<<<<<<<<<<<<<
  *             'output_format': output_format,
  *             'threads': n_threads,
 */
-  __pyx_t_2 = (__pyx_v_processed > 0);
-  if (__pyx_t_2) {
+  __pyx_t_6 = (__pyx_v_processed > 0);
+  if (__pyx_t_6) {
   } else {
-    __pyx_t_6 = __pyx_t_2;
-    goto __pyx_L125_bool_binop_done;
+    __pyx_t_2 = __pyx_t_6;
+    goto __pyx_L140_bool_binop_done;
   }
-  __pyx_t_17 = NULL;
-  __Pyx_GetModuleGlobalName(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 544, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_15);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 544, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
-  __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+  __pyx_t_10 = NULL;
+  __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 585, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_18 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 585, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_18);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
   __pyx_t_5 = 1;
   #if CYTHON_UNPACK_METHODS
-  if (unlikely(PyMethod_Check(__pyx_t_9))) {
-    __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_9);
-    assert(__pyx_t_17);
-    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_9);
-    __Pyx_INCREF(__pyx_t_17);
+  if (unlikely(PyMethod_Check(__pyx_t_18))) {
+    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_18);
+    assert(__pyx_t_10);
+    PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_18);
+    __Pyx_INCREF(__pyx_t_10);
     __Pyx_INCREF(__pyx__function);
-    __Pyx_DECREF_SET(__pyx_t_9, __pyx__function);
+    __Pyx_DECREF_SET(__pyx_t_18, __pyx__function);
     __pyx_t_5 = 0;
   }
   #endif
   {
-    PyObject *__pyx_callargs[2] = {__pyx_t_17, NULL};
-    __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_9, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-    __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 544, __pyx_L1_error)
+    PyObject *__pyx_callargs[2] = {__pyx_t_10, NULL};
+    __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_18, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 585, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
   }
-  __pyx_t_9 = PyNumber_Subtract(__pyx_t_3, __pyx_v_start_time); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 544, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_t_18 = PyNumber_Subtract(__pyx_t_3, __pyx_v_start_time); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 585, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_18);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_9, __pyx_mstate_global->__pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 544, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 544, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_18, __pyx_mstate_global->__pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 585, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 585, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __pyx_t_2;
-  __pyx_L125_bool_binop_done:;
-  if (__pyx_t_6) {
-    __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 544, __pyx_L1_error)
+  __pyx_t_2 = __pyx_t_6;
+  __pyx_L140_bool_binop_done:;
+  if (__pyx_t_2) {
+    __pyx_t_3 = __Pyx_PyLong_From_long(__pyx_v_processed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 585, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_17 = NULL;
-    __Pyx_GetModuleGlobalName(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 544, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_15);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 544, __pyx_L1_error)
+    __pyx_t_10 = NULL;
+    __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_time); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 585, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_mstate_global->__pyx_n_u_perf_counter); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 585, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
     __pyx_t_5 = 1;
     #if CYTHON_UNPACK_METHODS
     if (unlikely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_4);
-      assert(__pyx_t_17);
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
+      assert(__pyx_t_10);
       PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_17);
+      __Pyx_INCREF(__pyx_t_10);
       __Pyx_INCREF(__pyx__function);
       __Pyx_DECREF_SET(__pyx_t_4, __pyx__function);
       __pyx_t_5 = 0;
     }
     #endif
     {
-      PyObject *__pyx_callargs[2] = {__pyx_t_17, NULL};
-      __pyx_t_9 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_4, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-      __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+      PyObject *__pyx_callargs[2] = {__pyx_t_10, NULL};
+      __pyx_t_18 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_4, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 544, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
+      if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 585, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_18);
     }
-    __pyx_t_4 = PyNumber_Subtract(__pyx_t_9, __pyx_v_start_time); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 544, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_Subtract(__pyx_t_18, __pyx_v_start_time); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 585, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 544, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+    __pyx_t_18 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 585, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_18);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_16 = __pyx_t_9;
-    __pyx_t_9 = 0;
+    __pyx_t_17 = __pyx_t_18;
+    __pyx_t_18 = 0;
   } else {
     __Pyx_INCREF(__pyx_mstate_global->__pyx_float_0_0);
-    __pyx_t_16 = __pyx_mstate_global->__pyx_float_0_0;
+    __pyx_t_17 = __pyx_mstate_global->__pyx_float_0_0;
   }
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_reads_per_sec, __pyx_t_16) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_reads_per_sec, __pyx_t_17) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
 
-  /* "mappy.pyx":545
+  /* "mappy.pyx":586
  *             'elapsed_sec': time.perf_counter() - start_time,
  *             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,
  *             'output_format': output_format,             # <<<<<<<<<<<<<<
  *             'threads': n_threads,
- *         }
+ *             'ref_analysis_prefix': ref_analysis_prefix,
 */
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_output_format, __pyx_v_output_format) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_output_format, __pyx_v_output_format) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
 
-  /* "mappy.pyx":546
+  /* "mappy.pyx":587
  *             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,
  *             'output_format': output_format,
  *             'threads': n_threads,             # <<<<<<<<<<<<<<
+ *             'ref_analysis_prefix': ref_analysis_prefix,
+ *         }
+*/
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_threads, __pyx_v_n_threads) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+
+  /* "mappy.pyx":588
+ *             'output_format': output_format,
+ *             'threads': n_threads,
+ *             'ref_analysis_prefix': ref_analysis_prefix,             # <<<<<<<<<<<<<<
  *         }
  *         return stats
 */
-  if (PyDict_SetItem(__pyx_t_11, __pyx_mstate_global->__pyx_n_u_threads, __pyx_v_n_threads) < (0)) __PYX_ERR(0, 541, __pyx_L1_error)
-  __pyx_v_stats = __pyx_t_11;
-  __pyx_t_11 = 0;
+  if (PyDict_SetItem(__pyx_t_12, __pyx_mstate_global->__pyx_n_u_ref_analysis_prefix, __pyx_v_ref_analysis_prefix) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __pyx_v_stats = __pyx_t_12;
+  __pyx_t_12 = 0;
 
-  /* "mappy.pyx":548
- *             'threads': n_threads,
+  /* "mappy.pyx":590
+ *             'ref_analysis_prefix': ref_analysis_prefix,
  *         }
  *         return stats             # <<<<<<<<<<<<<<
  * 
- *     def seq(self, str name, int start=0, int end=0x7fffffff):
+ *     cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):
 */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_stats);
@@ -14088,7 +14812,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   /* "mappy.pyx":401
  *             free(seqs)
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):             # <<<<<<<<<<<<<<
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq_file_t *reader = NULL
  *         cdef cmappy.mm_bseq1_t *seqs = NULL
 */
@@ -14097,16 +14821,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_XDECREF(__pyx_t_15);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_12);
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
+  __Pyx_XDECREF(__pyx_t_18);
   __Pyx_AddTraceback("mappy.Aligner.map_file", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_query_b);
   __Pyx_XDECREF(__pyx_v_output_b);
+  __Pyx_XDECREF(__pyx_v_ref_prefix_b);
   __Pyx_XDECREF(__pyx_v_start_time);
   __Pyx_XDECREF(__pyx_v_stats);
   __Pyx_XDECREF(__pyx_v_n_threads);
@@ -14118,8 +14843,1329 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
   return __pyx_r;
 }
 
-/* "mappy.pyx":550
+/* "mappy.pyx":592
  *         return stats
+ * 
+ *     cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):             # <<<<<<<<<<<<<<
+ *         return {
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+*/
+
+static PyObject *__pyx_f_5mappy_7Aligner__ref_analysis_row_to_dict(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, mm_ref_analysis_row_t *__pyx_v_row) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  char *__pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_ref_analysis_row_to_dict", 0);
+
+  /* "mappy.pyx":593
+ * 
+ *     cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):
+ *         return {             # <<<<<<<<<<<<<<
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+ *             'ref_len': row.ref_len,
+*/
+  __Pyx_XDECREF(__pyx_r);
+
+  /* "mappy.pyx":594
+ *     cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):
+ *         return {
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,             # <<<<<<<<<<<<<<
+ *             'ref_len': row.ref_len,
+ *             'primary_reads_total': row.primary_reads_total,
+*/
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(36); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = (__pyx_v_row->ref_name != NULL);
+  if (__pyx_t_3) {
+    __pyx_t_4 = __pyx_v_row->ref_name;
+    __pyx_t_5 = __Pyx_ssize_strlen(__pyx_t_4); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 594, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_decode_c_string(__pyx_t_4, 0, __pyx_t_5, NULL, NULL, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 594, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_INCREF(__pyx_t_6);
+    __pyx_t_2 = __pyx_t_6;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  } else {
+    __Pyx_INCREF(Py_None);
+    __pyx_t_2 = Py_None;
+  }
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_ref_name, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":595
+ *         return {
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+ *             'ref_len': row.ref_len,             # <<<<<<<<<<<<<<
+ *             'primary_reads_total': row.primary_reads_total,
+ *             'primary_reads_used': row.primary_reads_used,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->ref_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 595, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_ref_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":596
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+ *             'ref_len': row.ref_len,
+ *             'primary_reads_total': row.primary_reads_total,             # <<<<<<<<<<<<<<
+ *             'primary_reads_used': row.primary_reads_used,
+ *             'supplementary_pieces': row.supplementary_pieces,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->primary_reads_total); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 596, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_primary_reads_total, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":597
+ *             'ref_len': row.ref_len,
+ *             'primary_reads_total': row.primary_reads_total,
+ *             'primary_reads_used': row.primary_reads_used,             # <<<<<<<<<<<<<<
+ *             'supplementary_pieces': row.supplementary_pieces,
+ *             'secondary_alignments': row.secondary_alignments,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->primary_reads_used); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 597, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_primary_reads_used, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":598
+ *             'primary_reads_total': row.primary_reads_total,
+ *             'primary_reads_used': row.primary_reads_used,
+ *             'supplementary_pieces': row.supplementary_pieces,             # <<<<<<<<<<<<<<
+ *             'secondary_alignments': row.secondary_alignments,
+ *             'min_read_len': row.min_read_len,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->supplementary_pieces); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 598, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_supplementary_pieces, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":599
+ *             'primary_reads_used': row.primary_reads_used,
+ *             'supplementary_pieces': row.supplementary_pieces,
+ *             'secondary_alignments': row.secondary_alignments,             # <<<<<<<<<<<<<<
+ *             'min_read_len': row.min_read_len,
+ *             'max_read_len': row.max_read_len,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->secondary_alignments); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 599, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_secondary_alignments, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":600
+ *             'supplementary_pieces': row.supplementary_pieces,
+ *             'secondary_alignments': row.secondary_alignments,
+ *             'min_read_len': row.min_read_len,             # <<<<<<<<<<<<<<
+ *             'max_read_len': row.max_read_len,
+ *             'median_read_len': row.median_read_len,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->min_read_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 600, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_min_read_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":601
+ *             'secondary_alignments': row.secondary_alignments,
+ *             'min_read_len': row.min_read_len,
+ *             'max_read_len': row.max_read_len,             # <<<<<<<<<<<<<<
+ *             'median_read_len': row.median_read_len,
+ *             'mean_read_len': row.mean_read_len,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->max_read_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 601, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_max_read_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":602
+ *             'min_read_len': row.min_read_len,
+ *             'max_read_len': row.max_read_len,
+ *             'median_read_len': row.median_read_len,             # <<<<<<<<<<<<<<
+ *             'mean_read_len': row.mean_read_len,
+ *             'avg_read_qual': row.avg_read_qual,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->median_read_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 602, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_median_read_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":603
+ *             'max_read_len': row.max_read_len,
+ *             'median_read_len': row.median_read_len,
+ *             'mean_read_len': row.mean_read_len,             # <<<<<<<<<<<<<<
+ *             'avg_read_qual': row.avg_read_qual,
+ *             'mean_mapq': row.mean_mapq,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_read_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 603, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_read_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":604
+ *             'median_read_len': row.median_read_len,
+ *             'mean_read_len': row.mean_read_len,
+ *             'avg_read_qual': row.avg_read_qual,             # <<<<<<<<<<<<<<
+ *             'mean_mapq': row.mean_mapq,
+ *             'median_mapq': row.median_mapq,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->avg_read_qual); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 604, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_avg_read_qual, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":605
+ *             'mean_read_len': row.mean_read_len,
+ *             'avg_read_qual': row.avg_read_qual,
+ *             'mean_mapq': row.mean_mapq,             # <<<<<<<<<<<<<<
+ *             'median_mapq': row.median_mapq,
+ *             'mean_identity': row.mean_identity,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_mapq); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 605, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_mapq, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":606
+ *             'avg_read_qual': row.avg_read_qual,
+ *             'mean_mapq': row.mean_mapq,
+ *             'median_mapq': row.median_mapq,             # <<<<<<<<<<<<<<
+ *             'mean_identity': row.mean_identity,
+ *             'median_identity': row.median_identity,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->median_mapq); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 606, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_median_mapq, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":607
+ *             'mean_mapq': row.mean_mapq,
+ *             'median_mapq': row.median_mapq,
+ *             'mean_identity': row.mean_identity,             # <<<<<<<<<<<<<<
+ *             'median_identity': row.median_identity,
+ *             'forward_primary': row.forward_primary,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_identity); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 607, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_identity, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":608
+ *             'median_mapq': row.median_mapq,
+ *             'mean_identity': row.mean_identity,
+ *             'median_identity': row.median_identity,             # <<<<<<<<<<<<<<
+ *             'forward_primary': row.forward_primary,
+ *             'reverse_primary': row.reverse_primary,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->median_identity); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 608, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_median_identity, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":609
+ *             'mean_identity': row.mean_identity,
+ *             'median_identity': row.median_identity,
+ *             'forward_primary': row.forward_primary,             # <<<<<<<<<<<<<<
+ *             'reverse_primary': row.reverse_primary,
+ *             'covered_bases': row.covered_bases,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->forward_primary); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_forward_primary, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":610
+ *             'median_identity': row.median_identity,
+ *             'forward_primary': row.forward_primary,
+ *             'reverse_primary': row.reverse_primary,             # <<<<<<<<<<<<<<
+ *             'covered_bases': row.covered_bases,
+ *             'coverage_breadth': row.coverage_breadth,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->reverse_primary); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 610, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_reverse_primary, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":611
+ *             'forward_primary': row.forward_primary,
+ *             'reverse_primary': row.reverse_primary,
+ *             'covered_bases': row.covered_bases,             # <<<<<<<<<<<<<<
+ *             'coverage_breadth': row.coverage_breadth,
+ *             'mean_depth': row.mean_depth,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->covered_bases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_covered_bases, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":612
+ *             'reverse_primary': row.reverse_primary,
+ *             'covered_bases': row.covered_bases,
+ *             'coverage_breadth': row.coverage_breadth,             # <<<<<<<<<<<<<<
+ *             'mean_depth': row.mean_depth,
+ *             'median_depth': row.median_depth,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->coverage_breadth); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 612, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_coverage_breadth, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":613
+ *             'covered_bases': row.covered_bases,
+ *             'coverage_breadth': row.coverage_breadth,
+ *             'mean_depth': row.mean_depth,             # <<<<<<<<<<<<<<
+ *             'median_depth': row.median_depth,
+ *             'mean_softclip_5p': row.mean_softclip_5p,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_depth); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 613, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_depth, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":614
+ *             'coverage_breadth': row.coverage_breadth,
+ *             'mean_depth': row.mean_depth,
+ *             'median_depth': row.median_depth,             # <<<<<<<<<<<<<<
+ *             'mean_softclip_5p': row.mean_softclip_5p,
+ *             'mean_softclip_3p': row.mean_softclip_3p,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->median_depth); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_median_depth, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":615
+ *             'mean_depth': row.mean_depth,
+ *             'median_depth': row.median_depth,
+ *             'mean_softclip_5p': row.mean_softclip_5p,             # <<<<<<<<<<<<<<
+ *             'mean_softclip_3p': row.mean_softclip_3p,
+ *             'mismatch_bases': row.mismatch_bases,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_softclip_5p); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 615, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_softclip_5p, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":616
+ *             'median_depth': row.median_depth,
+ *             'mean_softclip_5p': row.mean_softclip_5p,
+ *             'mean_softclip_3p': row.mean_softclip_3p,             # <<<<<<<<<<<<<<
+ *             'mismatch_bases': row.mismatch_bases,
+ *             'insertion_bases': row.insertion_bases,
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->mean_softclip_3p); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 616, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mean_softclip_3p, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":617
+ *             'mean_softclip_5p': row.mean_softclip_5p,
+ *             'mean_softclip_3p': row.mean_softclip_3p,
+ *             'mismatch_bases': row.mismatch_bases,             # <<<<<<<<<<<<<<
+ *             'insertion_bases': row.insertion_bases,
+ *             'deletion_bases': row.deletion_bases,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->mismatch_bases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 617, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_mismatch_bases, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":618
+ *             'mean_softclip_3p': row.mean_softclip_3p,
+ *             'mismatch_bases': row.mismatch_bases,
+ *             'insertion_bases': row.insertion_bases,             # <<<<<<<<<<<<<<
+ *             'deletion_bases': row.deletion_bases,
+ *             'skipped_bases': row.skipped_bases,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->insertion_bases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_insertion_bases, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":619
+ *             'mismatch_bases': row.mismatch_bases,
+ *             'insertion_bases': row.insertion_bases,
+ *             'deletion_bases': row.deletion_bases,             # <<<<<<<<<<<<<<
+ *             'skipped_bases': row.skipped_bases,
+ *             'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->deletion_bases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 619, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_deletion_bases, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":620
+ *             'insertion_bases': row.insertion_bases,
+ *             'deletion_bases': row.deletion_bases,
+ *             'skipped_bases': row.skipped_bases,             # <<<<<<<<<<<<<<
+ *             'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,
+ *             'consensus_len': row.consensus_len,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->skipped_bases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 620, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_skipped_bases, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":621
+ *             'deletion_bases': row.deletion_bases,
+ *             'skipped_bases': row.skipped_bases,
+ *             'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,             # <<<<<<<<<<<<<<
+ *             'consensus_len': row.consensus_len,
+ *             'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,
+*/
+  __pyx_t_3 = (__pyx_v_row->consensus_seq != NULL);
+  if (__pyx_t_3) {
+    __pyx_t_4 = __pyx_v_row->consensus_seq;
+    __pyx_t_5 = __Pyx_ssize_strlen(__pyx_t_4); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 621, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_decode_c_string(__pyx_t_4, 0, __pyx_t_5, NULL, NULL, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 621, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_INCREF(__pyx_t_6);
+    __pyx_t_2 = __pyx_t_6;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  } else {
+    __Pyx_INCREF(Py_None);
+    __pyx_t_2 = Py_None;
+  }
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_consensus_seq, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":622
+ *             'skipped_bases': row.skipped_bases,
+ *             'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,
+ *             'consensus_len': row.consensus_len,             # <<<<<<<<<<<<<<
+ *             'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,
+ *             'cigar_eq': row.cigar_eq,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint32_t(__pyx_v_row->consensus_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 622, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_consensus_len, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":623
+ *             'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,
+ *             'consensus_len': row.consensus_len,
+ *             'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,             # <<<<<<<<<<<<<<
+ *             'cigar_eq': row.cigar_eq,
+ *             'cigar_x': row.cigar_x,
+*/
+  __pyx_t_3 = (__pyx_v_row->consensus_cigar != NULL);
+  if (__pyx_t_3) {
+    __pyx_t_4 = __pyx_v_row->consensus_cigar;
+    __pyx_t_5 = __Pyx_ssize_strlen(__pyx_t_4); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 623, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_decode_c_string(__pyx_t_4, 0, __pyx_t_5, NULL, NULL, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 623, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_INCREF(__pyx_t_6);
+    __pyx_t_2 = __pyx_t_6;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  } else {
+    __Pyx_INCREF(Py_None);
+    __pyx_t_2 = Py_None;
+  }
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_consensus_cigar, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":624
+ *             'consensus_len': row.consensus_len,
+ *             'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,
+ *             'cigar_eq': row.cigar_eq,             # <<<<<<<<<<<<<<
+ *             'cigar_x': row.cigar_x,
+ *             'cigar_i': row.cigar_i,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->cigar_eq); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 624, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_cigar_eq, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":625
+ *             'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,
+ *             'cigar_eq': row.cigar_eq,
+ *             'cigar_x': row.cigar_x,             # <<<<<<<<<<<<<<
+ *             'cigar_i': row.cigar_i,
+ *             'cigar_d': row.cigar_d,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->cigar_x); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 625, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_cigar_x, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":626
+ *             'cigar_eq': row.cigar_eq,
+ *             'cigar_x': row.cigar_x,
+ *             'cigar_i': row.cigar_i,             # <<<<<<<<<<<<<<
+ *             'cigar_d': row.cigar_d,
+ *             'cigar_n': row.cigar_n,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->cigar_i); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 626, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_cigar_i, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":627
+ *             'cigar_x': row.cigar_x,
+ *             'cigar_i': row.cigar_i,
+ *             'cigar_d': row.cigar_d,             # <<<<<<<<<<<<<<
+ *             'cigar_n': row.cigar_n,
+ *             'consensus_edit_rate': row.consensus_edit_rate,
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->cigar_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 627, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_cigar_d, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":628
+ *             'cigar_i': row.cigar_i,
+ *             'cigar_d': row.cigar_d,
+ *             'cigar_n': row.cigar_n,             # <<<<<<<<<<<<<<
+ *             'consensus_edit_rate': row.consensus_edit_rate,
+ *         }
+*/
+  __pyx_t_2 = __Pyx_PyLong_From_uint64_t(__pyx_v_row->cigar_n); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 628, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_cigar_n, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":629
+ *             'cigar_d': row.cigar_d,
+ *             'cigar_n': row.cigar_n,
+ *             'consensus_edit_rate': row.consensus_edit_rate,             # <<<<<<<<<<<<<<
+ *         }
+ * 
+*/
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_row->consensus_edit_rate); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 629, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_consensus_edit_rate, __pyx_t_2) < (0)) __PYX_ERR(0, 594, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "mappy.pyx":592
+ *         return stats
+ * 
+ *     cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):             # <<<<<<<<<<<<<<
+ *         return {
+ *             'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("mappy.Aligner._ref_analysis_row_to_dict", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mappy.pyx":632
+ *         }
+ * 
+ *     def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):             # <<<<<<<<<<<<<<
+ *         cdef cmappy.mm_ref_analysis_opt_t aopt
+ *         cdef cmappy.mm_ref_analysis_result_t *res = NULL
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5mappy_7Aligner_14ref_analysis_file(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_5mappy_7Aligner_14ref_analysis_file = {"ref_analysis_file", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_14ref_analysis_file, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_5mappy_7Aligner_14ref_analysis_file(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyObject *__pyx_v_query_path = 0;
+  PyObject *__pyx_v_prefix = 0;
+  PyObject *__pyx_v_n_threads = 0;
+  PyObject *__pyx_v_min_mapq = 0;
+  PyObject *__pyx_v_min_aln_len = 0;
+  PyObject *__pyx_v_use_qual = 0;
+  PyObject *__pyx_v_count_reads_for_eta = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[7] = {0,0,0,0,0,0,0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("ref_analysis_file (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_query_path,&__pyx_mstate_global->__pyx_n_u_prefix,&__pyx_mstate_global->__pyx_n_u_n_threads,&__pyx_mstate_global->__pyx_n_u_min_mapq,&__pyx_mstate_global->__pyx_n_u_min_aln_len,&__pyx_mstate_global->__pyx_n_u_use_qual,&__pyx_mstate_global->__pyx_n_u_count_reads_for_eta,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 632, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  7:
+        values[6] = __Pyx_ArgRef_FASTCALL(__pyx_args, 6);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[6])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  6:
+        values[5] = __Pyx_ArgRef_FASTCALL(__pyx_args, 5);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[5])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  5:
+        values[4] = __Pyx_ArgRef_FASTCALL(__pyx_args, 4);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[4])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  4:
+        values[3] = __Pyx_ArgRef_FASTCALL(__pyx_args, 3);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[3])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  3:
+        values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  2:
+        values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "ref_analysis_file", 0) < (0)) __PYX_ERR(0, 632, __pyx_L3_error)
+      if (!values[1]) values[1] = __Pyx_NewRef(((PyObject *)Py_None));
+      if (!values[2]) values[2] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_1));
+      if (!values[3]) values[3] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[4]) values[4] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[5]) values[5] = __Pyx_NewRef(((PyObject *)Py_True));
+      if (!values[6]) values[6] = __Pyx_NewRef(((PyObject *)Py_False));
+      for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("ref_analysis_file", 0, 1, 7, i); __PYX_ERR(0, 632, __pyx_L3_error) }
+      }
+    } else {
+      switch (__pyx_nargs) {
+        case  7:
+        values[6] = __Pyx_ArgRef_FASTCALL(__pyx_args, 6);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[6])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  6:
+        values[5] = __Pyx_ArgRef_FASTCALL(__pyx_args, 5);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[5])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  5:
+        values[4] = __Pyx_ArgRef_FASTCALL(__pyx_args, 4);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[4])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  4:
+        values[3] = __Pyx_ArgRef_FASTCALL(__pyx_args, 3);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[3])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  3:
+        values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  2:
+        values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 632, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 632, __pyx_L3_error)
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      if (!values[1]) values[1] = __Pyx_NewRef(((PyObject *)Py_None));
+      if (!values[2]) values[2] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_1));
+      if (!values[3]) values[3] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[4]) values[4] = __Pyx_NewRef(((PyObject *)__pyx_mstate_global->__pyx_int_0));
+      if (!values[5]) values[5] = __Pyx_NewRef(((PyObject *)Py_True));
+      if (!values[6]) values[6] = __Pyx_NewRef(((PyObject *)Py_False));
+    }
+    __pyx_v_query_path = values[0];
+    __pyx_v_prefix = values[1];
+    __pyx_v_n_threads = values[2];
+    __pyx_v_min_mapq = values[3];
+    __pyx_v_min_aln_len = values[4];
+    __pyx_v_use_qual = values[5];
+    __pyx_v_count_reads_for_eta = values[6];
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("ref_analysis_file", 0, 1, 7, __pyx_nargs); __PYX_ERR(0, 632, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("mappy.Aligner.ref_analysis_file", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5mappy_7Aligner_13ref_analysis_file(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v_query_path, __pyx_v_prefix, __pyx_v_n_threads, __pyx_v_min_mapq, __pyx_v_min_aln_len, __pyx_v_use_qual, __pyx_v_count_reads_for_eta);
+
+  /* function exit code */
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5mappy_7Aligner_13ref_analysis_file(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_query_path, PyObject *__pyx_v_prefix, PyObject *__pyx_v_n_threads, PyObject *__pyx_v_min_mapq, PyObject *__pyx_v_min_aln_len, PyObject *__pyx_v_use_qual, PyObject *__pyx_v_count_reads_for_eta) {
+  mm_ref_analysis_opt_t __pyx_v_aopt;
+  mm_ref_analysis_result_t *__pyx_v_res;
+  PyObject *__pyx_v_query_b = 0;
+  PyObject *__pyx_v_prefix_b = 0;
+  int __pyx_v_rc;
+  int __pyx_v_i;
+  PyObject *__pyx_v_rows = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  size_t __pyx_t_4;
+  int __pyx_t_5;
+  int32_t __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
+  char const *__pyx_t_8;
+  int __pyx_t_9;
+  char const *__pyx_t_10;
+  uint32_t __pyx_t_11;
+  uint32_t __pyx_t_12;
+  int __pyx_t_13;
+  char const *__pyx_t_14;
+  PyObject *__pyx_t_15 = NULL;
+  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
+  PyObject *__pyx_t_18 = NULL;
+  PyObject *__pyx_t_19 = NULL;
+  PyObject *__pyx_t_20 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("ref_analysis_file", 0);
+  __Pyx_INCREF(__pyx_v_n_threads);
+
+  /* "mappy.pyx":634
+ *     def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):
+ *         cdef cmappy.mm_ref_analysis_opt_t aopt
+ *         cdef cmappy.mm_ref_analysis_result_t *res = NULL             # <<<<<<<<<<<<<<
+ *         cdef bytes query_b
+ *         cdef bytes prefix_b
+*/
+  __pyx_v_res = NULL;
+
+  /* "mappy.pyx":639
+ *         cdef int rc
+ *         cdef int i
+ *         cdef list rows = []             # <<<<<<<<<<<<<<
+ * 
+ *         if self._idx == NULL:
+*/
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 639, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_rows = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "mappy.pyx":641
+ *         cdef list rows = []
+ * 
+ *         if self._idx == NULL:             # <<<<<<<<<<<<<<
+ *             raise ValueError('index is not loaded')
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+*/
+  __pyx_t_2 = (__pyx_v_self->_idx == NULL);
+  if (unlikely(__pyx_t_2)) {
+
+    /* "mappy.pyx":642
+ * 
+ *         if self._idx == NULL:
+ *             raise ValueError('index is not loaded')             # <<<<<<<<<<<<<<
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+*/
+    __pyx_t_3 = NULL;
+    __pyx_t_4 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_mstate_global->__pyx_kp_u_index_is_not_loaded};
+      __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_4, (2-__pyx_t_4) | (__pyx_t_4*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 642, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 642, __pyx_L1_error)
+
+    /* "mappy.pyx":641
+ *         cdef list rows = []
+ * 
+ *         if self._idx == NULL:             # <<<<<<<<<<<<<<
+ *             raise ValueError('index is not loaded')
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+*/
+  }
+
+  /* "mappy.pyx":643
+ *         if self._idx == NULL:
+ *             raise ValueError('index is not loaded')
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):             # <<<<<<<<<<<<<<
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+ *         if n_threads is None or n_threads < 1:
+*/
+  __pyx_t_5 = ((__pyx_v_self->map_opt.flag & __pyx_v_5mappy_MM_F_CIGAR) != 0);
+  if (__pyx_t_5) {
+  } else {
+    __pyx_t_2 = __pyx_t_5;
+    goto __pyx_L5_bool_binop_done;
+  }
+  __pyx_t_5 = ((__pyx_v_self->_idx->flag & 2) != 0);
+  __pyx_t_2 = __pyx_t_5;
+  __pyx_L5_bool_binop_done:;
+  if (unlikely(__pyx_t_2)) {
+
+    /* "mappy.pyx":644
+ *             raise ValueError('index is not loaded')
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+ *             raise ValueError('reference analysis requires reference sequences in the index')             # <<<<<<<<<<<<<<
+ *         if n_threads is None or n_threads < 1:
+ *             n_threads = 1
+*/
+    __pyx_t_3 = NULL;
+    __pyx_t_4 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_mstate_global->__pyx_kp_u_reference_analysis_requires_refe};
+      __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_4, (2-__pyx_t_4) | (__pyx_t_4*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 644, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 644, __pyx_L1_error)
+
+    /* "mappy.pyx":643
+ *         if self._idx == NULL:
+ *             raise ValueError('index is not loaded')
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):             # <<<<<<<<<<<<<<
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+ *         if n_threads is None or n_threads < 1:
+*/
+  }
+
+  /* "mappy.pyx":645
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+ *         if n_threads is None or n_threads < 1:             # <<<<<<<<<<<<<<
+ *             n_threads = 1
+ * 
+*/
+  __pyx_t_5 = (__pyx_v_n_threads == Py_None);
+  if (!__pyx_t_5) {
+  } else {
+    __pyx_t_2 = __pyx_t_5;
+    goto __pyx_L8_bool_binop_done;
+  }
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_n_threads, __pyx_mstate_global->__pyx_int_1, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 645, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 645, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __pyx_t_5;
+  __pyx_L8_bool_binop_done:;
+  if (__pyx_t_2) {
+
+    /* "mappy.pyx":646
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+ *         if n_threads is None or n_threads < 1:
+ *             n_threads = 1             # <<<<<<<<<<<<<<
+ * 
+ *         cmappy.mm_ref_analysis_opt_init(&aopt)
+*/
+    __Pyx_INCREF(__pyx_mstate_global->__pyx_int_1);
+    __Pyx_DECREF_SET(__pyx_v_n_threads, __pyx_mstate_global->__pyx_int_1);
+
+    /* "mappy.pyx":645
+ *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+ *             raise ValueError('reference analysis requires reference sequences in the index')
+ *         if n_threads is None or n_threads < 1:             # <<<<<<<<<<<<<<
+ *             n_threads = 1
+ * 
+*/
+  }
+
+  /* "mappy.pyx":648
+ *             n_threads = 1
+ * 
+ *         cmappy.mm_ref_analysis_opt_init(&aopt)             # <<<<<<<<<<<<<<
+ *         aopt.min_mapq = min_mapq
+ *         aopt.min_aln_len = min_aln_len
+*/
+  mm_ref_analysis_opt_init((&__pyx_v_aopt));
+
+  /* "mappy.pyx":649
+ * 
+ *         cmappy.mm_ref_analysis_opt_init(&aopt)
+ *         aopt.min_mapq = min_mapq             # <<<<<<<<<<<<<<
+ *         aopt.min_aln_len = min_aln_len
+ *         aopt.use_qual = 1 if use_qual else 0
+*/
+  __pyx_t_6 = __Pyx_PyLong_As_int32_t(__pyx_v_min_mapq); if (unlikely((__pyx_t_6 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 649, __pyx_L1_error)
+  __pyx_v_aopt.min_mapq = __pyx_t_6;
+
+  /* "mappy.pyx":650
+ *         cmappy.mm_ref_analysis_opt_init(&aopt)
+ *         aopt.min_mapq = min_mapq
+ *         aopt.min_aln_len = min_aln_len             # <<<<<<<<<<<<<<
+ *         aopt.use_qual = 1 if use_qual else 0
+ *         aopt.count_reads_for_eta = 1 if count_reads_for_eta else 0
+*/
+  __pyx_t_6 = __Pyx_PyLong_As_int32_t(__pyx_v_min_aln_len); if (unlikely((__pyx_t_6 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 650, __pyx_L1_error)
+  __pyx_v_aopt.min_aln_len = __pyx_t_6;
+
+  /* "mappy.pyx":651
+ *         aopt.min_mapq = min_mapq
+ *         aopt.min_aln_len = min_aln_len
+ *         aopt.use_qual = 1 if use_qual else 0             # <<<<<<<<<<<<<<
+ *         aopt.count_reads_for_eta = 1 if count_reads_for_eta else 0
+ *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+*/
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_use_qual); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 651, __pyx_L1_error)
+  if (__pyx_t_2) {
+    __pyx_t_6 = 1;
+  } else {
+    __pyx_t_6 = 0;
+  }
+  __pyx_v_aopt.use_qual = __pyx_t_6;
+
+  /* "mappy.pyx":652
+ *         aopt.min_aln_len = min_aln_len
+ *         aopt.use_qual = 1 if use_qual else 0
+ *         aopt.count_reads_for_eta = 1 if count_reads_for_eta else 0             # <<<<<<<<<<<<<<
+ *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+ * 
+*/
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_count_reads_for_eta); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 652, __pyx_L1_error)
+  if (__pyx_t_2) {
+    __pyx_t_6 = 1;
+  } else {
+    __pyx_t_6 = 0;
+  }
+  __pyx_v_aopt.count_reads_for_eta = __pyx_t_6;
+
+  /* "mappy.pyx":653
+ *         aopt.use_qual = 1 if use_qual else 0
+ *         aopt.count_reads_for_eta = 1 if count_reads_for_eta else 0
+ *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()             # <<<<<<<<<<<<<<
+ * 
+ *         rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)
+*/
+  __pyx_t_2 = PyBytes_Check(__pyx_v_query_path); 
+  if (__pyx_t_2) {
+    __pyx_t_3 = __pyx_v_query_path;
+    __Pyx_INCREF(__pyx_t_3);
+    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_3))) __PYX_ERR(0, 653, __pyx_L1_error)
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_t_3 = 0;
+  } else {
+    __pyx_t_3 = __Pyx_PyObject_Unicode(__pyx_v_query_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 653, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_7 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_3), NULL, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 653, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_1 = __pyx_t_7;
+    __pyx_t_7 = 0;
+  }
+  __pyx_v_query_b = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "mappy.pyx":655
+ *         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+ * 
+ *         rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)             # <<<<<<<<<<<<<<
+ *         if rc != 0:
+ *             raise RuntimeError('reference analysis failed')
+*/
+  if (unlikely(__pyx_v_query_b == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+    __PYX_ERR(0, 655, __pyx_L1_error)
+  }
+  __pyx_t_8 = __Pyx_PyBytes_AsString(__pyx_v_query_b); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 655, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyLong_As_int(__pyx_v_n_threads); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 655, __pyx_L1_error)
+  __pyx_v_rc = mm_ref_analysis_file(__pyx_v_self->_idx, __pyx_t_8, (&__pyx_v_self->map_opt), ((int)__pyx_t_9), (&__pyx_v_aopt), (&__pyx_v_res));
+
+  /* "mappy.pyx":656
+ * 
+ *         rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)
+ *         if rc != 0:             # <<<<<<<<<<<<<<
+ *             raise RuntimeError('reference analysis failed')
+ * 
+*/
+  __pyx_t_2 = (__pyx_v_rc != 0);
+  if (unlikely(__pyx_t_2)) {
+
+    /* "mappy.pyx":657
+ *         rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)
+ *         if rc != 0:
+ *             raise RuntimeError('reference analysis failed')             # <<<<<<<<<<<<<<
+ * 
+ *         try:
+*/
+    __pyx_t_7 = NULL;
+    __pyx_t_4 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_7, __pyx_mstate_global->__pyx_kp_u_reference_analysis_failed};
+      __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_4, (2-__pyx_t_4) | (__pyx_t_4*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 657, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 657, __pyx_L1_error)
+
+    /* "mappy.pyx":656
+ * 
+ *         rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)
+ *         if rc != 0:             # <<<<<<<<<<<<<<
+ *             raise RuntimeError('reference analysis failed')
+ * 
+*/
+  }
+
+  /* "mappy.pyx":659
+ *             raise RuntimeError('reference analysis failed')
+ * 
+ *         try:             # <<<<<<<<<<<<<<
+ *             if prefix not in (None, ''):
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+*/
+  /*try:*/ {
+
+    /* "mappy.pyx":660
+ * 
+ *         try:
+ *             if prefix not in (None, ''):             # <<<<<<<<<<<<<<
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+*/
+    __Pyx_INCREF(__pyx_v_prefix);
+    __pyx_t_1 = __pyx_v_prefix;
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_1, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 660, __pyx_L12_error)
+    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 660, __pyx_L12_error)
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (__pyx_t_5) {
+    } else {
+      __pyx_t_2 = __pyx_t_5;
+      goto __pyx_L15_bool_binop_done;
+    }
+    __pyx_t_5 = (__Pyx_PyUnicode_Equals(__pyx_t_1, __pyx_mstate_global->__pyx_kp_u__2, Py_NE)); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 660, __pyx_L12_error)
+    __pyx_t_2 = __pyx_t_5;
+    __pyx_L15_bool_binop_done:;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_5 = __pyx_t_2;
+    if (__pyx_t_5) {
+
+      /* "mappy.pyx":661
+ *         try:
+ *             if prefix not in (None, ''):
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()             # <<<<<<<<<<<<<<
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+ *                 if rc != 0:
+*/
+      __pyx_t_5 = PyBytes_Check(__pyx_v_prefix); 
+      if (__pyx_t_5) {
+        __pyx_t_7 = __pyx_v_prefix;
+        __Pyx_INCREF(__pyx_t_7);
+        if (!(likely(PyBytes_CheckExact(__pyx_t_7))||((__pyx_t_7) == Py_None) || __Pyx_RaiseUnexpectedTypeError("bytes", __pyx_t_7))) __PYX_ERR(0, 661, __pyx_L12_error)
+        __pyx_t_1 = __pyx_t_7;
+        __pyx_t_7 = 0;
+      } else {
+        __pyx_t_7 = __Pyx_PyObject_Unicode(__pyx_v_prefix); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 661, __pyx_L12_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_3 = PyUnicode_AsEncodedString(((PyObject*)__pyx_t_7), NULL, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 661, __pyx_L12_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __pyx_t_1 = __pyx_t_3;
+        __pyx_t_3 = 0;
+      }
+      __pyx_v_prefix_b = ((PyObject*)__pyx_t_1);
+      __pyx_t_1 = 0;
+
+      /* "mappy.pyx":662
+ *             if prefix not in (None, ''):
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)             # <<<<<<<<<<<<<<
+ *                 if rc != 0:
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+*/
+      if (unlikely(__pyx_v_prefix_b == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+        __PYX_ERR(0, 662, __pyx_L12_error)
+      }
+      __pyx_t_10 = __Pyx_PyBytes_AsString(__pyx_v_prefix_b); if (unlikely((!__pyx_t_10) && PyErr_Occurred())) __PYX_ERR(0, 662, __pyx_L12_error)
+      __pyx_v_rc = mm_ref_analysis_write(__pyx_v_res, __pyx_t_10);
+
+      /* "mappy.pyx":663
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+ *                 if rc != 0:             # <<<<<<<<<<<<<<
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+ *             if res != NULL:
+*/
+      __pyx_t_5 = (__pyx_v_rc != 0);
+      if (unlikely(__pyx_t_5)) {
+
+        /* "mappy.pyx":664
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+ *                 if rc != 0:
+ *                     raise RuntimeError('failed to write reference analysis outputs')             # <<<<<<<<<<<<<<
+ *             if res != NULL:
+ *                 rows = [None] * res.n_rows
+*/
+        __pyx_t_3 = NULL;
+        __pyx_t_4 = 1;
+        {
+          PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_mstate_global->__pyx_kp_u_failed_to_write_reference_analys};
+          __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_4, (2-__pyx_t_4) | (__pyx_t_4*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 664, __pyx_L12_error)
+          __Pyx_GOTREF(__pyx_t_1);
+        }
+        __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __PYX_ERR(0, 664, __pyx_L12_error)
+
+        /* "mappy.pyx":663
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+ *                 if rc != 0:             # <<<<<<<<<<<<<<
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+ *             if res != NULL:
+*/
+      }
+
+      /* "mappy.pyx":660
+ * 
+ *         try:
+ *             if prefix not in (None, ''):             # <<<<<<<<<<<<<<
+ *                 prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+ *                 rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+*/
+    }
+
+    /* "mappy.pyx":665
+ *                 if rc != 0:
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+ *             if res != NULL:             # <<<<<<<<<<<<<<
+ *                 rows = [None] * res.n_rows
+ *                 for i in range(res.n_rows):
+*/
+    __pyx_t_5 = (__pyx_v_res != NULL);
+    if (__pyx_t_5) {
+
+      /* "mappy.pyx":666
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+ *             if res != NULL:
+ *                 rows = [None] * res.n_rows             # <<<<<<<<<<<<<<
+ *                 for i in range(res.n_rows):
+ *                     rows[i] = self._ref_analysis_row_to_dict(&res.rows[i])
+*/
+      __pyx_t_1 = PyList_New(1 * (__pyx_v_res->n_rows)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 666, __pyx_L12_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      { Py_ssize_t __pyx_temp;
+        for (__pyx_temp=0; __pyx_temp < __pyx_v_res->n_rows; __pyx_temp++) {
+          __Pyx_INCREF(Py_None);
+          __Pyx_GIVEREF(Py_None);
+          if (__Pyx_PyList_SET_ITEM(__pyx_t_1, __pyx_temp, Py_None) != (0)) __PYX_ERR(0, 666, __pyx_L12_error);
+        }
+      }
+      __Pyx_DECREF_SET(__pyx_v_rows, ((PyObject*)__pyx_t_1));
+      __pyx_t_1 = 0;
+
+      /* "mappy.pyx":667
+ *             if res != NULL:
+ *                 rows = [None] * res.n_rows
+ *                 for i in range(res.n_rows):             # <<<<<<<<<<<<<<
+ *                     rows[i] = self._ref_analysis_row_to_dict(&res.rows[i])
+ *             return rows
+*/
+      __pyx_t_11 = __pyx_v_res->n_rows;
+      __pyx_t_12 = __pyx_t_11;
+      for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_12; __pyx_t_9+=1) {
+        __pyx_v_i = __pyx_t_9;
+
+        /* "mappy.pyx":668
+ *                 rows = [None] * res.n_rows
+ *                 for i in range(res.n_rows):
+ *                     rows[i] = self._ref_analysis_row_to_dict(&res.rows[i])             # <<<<<<<<<<<<<<
+ *             return rows
+ *         finally:
+*/
+        __pyx_t_1 = ((struct __pyx_vtabstruct_5mappy_Aligner *)__pyx_v_self->__pyx_vtab)->_ref_analysis_row_to_dict(__pyx_v_self, (&(__pyx_v_res->rows[__pyx_v_i]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 668, __pyx_L12_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        if (unlikely((__Pyx_SetItemInt(__pyx_v_rows, __pyx_v_i, __pyx_t_1, int, 1, __Pyx_PyLong_From_int, 1, 1, 1, 1, __Pyx_ReferenceSharing_OwnStrongReference) < 0))) __PYX_ERR(0, 668, __pyx_L12_error)
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      }
+
+      /* "mappy.pyx":665
+ *                 if rc != 0:
+ *                     raise RuntimeError('failed to write reference analysis outputs')
+ *             if res != NULL:             # <<<<<<<<<<<<<<
+ *                 rows = [None] * res.n_rows
+ *                 for i in range(res.n_rows):
+*/
+    }
+
+    /* "mappy.pyx":669
+ *                 for i in range(res.n_rows):
+ *                     rows[i] = self._ref_analysis_row_to_dict(&res.rows[i])
+ *             return rows             # <<<<<<<<<<<<<<
+ *         finally:
+ *             if res != NULL:
+*/
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_v_rows);
+    __pyx_r = __pyx_v_rows;
+    goto __pyx_L11_return;
+  }
+
+  /* "mappy.pyx":671
+ *             return rows
+ *         finally:
+ *             if res != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
+ * 
+*/
+  /*finally:*/ {
+    __pyx_L12_error:;
+    /*exception exit:*/{
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __pyx_t_15 = 0; __pyx_t_16 = 0; __pyx_t_17 = 0; __pyx_t_18 = 0; __pyx_t_19 = 0; __pyx_t_20 = 0;
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+       __Pyx_ExceptionSwap(&__pyx_t_18, &__pyx_t_19, &__pyx_t_20);
+      if ( unlikely(__Pyx_GetException(&__pyx_t_15, &__pyx_t_16, &__pyx_t_17) < 0)) __Pyx_ErrFetch(&__pyx_t_15, &__pyx_t_16, &__pyx_t_17);
+      __Pyx_XGOTREF(__pyx_t_15);
+      __Pyx_XGOTREF(__pyx_t_16);
+      __Pyx_XGOTREF(__pyx_t_17);
+      __Pyx_XGOTREF(__pyx_t_18);
+      __Pyx_XGOTREF(__pyx_t_19);
+      __Pyx_XGOTREF(__pyx_t_20);
+      __pyx_t_9 = __pyx_lineno; __pyx_t_13 = __pyx_clineno; __pyx_t_14 = __pyx_filename;
+      {
+        __pyx_t_5 = (__pyx_v_res != NULL);
+        if (__pyx_t_5) {
+
+          /* "mappy.pyx":672
+ *         finally:
+ *             if res != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(res)             # <<<<<<<<<<<<<<
+ * 
+ *     def seq(self, str name, int start=0, int end=0x7fffffff):
+*/
+          mm_ref_analysis_result_destroy(__pyx_v_res);
+
+          /* "mappy.pyx":671
+ *             return rows
+ *         finally:
+ *             if res != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
+ * 
+*/
+        }
+      }
+      __Pyx_XGIVEREF(__pyx_t_18);
+      __Pyx_XGIVEREF(__pyx_t_19);
+      __Pyx_XGIVEREF(__pyx_t_20);
+      __Pyx_ExceptionReset(__pyx_t_18, __pyx_t_19, __pyx_t_20);
+      __Pyx_XGIVEREF(__pyx_t_15);
+      __Pyx_XGIVEREF(__pyx_t_16);
+      __Pyx_XGIVEREF(__pyx_t_17);
+      __Pyx_ErrRestore(__pyx_t_15, __pyx_t_16, __pyx_t_17);
+      __pyx_t_15 = 0; __pyx_t_16 = 0; __pyx_t_17 = 0; __pyx_t_18 = 0; __pyx_t_19 = 0; __pyx_t_20 = 0;
+      __pyx_lineno = __pyx_t_9; __pyx_clineno = __pyx_t_13; __pyx_filename = __pyx_t_14;
+      goto __pyx_L1_error;
+    }
+    __pyx_L11_return: {
+      __pyx_t_20 = __pyx_r;
+      __pyx_r = 0;
+      __pyx_t_5 = (__pyx_v_res != NULL);
+      if (__pyx_t_5) {
+
+        /* "mappy.pyx":672
+ *         finally:
+ *             if res != NULL:
+ *                 cmappy.mm_ref_analysis_result_destroy(res)             # <<<<<<<<<<<<<<
+ * 
+ *     def seq(self, str name, int start=0, int end=0x7fffffff):
+*/
+        mm_ref_analysis_result_destroy(__pyx_v_res);
+
+        /* "mappy.pyx":671
+ *             return rows
+ *         finally:
+ *             if res != NULL:             # <<<<<<<<<<<<<<
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
+ * 
+*/
+      }
+      __pyx_r = __pyx_t_20;
+      __pyx_t_20 = 0;
+      goto __pyx_L0;
+    }
+  }
+
+  /* "mappy.pyx":632
+ *         }
+ * 
+ *     def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):             # <<<<<<<<<<<<<<
+ *         cdef cmappy.mm_ref_analysis_opt_t aopt
+ *         cdef cmappy.mm_ref_analysis_result_t *res = NULL
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_AddTraceback("mappy.Aligner.ref_analysis_file", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_query_b);
+  __Pyx_XDECREF(__pyx_v_prefix_b);
+  __Pyx_XDECREF(__pyx_v_rows);
+  __Pyx_XDECREF(__pyx_v_n_threads);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "mappy.pyx":674
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
  * 
  *     def seq(self, str name, int start=0, int end=0x7fffffff):             # <<<<<<<<<<<<<<
  *         cdef int l
@@ -14127,15 +16173,15 @@ static PyObject *__pyx_pf_5mappy_7Aligner_11map_file(struct __pyx_obj_5mappy_Ali
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5mappy_7Aligner_14seq(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_5mappy_7Aligner_16seq(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_5mappy_7Aligner_14seq = {"seq", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_14seq, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_5mappy_7Aligner_14seq(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_5mappy_7Aligner_16seq = {"seq", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_16seq, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_5mappy_7Aligner_16seq(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14167,61 +16213,61 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_name,&__pyx_mstate_global->__pyx_n_u_start,&__pyx_mstate_global->__pyx_n_u_end,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 550, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 674, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  3:
         values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 674, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 674, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 674, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "seq", 0) < (0)) __PYX_ERR(0, 550, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "seq", 0) < (0)) __PYX_ERR(0, 674, __pyx_L3_error)
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("seq", 0, 1, 3, i); __PYX_ERR(0, 550, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("seq", 0, 1, 3, i); __PYX_ERR(0, 674, __pyx_L3_error) }
       }
     } else {
       switch (__pyx_nargs) {
         case  3:
         values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(0, 674, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 674, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 550, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 674, __pyx_L3_error)
         break;
         default: goto __pyx_L5_argtuple_error;
       }
     }
     __pyx_v_name = ((PyObject*)values[0]);
     if (values[1]) {
-      __pyx_v_start = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_start == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 550, __pyx_L3_error)
+      __pyx_v_start = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_start == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 674, __pyx_L3_error)
     } else {
       __pyx_v_start = ((int)0);
     }
     if (values[2]) {
-      __pyx_v_end = __Pyx_PyLong_As_int(values[2]); if (unlikely((__pyx_v_end == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 550, __pyx_L3_error)
+      __pyx_v_end = __Pyx_PyLong_As_int(values[2]); if (unlikely((__pyx_v_end == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 674, __pyx_L3_error)
     } else {
       __pyx_v_end = ((int)0x7fffffff);
     }
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("seq", 0, 1, 3, __pyx_nargs); __PYX_ERR(0, 550, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("seq", 0, 1, 3, __pyx_nargs); __PYX_ERR(0, 674, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -14232,8 +16278,8 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_name), (&PyUnicode_Type), 1, "name", 1))) __PYX_ERR(0, 550, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5mappy_7Aligner_13seq(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v_name, __pyx_v_start, __pyx_v_end);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_name), (&PyUnicode_Type), 1, "name", 1))) __PYX_ERR(0, 674, __pyx_L1_error)
+  __pyx_r = __pyx_pf_5mappy_7Aligner_15seq(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v_name, __pyx_v_start, __pyx_v_end);
 
   /* function exit code */
   goto __pyx_L0;
@@ -14252,7 +16298,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_name, int __pyx_v_start, int __pyx_v_end) {
+static PyObject *__pyx_pf_5mappy_7Aligner_15seq(struct __pyx_obj_5mappy_Aligner *__pyx_v_self, PyObject *__pyx_v_name, int __pyx_v_start, int __pyx_v_end) {
   int __pyx_v_l;
   char *__pyx_v_s;
   PyObject *__pyx_v_r = NULL;
@@ -14268,7 +16314,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("seq", 0);
 
-  /* "mappy.pyx":553
+  /* "mappy.pyx":677
  *         cdef int l
  *         cdef char *s
  *         if self._idx == NULL: return             # <<<<<<<<<<<<<<
@@ -14282,7 +16328,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
     goto __pyx_L0;
   }
 
-  /* "mappy.pyx":554
+  /* "mappy.pyx":678
  *         cdef char *s
  *         if self._idx == NULL: return
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)): return             # <<<<<<<<<<<<<<
@@ -14304,7 +16350,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
     goto __pyx_L0;
   }
 
-  /* "mappy.pyx":555
+  /* "mappy.pyx":679
  *         if self._idx == NULL: return
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)): return
  *         s = cmappy.mappy_fetch_seq(self._idx, name.encode(), start, end, &l)             # <<<<<<<<<<<<<<
@@ -14313,15 +16359,15 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
 */
   if (unlikely(__pyx_v_name == Py_None)) {
     PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "encode");
-    __PYX_ERR(0, 555, __pyx_L1_error)
+    __PYX_ERR(0, 679, __pyx_L1_error)
   }
-  __pyx_t_3 = PyUnicode_AsEncodedString(__pyx_v_name, NULL, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 555, __pyx_L1_error)
+  __pyx_t_3 = PyUnicode_AsEncodedString(__pyx_v_name, NULL, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 679, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyBytes_AsString(__pyx_t_3); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 555, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyBytes_AsString(__pyx_t_3); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 679, __pyx_L1_error)
   __pyx_v_s = mappy_fetch_seq(__pyx_v_self->_idx, __pyx_t_4, __pyx_v_start, __pyx_v_end, (&__pyx_v_l));
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "mappy.pyx":556
+  /* "mappy.pyx":680
  *         if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)): return
  *         s = cmappy.mappy_fetch_seq(self._idx, name.encode(), start, end, &l)
  *         if l == 0: return None             # <<<<<<<<<<<<<<
@@ -14335,24 +16381,24 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
     goto __pyx_L0;
   }
 
-  /* "mappy.pyx":557
+  /* "mappy.pyx":681
  *         s = cmappy.mappy_fetch_seq(self._idx, name.encode(), start, end, &l)
  *         if l == 0: return None
  *         r = s[:l] if isinstance(s, str) else s[:l].decode()             # <<<<<<<<<<<<<<
  *         free(s)
  *         return r
 */
-  __pyx_t_5 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 557, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 681, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_1 = PyUnicode_Check(__pyx_t_5); 
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_1) {
-    __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_l - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 557, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_l - 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 681, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_3 = __pyx_t_5;
     __pyx_t_5 = 0;
   } else {
-    __pyx_t_5 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_l, NULL, NULL, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 557, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_l, NULL, NULL, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 681, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_3 = __pyx_t_5;
     __pyx_t_5 = 0;
@@ -14360,7 +16406,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
   __pyx_v_r = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "mappy.pyx":558
+  /* "mappy.pyx":682
  *         if l == 0: return None
  *         r = s[:l] if isinstance(s, str) else s[:l].decode()
  *         free(s)             # <<<<<<<<<<<<<<
@@ -14369,7 +16415,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
 */
   free(__pyx_v_s);
 
-  /* "mappy.pyx":559
+  /* "mappy.pyx":683
  *         r = s[:l] if isinstance(s, str) else s[:l].decode()
  *         free(s)
  *         return r             # <<<<<<<<<<<<<<
@@ -14381,8 +16427,8 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
   __pyx_r = __pyx_v_r;
   goto __pyx_L0;
 
-  /* "mappy.pyx":550
- *         return stats
+  /* "mappy.pyx":674
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
  * 
  *     def seq(self, str name, int start=0, int end=0x7fffffff):             # <<<<<<<<<<<<<<
  *         cdef int l
@@ -14402,7 +16448,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_13seq(struct __pyx_obj_5mappy_Aligner 
   return __pyx_r;
 }
 
-/* "mappy.pyx":561
+/* "mappy.pyx":685
  *         return r
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14434,7 +16480,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1k___get__(struct __pyx_obj_5mappy_Ali
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mappy.pyx":562
+  /* "mappy.pyx":686
  * 
  *     @property
  *     def k(self): return self._idx.k             # <<<<<<<<<<<<<<
@@ -14442,13 +16488,13 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1k___get__(struct __pyx_obj_5mappy_Ali
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyLong_From_int32_t(__pyx_v_self->_idx->k); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 562, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_From_int32_t(__pyx_v_self->_idx->k); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 686, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mappy.pyx":561
+  /* "mappy.pyx":685
  *         return r
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14467,7 +16513,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1k___get__(struct __pyx_obj_5mappy_Ali
   return __pyx_r;
 }
 
-/* "mappy.pyx":564
+/* "mappy.pyx":688
  *     def k(self): return self._idx.k
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14499,7 +16545,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1w___get__(struct __pyx_obj_5mappy_Ali
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mappy.pyx":565
+  /* "mappy.pyx":689
  * 
  *     @property
  *     def w(self): return self._idx.w             # <<<<<<<<<<<<<<
@@ -14507,13 +16553,13 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1w___get__(struct __pyx_obj_5mappy_Ali
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyLong_From_int32_t(__pyx_v_self->_idx->w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 565, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_From_int32_t(__pyx_v_self->_idx->w); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 689, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mappy.pyx":564
+  /* "mappy.pyx":688
  *     def k(self): return self._idx.k
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14532,7 +16578,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_1w___get__(struct __pyx_obj_5mappy_Ali
   return __pyx_r;
 }
 
-/* "mappy.pyx":567
+/* "mappy.pyx":691
  *     def w(self): return self._idx.w
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14564,7 +16610,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_5n_seq___get__(struct __pyx_obj_5mappy
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mappy.pyx":568
+  /* "mappy.pyx":692
  * 
  *     @property
  *     def n_seq(self): return self._idx.n_seq             # <<<<<<<<<<<<<<
@@ -14572,13 +16618,13 @@ static PyObject *__pyx_pf_5mappy_7Aligner_5n_seq___get__(struct __pyx_obj_5mappy
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyLong_From_uint32_t(__pyx_v_self->_idx->n_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 568, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_From_uint32_t(__pyx_v_self->_idx->n_seq); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 692, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "mappy.pyx":567
+  /* "mappy.pyx":691
  *     def w(self): return self._idx.w
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14597,7 +16643,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_5n_seq___get__(struct __pyx_obj_5mappy
   return __pyx_r;
 }
 
-/* "mappy.pyx":570
+/* "mappy.pyx":694
  *     def n_seq(self): return self._idx.n_seq
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14641,7 +16687,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "mappy.pyx":573
+  /* "mappy.pyx":697
  *     def seq_names(self):
  *         cdef char *p
  *         if self._idx == NULL: return             # <<<<<<<<<<<<<<
@@ -14655,19 +16701,19 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
     goto __pyx_L0;
   }
 
-  /* "mappy.pyx":574
+  /* "mappy.pyx":698
  *         cdef char *p
  *         if self._idx == NULL: return
  *         sn = []             # <<<<<<<<<<<<<<
  *         for i in range(self._idx.n_seq):
  *             p = self._idx.seq[i].name
 */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 574, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 698, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_sn = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "mappy.pyx":575
+  /* "mappy.pyx":699
  *         if self._idx == NULL: return
  *         sn = []
  *         for i in range(self._idx.n_seq):             # <<<<<<<<<<<<<<
@@ -14679,7 +16725,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
   for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
     __pyx_v_i = __pyx_t_5;
 
-    /* "mappy.pyx":576
+    /* "mappy.pyx":700
  *         sn = []
  *         for i in range(self._idx.n_seq):
  *             p = self._idx.seq[i].name             # <<<<<<<<<<<<<<
@@ -14689,25 +16735,25 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
     __pyx_t_6 = (__pyx_v_self->_idx->seq[__pyx_v_i]).name;
     __pyx_v_p = __pyx_t_6;
 
-    /* "mappy.pyx":577
+    /* "mappy.pyx":701
  *         for i in range(self._idx.n_seq):
  *             p = self._idx.seq[i].name
  *             s = p if isinstance(p, str) else p.decode()             # <<<<<<<<<<<<<<
  *             sn.append(s)
  *         return sn
 */
-    __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_p); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 577, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_p); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 701, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_1 = PyUnicode_Check(__pyx_t_7); 
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     if (__pyx_t_1) {
-      __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_p); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 577, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_p); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 701, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_2 = __pyx_t_7;
       __pyx_t_7 = 0;
     } else {
-      __pyx_t_8 = __Pyx_ssize_strlen(__pyx_v_p); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 577, __pyx_L1_error)
-      __pyx_t_7 = __Pyx_decode_c_string(__pyx_v_p, 0, __pyx_t_8, NULL, NULL, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 577, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_ssize_strlen(__pyx_v_p); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 701, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_decode_c_string(__pyx_v_p, 0, __pyx_t_8, NULL, NULL, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 701, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_2 = __pyx_t_7;
       __pyx_t_7 = 0;
@@ -14715,17 +16761,17 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
     __Pyx_XDECREF_SET(__pyx_v_s, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "mappy.pyx":578
+    /* "mappy.pyx":702
  *             p = self._idx.seq[i].name
  *             s = p if isinstance(p, str) else p.decode()
  *             sn.append(s)             # <<<<<<<<<<<<<<
  *         return sn
  * 
 */
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_sn, __pyx_v_s); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 578, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_sn, __pyx_v_s); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 702, __pyx_L1_error)
   }
 
-  /* "mappy.pyx":579
+  /* "mappy.pyx":703
  *             s = p if isinstance(p, str) else p.decode()
  *             sn.append(s)
  *         return sn             # <<<<<<<<<<<<<<
@@ -14737,7 +16783,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
   __pyx_r = __pyx_v_sn;
   goto __pyx_L0;
 
-  /* "mappy.pyx":570
+  /* "mappy.pyx":694
  *     def n_seq(self): return self._idx.n_seq
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14766,15 +16812,15 @@ static PyObject *__pyx_pf_5mappy_7Aligner_9seq_names___get__(struct __pyx_obj_5m
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5mappy_7Aligner_16__reduce_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_5mappy_7Aligner_18__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_5mappy_7Aligner_16__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_16__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_5mappy_7Aligner_16__reduce_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_5mappy_7Aligner_18__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_18__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_5mappy_7Aligner_18__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14800,14 +16846,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   const Py_ssize_t __pyx_kwds_len = unlikely(__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
   if (unlikely(__pyx_kwds_len < 0)) return NULL;
   if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("__reduce_cython__", __pyx_kwds); return NULL;}
-  __pyx_r = __pyx_pf_5mappy_7Aligner_15__reduce_cython__(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5mappy_7Aligner_17__reduce_cython__(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mappy_7Aligner_15__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self) {
+static PyObject *__pyx_pf_5mappy_7Aligner_17__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_lineno = 0;
@@ -14847,15 +16893,15 @@ static PyObject *__pyx_pf_5mappy_7Aligner_15__reduce_cython__(CYTHON_UNUSED stru
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5mappy_7Aligner_18__setstate_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_5mappy_7Aligner_20__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_5mappy_7Aligner_18__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_18__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_5mappy_7Aligner_18__setstate_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_5mappy_7Aligner_20__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_20__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_5mappy_7Aligner_20__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14921,7 +16967,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5mappy_7Aligner_17__setstate_cython__(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5mappy_7Aligner_19__setstate_cython__(((struct __pyx_obj_5mappy_Aligner *)__pyx_v_self), __pyx_v___pyx_state);
 
   /* function exit code */
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
@@ -14931,7 +16977,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mappy_7Aligner_17__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5mappy_7Aligner_19__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5mappy_Aligner *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_lineno = 0;
@@ -14964,7 +17010,7 @@ static PyObject *__pyx_pf_5mappy_7Aligner_17__setstate_cython__(CYTHON_UNUSED st
 }
 static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "mappy.pyx":582
+/* "mappy.pyx":706
  * 
  * 
  * def fastx_read(fn, read_comment=False):             # <<<<<<<<<<<<<<
@@ -15012,35 +17058,35 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_fn,&__pyx_mstate_global->__pyx_n_u_read_comment,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 582, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 706, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 582, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 706, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 582, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 706, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "fastx_read", 0) < (0)) __PYX_ERR(0, 582, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "fastx_read", 0) < (0)) __PYX_ERR(0, 706, __pyx_L3_error)
       if (!values[1]) values[1] = __Pyx_NewRef(((PyObject *)((PyObject*)Py_False)));
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("fastx_read", 0, 1, 2, i); __PYX_ERR(0, 582, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("fastx_read", 0, 1, 2, i); __PYX_ERR(0, 706, __pyx_L3_error) }
       }
     } else {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 582, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 706, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 582, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 706, __pyx_L3_error)
         break;
         default: goto __pyx_L5_argtuple_error;
       }
@@ -15051,7 +17097,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fastx_read", 0, 1, 2, __pyx_nargs); __PYX_ERR(0, 582, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fastx_read", 0, 1, 2, __pyx_nargs); __PYX_ERR(0, 706, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -15084,7 +17130,7 @@ static PyObject *__pyx_pf_5mappy_4fastx_read(CYTHON_UNUSED PyObject *__pyx_self,
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_5mappy___pyx_scope_struct_1_fastx_read *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 582, __pyx_L1_error)
+    __PYX_ERR(0, 706, __pyx_L1_error)
   } else {
     __Pyx_GOTREF((PyObject *)__pyx_cur_scope);
   }
@@ -15095,7 +17141,7 @@ static PyObject *__pyx_pf_5mappy_4fastx_read(CYTHON_UNUSED PyObject *__pyx_self,
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_read_comment);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_read_comment);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_5mappy_6generator1, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2]), (PyObject *) __pyx_cur_scope, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_mstate_global->__pyx_n_u_mappy); if (unlikely(!gen)) __PYX_ERR(0, 582, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_5mappy_6generator1, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2]), (PyObject *) __pyx_cur_scope, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_mstate_global->__pyx_n_u_mappy); if (unlikely(!gen)) __PYX_ERR(0, 706, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -15137,10 +17183,10 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
   __pyx_L3_first_run:;
   if (unlikely(__pyx_sent_value != Py_None)) {
     if (unlikely(__pyx_sent_value)) PyErr_SetString(PyExc_TypeError, "can't send non-None value to a just-started generator");
-    __PYX_ERR(0, 582, __pyx_L1_error)
+    __PYX_ERR(0, 706, __pyx_L1_error)
   }
 
-  /* "mappy.pyx":584
+  /* "mappy.pyx":708
  * def fastx_read(fn, read_comment=False):
  *     cdef cmappy.kseq_t *ks
  *     ks = cmappy.mm_fastx_open(str.encode(fn))             # <<<<<<<<<<<<<<
@@ -15149,15 +17195,15 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
 */
   if (unlikely(__pyx_cur_scope->__pyx_v_fn == Py_None)) {
     PyErr_Format(PyExc_TypeError, "descriptor '%s' requires a '%s' object but received a 'NoneType'", "encode", "object");
-    __PYX_ERR(0, 584, __pyx_L1_error)
+    __PYX_ERR(0, 708, __pyx_L1_error)
   }
-  __pyx_t_1 = PyUnicode_AsEncodedString(((PyObject*)__pyx_cur_scope->__pyx_v_fn), NULL, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 584, __pyx_L1_error)
+  __pyx_t_1 = PyUnicode_AsEncodedString(((PyObject*)__pyx_cur_scope->__pyx_v_fn), NULL, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 708, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyBytes_AsString(__pyx_t_1); if (unlikely((!__pyx_t_2) && PyErr_Occurred())) __PYX_ERR(0, 584, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBytes_AsString(__pyx_t_1); if (unlikely((!__pyx_t_2) && PyErr_Occurred())) __PYX_ERR(0, 708, __pyx_L1_error)
   __pyx_cur_scope->__pyx_v_ks = mm_fastx_open(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "mappy.pyx":585
+  /* "mappy.pyx":709
  *     cdef cmappy.kseq_t *ks
  *     ks = cmappy.mm_fastx_open(str.encode(fn))
  *     if ks is NULL: return None             # <<<<<<<<<<<<<<
@@ -15171,7 +17217,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
     goto __pyx_L0;
   }
 
-  /* "mappy.pyx":586
+  /* "mappy.pyx":710
  *     ks = cmappy.mm_fastx_open(str.encode(fn))
  *     if ks is NULL: return None
  *     while cmappy.kseq_read(ks) >= 0:             # <<<<<<<<<<<<<<
@@ -15182,7 +17228,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
     __pyx_t_3 = (kseq_read(__pyx_cur_scope->__pyx_v_ks) >= 0);
     if (!__pyx_t_3) break;
 
-    /* "mappy.pyx":587
+    /* "mappy.pyx":711
  *     if ks is NULL: return None
  *     while cmappy.kseq_read(ks) >= 0:
  *         if ks.qual.l > 0: qual = ks.qual.s if isinstance(ks.qual.s, str) else ks.qual.s.decode()             # <<<<<<<<<<<<<<
@@ -15191,19 +17237,19 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
 */
     __pyx_t_3 = (__pyx_cur_scope->__pyx_v_ks->qual.l > 0);
     if (__pyx_t_3) {
-      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->qual.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 587, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->qual.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 711, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_3 = PyUnicode_Check(__pyx_t_4); 
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (__pyx_t_3) {
-        __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->qual.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 587, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->qual.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 711, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __pyx_t_1 = __pyx_t_4;
         __pyx_t_4 = 0;
       } else {
         __pyx_t_5 = __pyx_cur_scope->__pyx_v_ks->qual.s;
-        __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 587, __pyx_L1_error)
-        __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 587, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 711, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 711, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_INCREF(__pyx_t_4);
         __pyx_t_1 = __pyx_t_4;
@@ -15216,7 +17262,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
       goto __pyx_L7;
     }
 
-    /* "mappy.pyx":588
+    /* "mappy.pyx":712
  *     while cmappy.kseq_read(ks) >= 0:
  *         if ks.qual.l > 0: qual = ks.qual.s if isinstance(ks.qual.s, str) else ks.qual.s.decode()
  *         else: qual = None             # <<<<<<<<<<<<<<
@@ -15231,26 +17277,26 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
     }
     __pyx_L7:;
 
-    /* "mappy.pyx":589
+    /* "mappy.pyx":713
  *         if ks.qual.l > 0: qual = ks.qual.s if isinstance(ks.qual.s, str) else ks.qual.s.decode()
  *         else: qual = None
  *         name = ks.name.s if isinstance(ks.name.s, str) else ks.name.s.decode()             # <<<<<<<<<<<<<<
  *         seq = ks.seq.s if isinstance(ks.seq.s, str) else ks.seq.s.decode()
  *         if read_comment:
 */
-    __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->name.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 589, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->name.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 713, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_3 = PyUnicode_Check(__pyx_t_4); 
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_3) {
-      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->name.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->name.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 713, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_1 = __pyx_t_4;
       __pyx_t_4 = 0;
     } else {
       __pyx_t_5 = __pyx_cur_scope->__pyx_v_ks->name.s;
-      __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 589, __pyx_L1_error)
-      __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 713, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 713, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_4);
       __pyx_t_1 = __pyx_t_4;
@@ -15261,26 +17307,26 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "mappy.pyx":590
+    /* "mappy.pyx":714
  *         else: qual = None
  *         name = ks.name.s if isinstance(ks.name.s, str) else ks.name.s.decode()
  *         seq = ks.seq.s if isinstance(ks.seq.s, str) else ks.seq.s.decode()             # <<<<<<<<<<<<<<
  *         if read_comment:
  *             if ks.comment.l > 0: comment = ks.comment.s if isinstance(ks.comment.s, str) else ks.comment.s.decode()
 */
-    __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->seq.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 590, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->seq.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 714, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_3 = PyUnicode_Check(__pyx_t_4); 
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_3) {
-      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->seq.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 590, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->seq.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 714, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_1 = __pyx_t_4;
       __pyx_t_4 = 0;
     } else {
       __pyx_t_5 = __pyx_cur_scope->__pyx_v_ks->seq.s;
-      __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 590, __pyx_L1_error)
-      __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 590, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 714, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 714, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_4);
       __pyx_t_1 = __pyx_t_4;
@@ -15291,17 +17337,17 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "mappy.pyx":591
+    /* "mappy.pyx":715
  *         name = ks.name.s if isinstance(ks.name.s, str) else ks.name.s.decode()
  *         seq = ks.seq.s if isinstance(ks.seq.s, str) else ks.seq.s.decode()
  *         if read_comment:             # <<<<<<<<<<<<<<
  *             if ks.comment.l > 0: comment = ks.comment.s if isinstance(ks.comment.s, str) else ks.comment.s.decode()
  *             else: comment = None
 */
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_cur_scope->__pyx_v_read_comment); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 591, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_cur_scope->__pyx_v_read_comment); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 715, __pyx_L1_error)
     if (__pyx_t_3) {
 
-      /* "mappy.pyx":592
+      /* "mappy.pyx":716
  *         seq = ks.seq.s if isinstance(ks.seq.s, str) else ks.seq.s.decode()
  *         if read_comment:
  *             if ks.comment.l > 0: comment = ks.comment.s if isinstance(ks.comment.s, str) else ks.comment.s.decode()             # <<<<<<<<<<<<<<
@@ -15310,19 +17356,19 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
 */
       __pyx_t_3 = (__pyx_cur_scope->__pyx_v_ks->comment.l > 0);
       if (__pyx_t_3) {
-        __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->comment.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 592, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->comment.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 716, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __pyx_t_3 = PyUnicode_Check(__pyx_t_4); 
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         if (__pyx_t_3) {
-          __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->comment.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 592, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_cur_scope->__pyx_v_ks->comment.s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 716, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
           __pyx_t_1 = __pyx_t_4;
           __pyx_t_4 = 0;
         } else {
           __pyx_t_5 = __pyx_cur_scope->__pyx_v_ks->comment.s;
-          __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 592, __pyx_L1_error)
-          __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 592, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_ssize_strlen(__pyx_t_5); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 716, __pyx_L1_error)
+          __pyx_t_4 = __Pyx_decode_c_string(__pyx_t_5, 0, __pyx_t_6, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 716, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_INCREF(__pyx_t_4);
           __pyx_t_1 = __pyx_t_4;
@@ -15335,7 +17381,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
         goto __pyx_L9;
       }
 
-      /* "mappy.pyx":593
+      /* "mappy.pyx":717
  *         if read_comment:
  *             if ks.comment.l > 0: comment = ks.comment.s if isinstance(ks.comment.s, str) else ks.comment.s.decode()
  *             else: comment = None             # <<<<<<<<<<<<<<
@@ -15350,27 +17396,27 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
       }
       __pyx_L9:;
 
-      /* "mappy.pyx":594
+      /* "mappy.pyx":718
  *             if ks.comment.l > 0: comment = ks.comment.s if isinstance(ks.comment.s, str) else ks.comment.s.decode()
  *             else: comment = None
  *             yield name, seq, qual, comment             # <<<<<<<<<<<<<<
  *         else:
  *             yield name, seq, qual
 */
-      __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 594, __pyx_L1_error)
+      __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 718, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_name);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_name);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_cur_scope->__pyx_v_name) != (0)) __PYX_ERR(0, 594, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_cur_scope->__pyx_v_name) != (0)) __PYX_ERR(0, 718, __pyx_L1_error);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_seq);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_seq);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_cur_scope->__pyx_v_seq) != (0)) __PYX_ERR(0, 594, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_cur_scope->__pyx_v_seq) != (0)) __PYX_ERR(0, 718, __pyx_L1_error);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_qual);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_qual);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_cur_scope->__pyx_v_qual) != (0)) __PYX_ERR(0, 594, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_cur_scope->__pyx_v_qual) != (0)) __PYX_ERR(0, 718, __pyx_L1_error);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_comment);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_comment);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 3, __pyx_cur_scope->__pyx_v_comment) != (0)) __PYX_ERR(0, 594, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 3, __pyx_cur_scope->__pyx_v_comment) != (0)) __PYX_ERR(0, 718, __pyx_L1_error);
       __pyx_r = __pyx_t_1;
       __pyx_t_1 = 0;
       __Pyx_XGIVEREF(__pyx_r);
@@ -15380,9 +17426,9 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
       __pyx_generator->resume_label = 1;
       return __pyx_r;
       __pyx_L10_resume_from_yield:;
-      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 594, __pyx_L1_error)
+      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 718, __pyx_L1_error)
 
-      /* "mappy.pyx":591
+      /* "mappy.pyx":715
  *         name = ks.name.s if isinstance(ks.name.s, str) else ks.name.s.decode()
  *         seq = ks.seq.s if isinstance(ks.seq.s, str) else ks.seq.s.decode()
  *         if read_comment:             # <<<<<<<<<<<<<<
@@ -15392,7 +17438,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
       goto __pyx_L8;
     }
 
-    /* "mappy.pyx":596
+    /* "mappy.pyx":720
  *             yield name, seq, qual, comment
  *         else:
  *             yield name, seq, qual             # <<<<<<<<<<<<<<
@@ -15400,17 +17446,17 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
  * 
 */
     /*else*/ {
-      __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 596, __pyx_L1_error)
+      __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 720, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_name);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_name);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_cur_scope->__pyx_v_name) != (0)) __PYX_ERR(0, 596, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_cur_scope->__pyx_v_name) != (0)) __PYX_ERR(0, 720, __pyx_L1_error);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_seq);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_seq);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_cur_scope->__pyx_v_seq) != (0)) __PYX_ERR(0, 596, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_cur_scope->__pyx_v_seq) != (0)) __PYX_ERR(0, 720, __pyx_L1_error);
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_qual);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_qual);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_cur_scope->__pyx_v_qual) != (0)) __PYX_ERR(0, 596, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_cur_scope->__pyx_v_qual) != (0)) __PYX_ERR(0, 720, __pyx_L1_error);
       __pyx_r = __pyx_t_1;
       __pyx_t_1 = 0;
       __Pyx_XGIVEREF(__pyx_r);
@@ -15420,12 +17466,12 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
       __pyx_generator->resume_label = 2;
       return __pyx_r;
       __pyx_L11_resume_from_yield:;
-      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 596, __pyx_L1_error)
+      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 720, __pyx_L1_error)
     }
     __pyx_L8:;
   }
 
-  /* "mappy.pyx":597
+  /* "mappy.pyx":721
  *         else:
  *             yield name, seq, qual
  *     cmappy.mm_fastx_close(ks)             # <<<<<<<<<<<<<<
@@ -15435,7 +17481,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
   mm_fastx_close(__pyx_cur_scope->__pyx_v_ks);
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "mappy.pyx":582
+  /* "mappy.pyx":706
  * 
  * 
  * def fastx_read(fn, read_comment=False):             # <<<<<<<<<<<<<<
@@ -15464,7 +17510,7 @@ static PyObject *__pyx_gb_5mappy_6generator1(__pyx_CoroutineObject *__pyx_genera
   return __pyx_r;
 }
 
-/* "mappy.pyx":600
+/* "mappy.pyx":724
  * 
  * 
  * def revcomp(seq):             # <<<<<<<<<<<<<<
@@ -15511,32 +17557,32 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_seq,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 600, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 724, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 600, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 724, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "revcomp", 0) < (0)) __PYX_ERR(0, 600, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "revcomp", 0) < (0)) __PYX_ERR(0, 724, __pyx_L3_error)
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("revcomp", 1, 1, 1, i); __PYX_ERR(0, 600, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("revcomp", 1, 1, 1, i); __PYX_ERR(0, 724, __pyx_L3_error) }
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 600, __pyx_L3_error)
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 724, __pyx_L3_error)
     }
     __pyx_v_seq = values[0];
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("revcomp", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 600, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("revcomp", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 724, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -15576,17 +17622,17 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("revcomp", 0);
 
-  /* "mappy.pyx":601
+  /* "mappy.pyx":725
  * 
  * def revcomp(seq):
  *     l = len(seq)             # <<<<<<<<<<<<<<
  *     bseq = seq if isinstance(seq, bytes) else seq.encode()
  *     cdef char *s = cmappy.mappy_revcomp(l, bseq)
 */
-  __pyx_t_1 = PyObject_Length(__pyx_v_seq); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 601, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_v_seq); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 725, __pyx_L1_error)
   __pyx_v_l = __pyx_t_1;
 
-  /* "mappy.pyx":602
+  /* "mappy.pyx":726
  * def revcomp(seq):
  *     l = len(seq)
  *     bseq = seq if isinstance(seq, bytes) else seq.encode()             # <<<<<<<<<<<<<<
@@ -15605,7 +17651,7 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
       PyObject *__pyx_callargs[2] = {__pyx_t_5, NULL};
       __pyx_t_4 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_encode, __pyx_callargs+__pyx_t_6, (1-__pyx_t_6) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 602, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 726, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __pyx_t_2 = __pyx_t_4;
@@ -15614,34 +17660,34 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_v_bseq = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "mappy.pyx":603
+  /* "mappy.pyx":727
  *     l = len(seq)
  *     bseq = seq if isinstance(seq, bytes) else seq.encode()
  *     cdef char *s = cmappy.mappy_revcomp(l, bseq)             # <<<<<<<<<<<<<<
  *     r = s[:l] if isinstance(s, str) else s[:l].decode()
  *     free(s)
 */
-  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_bseq); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 603, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_AsUString(__pyx_v_bseq); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 727, __pyx_L1_error)
   __pyx_v_s = mappy_revcomp(__pyx_v_l, __pyx_t_7);
 
-  /* "mappy.pyx":604
+  /* "mappy.pyx":728
  *     bseq = seq if isinstance(seq, bytes) else seq.encode()
  *     cdef char *s = cmappy.mappy_revcomp(l, bseq)
  *     r = s[:l] if isinstance(s, str) else s[:l].decode()             # <<<<<<<<<<<<<<
  *     free(s)
  *     return r
 */
-  __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 604, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 728, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = PyUnicode_Check(__pyx_t_4); 
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_3) {
-    __pyx_t_4 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_l - 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 604, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_l - 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 728, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_2 = __pyx_t_4;
     __pyx_t_4 = 0;
   } else {
-    __pyx_t_4 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_l, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 604, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_l, NULL, NULL, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 728, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_2 = __pyx_t_4;
     __pyx_t_4 = 0;
@@ -15649,7 +17695,7 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_v_r = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "mappy.pyx":605
+  /* "mappy.pyx":729
  *     cdef char *s = cmappy.mappy_revcomp(l, bseq)
  *     r = s[:l] if isinstance(s, str) else s[:l].decode()
  *     free(s)             # <<<<<<<<<<<<<<
@@ -15658,7 +17704,7 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
 */
   free(__pyx_v_s);
 
-  /* "mappy.pyx":606
+  /* "mappy.pyx":730
  *     r = s[:l] if isinstance(s, str) else s[:l].decode()
  *     free(s)
  *     return r             # <<<<<<<<<<<<<<
@@ -15670,7 +17716,7 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_r = __pyx_v_r;
   goto __pyx_L0;
 
-  /* "mappy.pyx":600
+  /* "mappy.pyx":724
  * 
  * 
  * def revcomp(seq):             # <<<<<<<<<<<<<<
@@ -15693,7 +17739,7 @@ static PyObject *__pyx_pf_5mappy_7revcomp(CYTHON_UNUSED PyObject *__pyx_self, Py
   return __pyx_r;
 }
 
-/* "mappy.pyx":609
+/* "mappy.pyx":733
  * 
  * 
  * def verbose(v=None):             # <<<<<<<<<<<<<<
@@ -15740,24 +17786,24 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_v,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 609, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len) < 0) __PYX_ERR(0, 733, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 609, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 733, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "verbose", 0) < (0)) __PYX_ERR(0, 609, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "verbose", 0) < (0)) __PYX_ERR(0, 733, __pyx_L3_error)
       if (!values[0]) values[0] = __Pyx_NewRef(((PyObject *)Py_None));
     } else {
       switch (__pyx_nargs) {
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 609, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 733, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
@@ -15768,7 +17814,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("verbose", 0, 0, 1, __pyx_nargs); __PYX_ERR(0, 609, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("verbose", 0, 0, 1, __pyx_nargs); __PYX_ERR(0, 733, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -15801,7 +17847,7 @@ static PyObject *__pyx_pf_5mappy_9verbose(CYTHON_UNUSED PyObject *__pyx_self, Py
   __Pyx_RefNannySetupContext("verbose", 0);
   __Pyx_INCREF(__pyx_v_v);
 
-  /* "mappy.pyx":610
+  /* "mappy.pyx":734
  * 
  * def verbose(v=None):
  *     if v is None: v = -1             # <<<<<<<<<<<<<<
@@ -15813,20 +17859,20 @@ static PyObject *__pyx_pf_5mappy_9verbose(CYTHON_UNUSED PyObject *__pyx_self, Py
     __Pyx_DECREF_SET(__pyx_v_v, __pyx_mstate_global->__pyx_int_neg_1);
   }
 
-  /* "mappy.pyx":611
+  /* "mappy.pyx":735
  * def verbose(v=None):
  *     if v is None: v = -1
  *     return cmappy.mm_verbose_level(v)             # <<<<<<<<<<<<<<
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyLong_As_int(__pyx_v_v); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 611, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyLong_From_int(mm_verbose_level(__pyx_t_2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyLong_As_int(__pyx_v_v); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 735, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_From_int(mm_verbose_level(__pyx_t_2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 735, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "mappy.pyx":609
+  /* "mappy.pyx":733
  * 
  * 
  * def verbose(v=None):             # <<<<<<<<<<<<<<
@@ -16324,9 +18370,10 @@ static PyMethodDef __pyx_methods_5mappy_Aligner[] = {
   {"map", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_7map, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
   {"map_batch", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_10map_batch, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
   {"map_file", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_12map_file, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"seq", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_14seq, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_16__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_18__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"ref_analysis_file", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_14ref_analysis_file, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"seq", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_16seq, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_18__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5mappy_7Aligner_20__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -16957,6 +19004,7 @@ static int __Pyx_modinit_type_init_code(__pyx_mstatetype *__pyx_mstate) {
   if (__Pyx_setup_reduce((PyObject *) __pyx_mstate->__pyx_ptype_5mappy_ThreadBuffer) < (0)) __PYX_ERR(0, 167, __pyx_L1_error)
   __pyx_vtabptr_5mappy_Aligner = &__pyx_vtable_5mappy_Aligner;
   __pyx_vtable_5mappy_Aligner._collect_alignments = (PyObject *(*)(struct __pyx_obj_5mappy_Aligner *, mm_reg1_t *, int, PyObject *, PyObject *, int, int, int, mm_tbuf_t *))__pyx_f_5mappy_7Aligner__collect_alignments;
+  __pyx_vtable_5mappy_Aligner._ref_analysis_row_to_dict = (PyObject *(*)(struct __pyx_obj_5mappy_Aligner *, mm_ref_analysis_row_t *))__pyx_f_5mappy_7Aligner__ref_analysis_row_to_dict;
   #if CYTHON_USE_TYPE_SPECS
   __pyx_mstate->__pyx_ptype_5mappy_Aligner = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_5mappy_Aligner_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_5mappy_Aligner)) __PYX_ERR(0, 177, __pyx_L1_error)
   if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_5mappy_Aligner_spec, __pyx_mstate->__pyx_ptype_5mappy_Aligner) < (0)) __PYX_ERR(0, 177, __pyx_L1_error)
@@ -17000,15 +19048,15 @@ static int __Pyx_modinit_type_init_code(__pyx_mstatetype *__pyx_mstate) {
   }
   #endif
   #if CYTHON_USE_TYPE_SPECS
-  __pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_5mappy___pyx_scope_struct_1_fastx_read_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read)) __PYX_ERR(0, 582, __pyx_L1_error)
-  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_5mappy___pyx_scope_struct_1_fastx_read_spec, __pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_5mappy___pyx_scope_struct_1_fastx_read_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read)) __PYX_ERR(0, 706, __pyx_L1_error)
+  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_5mappy___pyx_scope_struct_1_fastx_read_spec, __pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read) < (0)) __PYX_ERR(0, 706, __pyx_L1_error)
   #else
   __pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read = &__pyx_type_5mappy___pyx_scope_struct_1_fastx_read;
   #endif
   #if !CYTHON_COMPILING_IN_LIMITED_API
   #endif
   #if !CYTHON_USE_TYPE_SPECS
-  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read) < (0)) __PYX_ERR(0, 706, __pyx_L1_error)
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount((PyObject*)__pyx_mstate->__pyx_ptype_5mappy___pyx_scope_struct_1_fastx_read);
@@ -17563,7 +19611,7 @@ __Pyx_RefNannySetupContext("PyInit_mappy", 0);
   /* "mappy.pyx":401
  *             free(seqs)
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):             # <<<<<<<<<<<<<<
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq_file_t *reader = NULL
  *         cdef cmappy.mm_bseq1_t *seqs = NULL
 */
@@ -17576,20 +19624,36 @@ __Pyx_RefNannySetupContext("PyInit_mappy", 0);
   if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_5mappy_Aligner, __pyx_mstate_global->__pyx_n_u_map_file, __pyx_t_2) < (0)) __PYX_ERR(0, 401, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "mappy.pyx":550
- *         return stats
+  /* "mappy.pyx":632
+ *         }
  * 
- *     def seq(self, str name, int start=0, int end=0x7fffffff):             # <<<<<<<<<<<<<<
- *         cdef int l
- *         cdef char *s
+ *     def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):             # <<<<<<<<<<<<<<
+ *         cdef cmappy.mm_ref_analysis_opt_t aopt
+ *         cdef cmappy.mm_ref_analysis_result_t *res = NULL
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_14seq, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner_seq, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[11])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 550, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_14ref_analysis_file, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner_ref_analysis_file, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[11])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 632, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[4]);
-  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_5mappy_Aligner, __pyx_mstate_global->__pyx_n_u_seq, __pyx_t_2) < (0)) __PYX_ERR(0, 550, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_5mappy_Aligner, __pyx_mstate_global->__pyx_n_u_ref_analysis_file, __pyx_t_2) < (0)) __PYX_ERR(0, 632, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "mappy.pyx":674
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
+ * 
+ *     def seq(self, str name, int start=0, int end=0x7fffffff):             # <<<<<<<<<<<<<<
+ *         cdef int l
+ *         cdef char *s
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_16seq, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner_seq, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[12])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 674, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[5]);
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_5mappy_Aligner, __pyx_mstate_global->__pyx_n_u_seq, __pyx_t_2) < (0)) __PYX_ERR(0, 674, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "(tree fragment)":1
@@ -17597,7 +19661,7 @@ __Pyx_RefNannySetupContext("PyInit_mappy", 0);
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
  * def __setstate_cython__(self, __pyx_state):
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_16__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner___reduce_cython, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[12])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_18__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner___reduce_cython, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[13])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -17611,7 +19675,7 @@ __Pyx_RefNannySetupContext("PyInit_mappy", 0);
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_18__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner___setstate_cython, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[13])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_7Aligner_20__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Aligner___setstate_cython, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[14])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -17619,51 +19683,51 @@ __Pyx_RefNannySetupContext("PyInit_mappy", 0);
   if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_setstate_cython, __pyx_t_2) < (0)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "mappy.pyx":582
+  /* "mappy.pyx":706
  * 
  * 
  * def fastx_read(fn, read_comment=False):             # <<<<<<<<<<<<<<
  *     cdef cmappy.kseq_t *ks
  *     ks = cmappy.mm_fastx_open(str.encode(fn))
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_5fastx_read, 0, __pyx_mstate_global->__pyx_n_u_fastx_read, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_5fastx_read, 0, __pyx_mstate_global->__pyx_n_u_fastx_read, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 706, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[5]);
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_t_2) < (0)) __PYX_ERR(0, 582, __pyx_L1_error)
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[6]);
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_fastx_read, __pyx_t_2) < (0)) __PYX_ERR(0, 706, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "mappy.pyx":600
+  /* "mappy.pyx":724
  * 
  * 
  * def revcomp(seq):             # <<<<<<<<<<<<<<
  *     l = len(seq)
  *     bseq = seq if isinstance(seq, bytes) else seq.encode()
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_8revcomp, 0, __pyx_mstate_global->__pyx_n_u_revcomp, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[14])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 600, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_8revcomp, 0, __pyx_mstate_global->__pyx_n_u_revcomp, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[15])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 724, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_revcomp, __pyx_t_2) < (0)) __PYX_ERR(0, 600, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_revcomp, __pyx_t_2) < (0)) __PYX_ERR(0, 724, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "mappy.pyx":609
+  /* "mappy.pyx":733
  * 
  * 
  * def verbose(v=None):             # <<<<<<<<<<<<<<
  *     if v is None: v = -1
  *     return cmappy.mm_verbose_level(v)
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_10verbose, 0, __pyx_mstate_global->__pyx_n_u_verbose, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[15])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_5mappy_10verbose, 0, __pyx_mstate_global->__pyx_n_u_verbose, NULL, __pyx_mstate_global->__pyx_n_u_mappy, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[16])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 733, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[6]);
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_verbose, __pyx_t_2) < (0)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_mstate_global->__pyx_tuple[7]);
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_verbose, __pyx_t_2) < (0)) __PYX_ERR(0, 733, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "mappy.pyx":1
@@ -17772,50 +19836,61 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
   /* "mappy.pyx":401
  *             free(seqs)
  * 
- *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):             # <<<<<<<<<<<<<<
+ *     def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):             # <<<<<<<<<<<<<<
  *         cdef cmappy.mm_bseq_file_t *reader = NULL
  *         cdef cmappy.mm_bseq1_t *seqs = NULL
 */
-  __pyx_mstate_global->__pyx_tuple[3] = PyTuple_Pack(12, __pyx_mstate_global->__pyx_kp_u__4, __pyx_mstate_global->__pyx_n_u_legacy, __pyx_mstate_global->__pyx_int_1, Py_False, Py_False, Py_None, Py_None, Py_True, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_1000, __pyx_mstate_global->__pyx_int_33554432, __pyx_mstate_global->__pyx_int_4096); if (unlikely(!__pyx_mstate_global->__pyx_tuple[3])) __PYX_ERR(0, 401, __pyx_L1_error)
+  __pyx_mstate_global->__pyx_tuple[3] = PyTuple_Pack(17, __pyx_mstate_global->__pyx_kp_u__4, __pyx_mstate_global->__pyx_n_u_legacy, __pyx_mstate_global->__pyx_int_1, Py_False, Py_False, Py_None, Py_None, Py_True, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_1000, __pyx_mstate_global->__pyx_int_33554432, __pyx_mstate_global->__pyx_int_4096, Py_None, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_0, Py_True, Py_False); if (unlikely(!__pyx_mstate_global->__pyx_tuple[3])) __PYX_ERR(0, 401, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[3]);
   __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[3]);
 
-  /* "mappy.pyx":550
- *         return stats
+  /* "mappy.pyx":632
+ *         }
+ * 
+ *     def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):             # <<<<<<<<<<<<<<
+ *         cdef cmappy.mm_ref_analysis_opt_t aopt
+ *         cdef cmappy.mm_ref_analysis_result_t *res = NULL
+*/
+  __pyx_mstate_global->__pyx_tuple[4] = PyTuple_Pack(6, Py_None, __pyx_mstate_global->__pyx_int_1, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_0, Py_True, Py_False); if (unlikely(!__pyx_mstate_global->__pyx_tuple[4])) __PYX_ERR(0, 632, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[4]);
+  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[4]);
+
+  /* "mappy.pyx":674
+ *                 cmappy.mm_ref_analysis_result_destroy(res)
  * 
  *     def seq(self, str name, int start=0, int end=0x7fffffff):             # <<<<<<<<<<<<<<
  *         cdef int l
  *         cdef char *s
 */
-  __pyx_mstate_global->__pyx_tuple[4] = PyTuple_Pack(2, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_2147483647); if (unlikely(!__pyx_mstate_global->__pyx_tuple[4])) __PYX_ERR(0, 550, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[4]);
-  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[4]);
+  __pyx_mstate_global->__pyx_tuple[5] = PyTuple_Pack(2, __pyx_mstate_global->__pyx_int_0, __pyx_mstate_global->__pyx_int_2147483647); if (unlikely(!__pyx_mstate_global->__pyx_tuple[5])) __PYX_ERR(0, 674, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[5]);
+  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[5]);
 
-  /* "mappy.pyx":582
+  /* "mappy.pyx":706
  * 
  * 
  * def fastx_read(fn, read_comment=False):             # <<<<<<<<<<<<<<
  *     cdef cmappy.kseq_t *ks
  *     ks = cmappy.mm_fastx_open(str.encode(fn))
 */
-  __pyx_mstate_global->__pyx_tuple[5] = PyTuple_Pack(1, ((PyObject*)Py_False)); if (unlikely(!__pyx_mstate_global->__pyx_tuple[5])) __PYX_ERR(0, 582, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[5]);
-  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[5]);
+  __pyx_mstate_global->__pyx_tuple[6] = PyTuple_Pack(1, ((PyObject*)Py_False)); if (unlikely(!__pyx_mstate_global->__pyx_tuple[6])) __PYX_ERR(0, 706, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[6]);
+  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[6]);
 
-  /* "mappy.pyx":609
+  /* "mappy.pyx":733
  * 
  * 
  * def verbose(v=None):             # <<<<<<<<<<<<<<
  *     if v is None: v = -1
  *     return cmappy.mm_verbose_level(v)
 */
-  __pyx_mstate_global->__pyx_tuple[6] = PyTuple_Pack(1, Py_None); if (unlikely(!__pyx_mstate_global->__pyx_tuple[6])) __PYX_ERR(0, 609, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[6]);
-  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[6]);
+  __pyx_mstate_global->__pyx_tuple[7] = PyTuple_Pack(1, Py_None); if (unlikely(!__pyx_mstate_global->__pyx_tuple[7])) __PYX_ERR(0, 733, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[7]);
+  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[7]);
   #if CYTHON_IMMORTAL_CONSTANTS
   {
     PyObject **table = __pyx_mstate->__pyx_tuple;
-    for (Py_ssize_t i=0; i<7; ++i) {
+    for (Py_ssize_t i=0; i<8; ++i) {
       #if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
       #if PY_VERSION_HEX < 0x030E0000
       if (_Py_IsOwnedByCurrentThread(table[i]) && Py_REFCNT(table[i]) == 1)
@@ -17842,34 +19917,34 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 11; } index[] = {{1},{3},{3},{4},{3},{5},{10},{179},{0},{1},{1},{1},{1},{8},{58},{5},{5},{7},{62},{10},{6},{28},{27},{26},{35},{2},{19},{9},{14},{17},{16},{9},{50},{12},{15},{14},{14},{29},{28},{13},{6},{6},{6},{6},{6},{40},{43},{27},{7},{25},{27},{11},{17},{16},{11},{9},{35},{27},{29},{2},{6},{2},{20},{12},{30},{32},{10},{3},{18},{1},{11},{8},{11},{6},{4},{4},{3},{2},{7},{2},{12},{7},{10},{5},{9},{2},{17},{18},{5},{7},{9},{13},{15},{2},{6},{3},{6},{7},{11},{14},{6},{3},{3},{11},{10},{4},{5},{5},{2},{9},{10},{16},{8},{12},{1},{5},{1},{13},{10},{5},{1},{2},{1},{8},{13},{6},{5},{1},{8},{3},{9},{8},{7},{6},{5},{4},{14},{12},{15},{7},{12},{7},{4},{10},{7},{6},{5},{9},{4},{8},{5},{6},{5},{4},{6},{3},{6},{8},{11},{13},{11},{3},{12},{3},{6},{6},{5},{9},{8},{14},{11},{14},{2},{2},{4},{12},{7},{10},{1},{2},{12},{6},{13},{3},{7},{10},{17},{13},{4},{9},{7},{7},{5},{1},{3},{7},{7},{3},{7},{6},{4},{4},{3},{4},{5},{4},{5},{8},{4},{12},{10},{12},{19},{5},{10},{5},{6},{6},{3},{8},{12},{7},{10},{5},{4},{11},{12},{7},{1},{5},{6},{7},{11},{1},{9},{8},{1},{0},{5},{80},{27},{1279},{659},{20},{9},{24},{127},{199},{114}};
-    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (3042 bytes) */
-const char* const cstring = "BZh91AY&SYc\213Y2\000\001\300\377\377\377\377\377\377\377\377\377\377\377\373\177\377\377\377\377\377\300@@@@@@@@@@@@\000@\000`\n\315\347a\365\245-\237_ly\353}\3438Q\266,\333km=\357\244\000x\372\032\021!\023\321\032zi\032f\211\352zM\2426\2323Sdj\230\203'\250y4\r&C&dF\321\r\001\246jf\200\320h\202Q\t\240h\023\024\311\200F\206\243\t\006F\200\031\001\241\240\000\0004\000\000\000\003@\006\204h\320!\001F\214\232\236\r!2z\233I\221\350\200\000\323@\0001\032h\r\0002\032\000\032\0004\310\202&\222\236\302\233@M\252\036M\036\251\265\001\210\310\3650\232\000d\320\006 \000d\003\023F\232hd\321\240\022\236\250\246\220\365A\240\323&\232h\000\362\203&@\032h\000\000\032\000\006\020\032\001\3522h\000\320\000\324\232\032\231\252\031\2442\r4\323\311\003\324\001\241\240z\2324\000\003@\000\000\000\001\246\201\352\032\r\003\254\002\256\177]fu\203\240\006\231\231\031o\0161\310\\\274\334\375<\345\322\352\263\272\306\035\2220\361s\263\263\364\177\316\207\301\330\225G\265\352Nm9Jm\326\313\214^X\200\274u\343\037\364\002\034\000\0303j\204\033\004\030\246\332\346\217\364RB0,@\242\210\214 \244,,\003e\025tqQ;\0254WZ\210\236h\265\224\305\005\024\202\233E\204HP\201@\330\2153\306\346\203\370dh\333\030\325\007\001X\307\202#PW\017q+0#\t\026\000N\312\321\213\356\\\35773\306Cq\205q\215\303\n\354\267\006\302\240\300;\243K\211\343\267\216f\001\342\304\020\013\256\024\235\261\221D\024Y\240\241^\025\264(W\230\017+n\210\250T\t\212 \236\347\244\311\241\236\033\220\314\274\251\214\3270\025`n*\214Y\271l!\003a<S\027\324\314\021\244.\302\305|\324\350i\030,\253\272\364--\3409=q\033\314\243\311)\024\251\322KM\270\315\252\313n\0210\321\361\216\222\3128\025F2\222cZ\272:\301PS\312B\032\256]\312LM\370\031\310vo\224M\003\344ou\260_,I\231\257\365\252\330Dv_\025{\2570$A\177'\324_\257B\351\316j\003\233\2618\303}\023\235\0209y\212\306\263\215G\243\207\213\277'B\034\313\216\001\212n?<XT\271\332\244\302\374\010@C\2367q\222\250Q[Z\346\250\257\247\254\351\211\342\023\261e\205;,\227\241I{\256\331\266\371\261\363\247\212Z\354(\362""\273\302\350kZ\2714Sk\331\351\365wp\342v\252\242\257)S\211i\247\2034\224\325~\257c\327~y\263\231\002@\324\231SI\254v\210\244\025\361\217\014\020\010\250X<\336\347q\261\016\rd\032\002^\277\253\263\321\032\302L\032\341,';\361b\367\372\230\025EkQyI\360\200A'\007G\243H\222\205%\255\225\273\274\364\021\234\200\260\326\323\032\375\352gN\251\370\264\370\371\2218\271))Gu\027\205\307\035\206n\202\347\230G\333\223\2651\235c\312;C\017Sm\203d\rI\025\304\022\030\204\270^\361\314\344\030f\255t)HG\3000\004\t\361O\021\300L\3013\024\240\256\3256W\0319\234\241\346\017\360\3106IVZ\374\234u\230\253G\253\325\303\234:\027\204\346\263CE\255l\216\312\332\335<C-5a(\353\341J\313\225\034u\nr\267#{Swk\355\266\207\257\323<}o\257&*\260\205\014\r\035&\030\233 \324\323|g\016\200UJ\212\256\020E\n\252\272.l\033\312\3203\tJ\374\314\013\006\014Bu\250>\306F\317\223}2\236}8\270\252(1\225\206\376\022\210\214\236\371\337z\274@\333tA\356\375\202\236\274}fK\013\247R\004\006\005\345\261\331\312\325`T\327\206J*\212c\201a\344Q\225\230l\363Po\021\307(\r\263\000vd\344\034<n\203\360d\356\020\246\024&i\305\253\\\237W\224\236\347\272\371\327{\230\026\021\266\360}dH\272U\343\244\200\026\020\202Z+Q\337@\251A\006C\360\346%\017\335\227\372a\374\231<\3151\337t\227\035\301\030\010\232V\017\314\244.8\004\224\371>\203\354\221\004\343\237\026\3217\205\231\204\201\356t\271@\314~\343>\25450\026\240\251\330\330:\356\255\251\211\250z\212\236b\210M#\344\303\234MX\305\315\353KT\366\332E\203O\357\375\016\244\216P#\262\231\253=\225\255\004%K\312\306\355]\022`[\251\204$$D-&D\204\342\214\212r\234\".,\003\"\003M\013E\341}0\250T\352\024\347M\004DT\032\005L\210\205\237\275\001\007\257\330I\303t\027\016\334sx\304\315\0365FrH\325\344\311V\000\224\222z\352F\302\244G\352tG/<FEx2\227\0163\244\342\366We\007\307\320\022qD:-\262m\300\254Q\3341W\216b\204\271\265\206\211\214\352\201w\005\325\275\336\222\202\314\2134\3170^\264\302%\304\255\306w\010c\030\364$\236\004X\331\034\313\035\032\371\220\276F*\242\0100\000\245\257I\214\270}\030\337gg\224sfC""Q\306\357\275\325v\231\"p]$\204\030\202H \347,\030\200\026\226\001\353\232\226\035\024&\304\037\356O\004\205J\013\010\nPd\356\361Fcl\306\343\240\3645D\nz[\350N)1\0061\215\324\027,e{\233\005\241\275@\024\200x\005\240\322\227m\031\231\003\266\\\256t\264E\002\255\310c5(r::VH\003'U\356\r\035E\202\324\327\265\030\241\023\355\215W\243\014\333\247\006\3525\372N\377\245\257\035\013\220b\225\264\257m\030\254\tbK'W\213u\206W\270\251H\246\2333\227\001\253{\233\317\355\376\312\220\321eK\260v\r5\022\326W\032\txHM3\027fb\333m\242\313\000\255QCiq6%\032\201j\3506#\004-\211\027\226NI\222I\267\262\363\363\306\223\216A3\206!\024\310\372\214\013\026\264RX\345\tD.\202\034\031\2112M\".>>+\254+\246\375\263\276\352\330\251\275\304Gc\236\374jip\271\013\004\276\313\306\337\307$\270_#\n:\244\350\344\351\357b2127#Pb\250\271\027\033m\216\211\317\001\021\212\013\016\233\002zs\022\2773\312\212Tab\302\353\215\\\356WE\372)g8\275x\032\353\205\334`e\356\223-\367\3019\264\\!\251\014\342\261\343)\241Hq\225*\033\311$U\267\210\361\306\260\330\240\255Z\370L\001HZ\355\2544\025\363\204\317v*\037\231e2\251\035\207OB\023~\2269\003Y\274?!\361\210\216\227\240(\031\010\200\240\231\267\2511\276N\032\264A\035\3234k8w1\244\312#\2605S0\331S-$q\003\2211H\250\221\252\215\22235nB\344Q\246\027\313:\366+\212\204\220\305L$\210Z\002\020\265\324B6\227\t\243\002Bx\023@6\306\340\261\300\273R\317u/\232H\200\216f\t\240~\334+\245nkl\252T\2320\261@9\220a\255\021~\321\202z\240*\270%S;\257\3208\322\356G\017gt:\350\350d\372\222R\207\004\347\212\274\205\301\206\"7Hi\026|\032H\3124\314\264F\213k\220\"2\t\250\005\3445]\206a\031\356\026\235\242\374\010\244\366X=&.\225R\330e\020\320\032\340PcUJ\226\225\252!X\013\223\0160\302\227\355\233p\266eR\253\030gja\342n\352\354\335\226P\364\331d\222\314C\264\226\230\21353\251\2754\351\300#\024\222p\265*\333\t\260\035\003c\203\206\232q\\\010\014\267\365\365\304c\332\275Z\\\223\347-\326t\214\320&\373\204!]\202\003\305\304*\203f\221\324+\024\253\212F\021\217\223\013b\223F\352\032CN\312c\313cTnV\301""\320V4\216\326\264\261\331Z\212\226\234\341\347\001\360xS\275\014\0015f\027\241\353\006H\000\225\024\336\360\321\226g?)\rR\002+\271\231]\235.H?o\025C\312\373k_B\003\"\304\342\376\223_\020\024G\006 \345<i\373\217)\261B\225\276\0025\320\247\206\014\243\225\214\323\217q#1\000\200\270o=6\"`\304\260\n\r\351\262\231\232p\343U;\213\333\335Vg$\343L\301b7\267\216J\350\243\026\265\327^&\265\224\302\001\276\234\226a0k\\\245\354\236T\27088\366\254\330\271Lf\027\016[\330\227\034\204 \227\316o\356\033\266\347\330\250\320\211\231p\3303\371\210\010\336\220\206\264e\332\311\246I\327&\203X\014&\276\336\035\362\346\227D\212Y$\315$J\365\313\346A\254L\314$\0367\317\025\000:\210\235\364\210\224S\363\342\360\014\211!b0\274\341\247\023\0269\222#\327\033\374\266E\213cA)\n\016d\311$G\374\361\220h-\014\030Y\270v\204\005c\266\322D2\024\310\215\304\336\234v\363y\306\224\212\347]j\345\214\252ZQc+\324'\"i-R\303\370/r\236\024\316\235t\242u\211\210\265\326g\270\2545\314)\2169R|j\335\343\3450x;\033(\237\226\362Y\030\373&\361\230!\205EDEq-`\3133\372\221wj\000\302\005.2\2308\300\322\021\205`\355\227HFj+\020\321\002\215\031g\241\250\341\0325\232\2144\2450\303\021\367\272*J\220\325\2420\2107\023m\246\333\025\362Ka%\005\314\n\016\321\334\235i:tQ\305Rq2\257$\270\334\231e\277\252c\242PF\324n-j\nH\341\246\354}GP\034P\350\030\352\276l\353\306\021j\006\226\255\334,)\263\024\036\232\245I\210\350:\341\220+J\315\252:\026Q\260\341\210\331R\031\352\300\334\302gv\302\236K#.<\325e\340\344\263\245\022\214\205:`\246ep\262\322\344\006\215u\202i\266Rd\023\310\362\3142Y8\023#\016DI\322\351\323\027\321\357\346\270\232\"&A|\217\201\270\231\027\333\367\353\301\265\232\014\027\214\257\305\n7\005\014\242\030\023=\320\373\250cuB\254\316\031\256=\272\273\234N]\034,|}o8\204\036\317\204\2522fP\303\236X\273\342\307:\252\010\030\247\344\237\003\254g\245,X<^S\204\374g\334\336\342&\274\027'\2100\213k\231\241{9\350\202.\217\201\231\260\240\210\327\026\362\306\006\264\273\301m\253mF\355\375\247\232\313fV\315\007\217\234\245}B\347hP""\030\206\373\266~\273\217\306\263\307B\350\035\230\260\245\027b}\334_}\270\320\315\262}\230\330\256\324\262\221d\316\246\307j8\306\022\376\315\354\277\327,\241\017\351\027\\q\362\325*C<\0274\240=#Hf\343\214|a\342\026\240q\210p\340n\016g\212>\031\356m-\362\333\341\271/)>\224\242\022\036\351\245\020r2\005P^%)\316\010\242w\224\265\r%\256\262D\355\026\332\363]\010\275\362\030\236\335l\222\272fpU\273%\346ke*\323\213,\005\345\361;\376\027.\372\363\213\247\"\357Y\013\314e\003\251\344=\320T\305\225FP@\241%\r\216x\340^\261c\217Q\363\245\017\226:J\245\261\334G\346\240\342\314cV\262>nG\010\020(i\024\244\0373<\rBNPp\312\352W\377\027rE8P\220c\213Y2";
-    PyObject *data = __Pyx_DecompressString(cstring, 3042, 2);
+    const struct { const unsigned int length: 11; } index[] = {{1},{3},{3},{4},{3},{5},{10},{179},{0},{1},{1},{1},{1},{8},{58},{5},{5},{7},{62},{10},{6},{37},{28},{27},{26},{35},{42},{2},{19},{9},{14},{17},{16},{9},{50},{12},{15},{14},{25},{60},{14},{29},{28},{13},{6},{6},{6},{6},{6},{40},{43},{49},{27},{7},{25},{27},{11},{17},{16},{25},{11},{9},{35},{27},{29},{2},{6},{2},{20},{12},{30},{32},{10},{3},{4},{18},{13},{1},{11},{8},{11},{6},{4},{4},{3},{2},{7},{2},{12},{7},{10},{5},{7},{8},{7},{7},{9},{7},{2},{17},{18},{5},{7},{9},{13},{15},{15},{19},{13},{13},{19},{16},{13},{2},{6},{3},{6},{14},{7},{11},{14},{6},{3},{3},{11},{10},{4},{5},{5},{2},{9},{10},{16},{15},{8},{12},{1},{5},{1},{15},{13},{10},{5},{1},{2},{1},{8},{13},{6},{5},{1},{8},{3},{9},{8},{7},{6},{5},{4},{14},{12},{12},{10},{13},{9},{13},{16},{16},{12},{15},{11},{15},{11},{15},{7},{12},{8},{12},{7},{14},{4},{10},{7},{6},{5},{9},{4},{8},{5},{6},{5},{4},{6},{3},{6},{8},{11},{13},{11},{3},{12},{3},{6},{8},{6},{19},{18},{5},{9},{8},{14},{11},{14},{2},{2},{4},{12},{7},{10},{1},{2},{12},{6},{13},{3},{7},{10},{17},{13},{24},{17},{24},{21},{16},{19},{21},{11},{7},{8},{12},{10},{4},{9},{3},{7},{7},{15},{5},{4},{1},{3},{7},{7},{3},{20},{7},{6},{4},{4},{3},{4},{5},{4},{5},{8},{4},{12},{10},{12},{19},{13},{5},{10},{5},{6},{6},{20},{3},{8},{12},{7},{10},{5},{4},{11},{12},{7},{8},{1},{5},{6},{7},{11},{1},{9},{8},{1},{0},{5},{80},{390},{27},{1699},{659},{20},{9},{24},{127},{199},{114}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (3805 bytes) */
+const char* const cstring = "BZh91AY&SY\016<.\244\000\002H\177\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\300@@@@@@@@@@@@\000@\000`\016\013\343\230l\367\032y\331M\335\036{\223w&\234\350w\275\275xY\323\230\235\017\036\244\000\036\014%\021\0214\032\232'\265<\244\360\322i\351\252~\251\370\211\217Q\204\323\t\240\202f2$\323b\215=F=\032OD\311\032i\264\031\r4OD\022\210\2312d\320\020FM#L#I\350Q\3516\247\352O(z\215\000\r=G\251\241\243O)\243!\243@\r\036\220\000\0004\320 \2052j\217$\365<\232mD\306\240i\2401\001\243@4h\032\000\000\000\003@\000\r\r\000i\221&\215B\247\232i\223T\375\006\21555\017\322\217I\3526(\364\217Phh\000\000\000\000\0004\036\240z\201\241\265\002\r10 \300\004\323M4\300\004`#\023&\0010\000\021\204`\000\021\200\023&L& H\2424\324\323\025=2\247\244\365=Fi\352j7\251\247\250\201\240\320\310\323\002\014\000\002\014CA\240\321\211\202\006hFL}\220B\004(\0277\2167\234~\202m***\026\271=\247\300\370\247)\314\237?\241\317\317\377#_?u\237\361R\262\0252\247\271\313\351\370\376\247\251\365\274\230z\336\327\232T=x\375yM[;')O\365\313Nf\t\222\030\024\313\306\010\364\021\377b\375[\207\335\334\260\261YgvR\310IeCR\317\320\325\310\362\006`6\233m\r\246\320\233\033\030\306\232\030\304\332\023\034\325Uh\252\030t)\307{ WF\000\315!@\330\233M\244YX\306\014`\330\211@\020\220\210\374Tq\323\024\245\326J\n\346\353\255x\021\252\256@\200\000\220\264\010\2002\002\342\\`\272\311Q\200\032\000\321\2269\305/k<\306\313\226\260q[+\224{V\305OA\214#\006;\032\\\263\276\341Q\024\2626\320*;\320\206\210\240\342\344F\002\337q9>\224DJ\304\202\325\nV\361\316\037\024\247i\342f\265\275Px?\244\203\234\253\006\252\267\030\000\347T9\263\010\327c\375\007\350w~Fk\252\330\205\261\025\250Ze\217\202\300{\326\004\243\212\205\366\252\210\260mwA0\264/h\345\232\262\267\273\"V/L\256\252\220\303\267^\353\266\035\242\274\306\035\276\374\025\343\237\036\206\237+N\177\346\235Q\220\321\317\356zq\324N\243\213<\372Y|\316Nk\347\026\222\327\353\254\274\211\032\201\365z\0220\214\344\334\1775\265\n\207\261w|\263\3174Z\374b*.o\237\323\201mY""\034w\244\007l\345,A\t\037\254\347M~\036\341\323\273\214l\2009\331s6\340m\266m\275\351\201 \227b]\3274\274\224\340\211\310\022z\341N\216wF\013Y\000\213W\324#Bh`}\016\260X\230c\222\020!\364N\356`\347\016./u\370B\322\337W\215\262%\347\350'4\236d<T\3702f\003\020\233\367\342\275\333<\356\3746\370\347\242\\\261+\265\034\230|o#\371)\r<\362\354z\377w\333\357K\243\266\252*\364*w\024\245\r{\241K\264q\373>\303\367Y\273d\n\201\300\003}\275M\301\244E7)k*\232\325\305R\202\032\245\n\211Z\006.\316\316\346&\333bA\351\037[\354]\345:\244q\335)\t \274\236V\333\311\216y\232\275\257f\201B\224\241\222e'a\010\r;F\024\225\325\225\265\347\225\326\003\307\243\361\213\243\341\320L\256d\254\013\262\3424R\356\202`\2471\306\323\317\220\353\204 \273K\264\213\344}\270\270\275'\3465\364#\255\330]\010\"?\203\020\261\203\234`\2309P\007d;\367U0*\356\\\310\267\263\\\361/\217\212j\034R\347\311$\376]\022\024\272/\246\364F\3236\270mp5\362\352\266-~\370\330'X\252i\004\365\233$\340\263\211\274\240\261<\232'a\035Ty~\006S\260\234+\366\370|\027a\351\236L\006xl\261\374_\177\263\204p0\266\020\344\2145\315\316vF\230qW\313(\307\031\333a\340\256\373G-\303\013.\367\376\036\247O_\315N\305N\375S\234\362\366=\314\361\245\203\346a\254\304\302\215\204g6\243\r1\032&0\004\325\2459\270\256\002\202\3458P\231\020`\325\227\305\222s\331`\226\022\262\3750\023\010\020D\231J\013\345\316\032\263\327`Y\253umI\2221\013M\347\244k+\333c\241\234v\310\341\375\347\271\001!\374.jR:\016\316\244r:~h\234d^\253\363\023\001bgXu\026\025\230\021\244\243\3448\335\344\203\001\216\245\301xu\204\234*\0223X'\035\207\220\007X\\\016|1\007_\273\370z.D\264\205\025\205\022i\312\252b\257\213\245\235\235\263\322\216-\356\000\027\026\242J\350{)r\307]\270\222\271m\236v\251 \225`\013\203vm7\246\244\005\234\224\236Q\242c\210k)\255\307,\213\322\2251\212I9t0\034\347\002\201\222\246V0\321l\325\306\232\030\331d\352F\010\345\205\225\303W\024\324W\270\242\353T%\030`\270\341\227\227\251\031\232\301\030\221\227U40#\006PCI\215\337_\214\t\037\270\327\333\246\326qk\025""\256\3272\2177\301,K:\201\037#\\\306\222\246r\231\235\234\203Y\236?\367\355\274\365\027\361\024\307\021\022\2345CY\325\360\221&\205q8 \236e\326\332\333m\262\320\250\006`?\002\306\364\004\222h\003\213\022\255l`k\023Mij\351}\364\201\001\025P\3229\022\202\200\243*=\202\3647s\305\2763\001\260\316\334C\205\262o\177{6\013)Z\262\206E\300]\0048\235'\252\246\213d\335\326\r\244\001\322\320\313\0201d\027\304lM\373\006m\212\364\310e\271[\236\256\334\r\001\022\022\302\364\343\251\022\333\321+\353T<\257\237\250\365\002\361R\256:\354f9\325U!5\252\3117H\263:/\033H3B\265^\373\335\314\362\3322*5#\333\301\211w4+;\360!\212I\323\020q\250\rn4\274\355\014\375n3e2\370\257\263\013K\324v\246\014Z\250V\331\022\264}\351M\202v6d/F\036\202D\324\r\244cP+\274P(RdbXQ\320$\023\000\t\322'P\301{@_\275\233\306\257\026\206\214\230'\007/*0\020\307\r\223\231\215\332\242\010\252\013\244\220\203\212R$\202\r\3513\340\302\301\255\220\314\365\204\267Uj\353\256\323%*\212\r\007\367W\222B\314&\005\002\321\344\231\270\007D\304\n\n\"\034\251\311t\010\354\025\021H\020\2526\345Wjd\223a\024\004]\2563\305'df\226\022\230\335\010\000\302\224\257\2159\014\212W\330\264YAe\331\033b\035Mm\341\030\343\010\221\216\355\224PF\031\230\215`\331\003c\221F\262\340\302AFW\312!+;\303\237%\314\036\214\212@\232\nP\023\336\343\247\2046\370 K\221\300\034\276g\017\245\010Z\250]\260n\326#j0\337F\"+\002\307&$\324{T8\033\247\"Mz\215\275\203\245)\021r\342\234\234\235\316^\237\205\342\271\016\246Xq3\230\007j\342~\005\231\030\301\021\026\031\001\235\021\315\214_\277~\345WX\014\342\3046\022\256\3118%\200\352\316\300\314\3100\273&6\371\304\310\360GTZ\034\016\351\341b\034\326\200\344D\276\235D5\240*l\212\0233\025\334\240):\311<\225c\246\206\375\204a\r\265J\250\321BGl\302\341\326*\251ED\336Wu\325\222\215\314\252\320\237\243\316\366\245Y\004\005\226i\273\177gw\317~\257G\216\211\275\247B7{\2712\335\217\203\014?\271D\251>\223\256\330\233\230\033\233\273YR#TQx\025\373\252\315\002\252\247c7\300A\203-\\H\032C\025\270./\325\216A\200\265\250\030YkB\315\325j""Lx\361o\364`a]\262q\021d\265\316\230\270l\010\271\311\026\033\340\206\205\310\371f]F\206\200\260`:\320\035\336!\006\246\220\241\205\302\340c1j>.v\304\024\0344\264j\267V;A\276\034*\211\315\\\240\003\204\010\014\256\005\003f\201\214\201\021\217\023\271\304\301\t\343U\207\022`\336U\252\350\252#i\323\326X\0040!]\025\032\244\360\"\361\334\000\033Y\312M\r\212a5$\232\236\326\375f\246\033\t\022\254+\256\204\014cg\231\030(\3647\213}$\250\r\305\252\234\003b\233n+\310x9\003\\T\010\003E\213\002\007\005\370\232\034\202\242\225\023n\250J\241zW]\022!u\323\203\205\240[<\352\252%\263\200\342\353\305C\207\024\245\224'D4\215\313\026T\014\322\310\312~/\351{\347*\312\324H\223`\207T\331H\256\2323-\0143\312\255U6\251$\357\024\2544*\013KP\211\326\264\340\364\277\273\372L\n\246\020m\030\"\210\030!\206%\231V[\306L\246SH\366H\341\234\247\016\302\260W\023\261D\204:\317\016\214\013\267\031\206\003\204a!\020\343Y\323^GU\031A\306\2458:m\224\303\002\322XA\231h$\341\212\206\275\2510\323\007WR2\346\271\223\"\210\313$\337\224\330\003\0326\032\005Q 8\314)\277@\364\202\362*\250*\253\272\002\273\244\006\2746\234[y\022\332G\001\322\250$\202D\220Xe\330\312\00605\266FKx\032\200\222A\273y\306{\266\2675\364\316\255\373\364\006\210IR!\240\205\251H\202mNb9\226;a\\+\236\255v\225\265\363n\326o\243\330F\222oV\360\340\276]Fp\215+X\253\312\3527\010\332\210\311\201\325\235\331\335\221\245\004\254\323\317H\310\262\366V5\330\271\256\235\354W\265\243\216h\n4\230-\233\006\014\365#\002\003\265\2371R5z\312\250\242Mi\321 y\266\347\010&\224\032t\3653M\366\206!\267\315\213\342U \360w#Z\325\250\251I\227i\017P_GcA\200q:U\021\215\300M\201\022\367\202%@\n\253h*\342\364\303\244g\336\ru\013M\310\021\257\336\275\355\336e\314|]\263+G]{\005\274\276\366Z\t\235N\224Y\007\372m\203\220.\214\030\205VY:\217\033}/U\265\322Pkn\264J\252u\335\231\3426\356\023\237i\263f\210\257\031\340A\027\0318\251\222\035\0058\212\226\223/U\225K6!\253\221DH\005\372\026\235\215\250\217UW0\021\206\223>S\267\215\324\337\343]\371^\255\275t9\270R\210s'7o=\355Ko""\"\356I0\234\346\032B}}[\267\263:\353\231\240\332.\363\207Q\217\032\224N\321u\311\254\241\313\326\322\275\037?\177^|\352\215@\20327l`\346\326\202\177\212\300\204\022\353\267\223\263\244\320f\367\246\327\321y2+\2554\237\034\327R\033\270\207\315\251\336\211\322\356\316<\276\227w\214\376H}\224\360i,>M\017B'\n)\272\250\210\304\271\264\304\356\350\237\353\025\r\363A{\376p\214(n\206\263\001=)\237\333V\036\210GM\214\025\2067+uA\214\207\362\230\303e\306(\240\342\225\024\352\001<P\347\\\r\2461D\364\242-6\036\312\313\027O|\302\022ZxEW\335\341X\344\007cp\377A@\367\351\210[D\242\211\351\266\357\032]\025\347\355\244$\263\007\004\023\266K\267\3369L\244RY\336h\342\260\336\035l\251;g\271\242zY\331\336\307 \003\215\307c\355\354\205\306V\203\024}\324\223\364\337\366\222\005\207\235\306\267\177\317\303\364\002\244#z\242\003\310\357\002\266\222\017\316\343a\312\027\007#\364\nA\312\003\203\203\251\303\276\002\3410J.\343\204;\312R\226\377'?\223\251\372\247\341\240\021\030\370\370\272\345\227Ocm\275TiR.\231L\027\314\332\203\265\306\243\366>\247\345\247\267e\255\250\346\371Pg|\225Ii\324\245OH=\373\252S\245E\203X\321j8\343F\262iC2\013t\236o \254G\005O\2561\231nO6\325J\016\267\333\227\227Y\232\212K\272\034\245A\307\303\216\320J\007=\037\322\211\364q\036\217=^\025uf\231_\\w\270\265Vsl9\007\327\2530\326fN\243\215\235\2212\274\315\243\257bsG\356\247t\257\354\230\263\365\235\236\231j\373\234a3\371\240\031\215Kl\216\324\354\246\223\203\365\325\231\2458\345c+v\375z\245w\262\362\246\352f\267\302eVM\265\344\237\177Nel\237t\327&\337\315\0242Tx\036\312<^8\311\327I\214`i\354\336^\261S\211\277%\346\327J\337\007\261s\221`\313\305\326\0073\244\254\236\344\245%\224\315\271&'RQ\321\327\224\331\004\3745\362f\327<}\rp\354q\222/\r\210\354#\350-]\3145\331\367\350\271\366\034gb<\227\354\321Td\250f\314{/g\265\262*\257\200\217w \031\301\363\245\232\271\022i\035\003\r$\013\274\332?\235j\362#\224o,\341\027\346\231s\231\201\271G\024i/6\256\021b\206-\014\002/V%\253{\353\\\026./tm<X\275\340/\254\035\253\346u:k\0161""\302G\263p\374\224Tg\336\024\372[\323\367\315\206\275\215\177>F\326\031kkf#\327\266\333\025K\251?\204J\220\361\251lo\220\250\235\303O\202\257\233!opw\223\\\311O\026Z\371O\227*\363!h\241\264'\317@4\323\0245\315$\322;\207\302\022_\007\3051%\340\366Mx\271\311\270?\304\224\314F=\236\325V\272\353o\235q\3060\364u\326\265\n\034\215\200\266\004\305\014HYxr*\252\306#l\3224\255\336E\305\356\322\274w\\=\366Y~)\250[)\205\306%ApV\365\335W\241\265\353d\220\367\270,\364q>\354\365\030\327\311v\r\304\263&Q\005\235\354\243\010$\252\270\346S\274\302\006Su\263\334C\n\262\222ru\242\250\230UR\013aG\341sDm^\223c\330{\230F8\265\317f=i\224\341\332\203\234\370\016\257,\037FU\301V\032\273\326zg2\222E\354\322\266\203\304\376l\r\364cN\373o\021\224{Qv\336}\241n\347\376.\344\212p\241 \034x]H";
+    PyObject *data = __Pyx_DecompressString(cstring, 3805, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (2939 bytes) */
-const char* const cstring = "x\332\225VIW\033\307\0266Cb\021c\033\201\007\214\261\335\302Sbl\034\0016\016v\234'\300qH\016>\010<\017\351\264Z\245\301\264ZR\017 a\3479K-{\331\313^\366\262\227\275\324R\313Z\366\222\237\340\237\360\276[-\3001\316;\357\035D\r}\253n\335\373\335{\277\252\233\337O\347\247\322\205\351\251\231\357\247\246\013+K\363/\347W\226\227\036\255\377\262\372\343\363\205GU\213IVI\261\244\305\246U\252\352R\331\224\362L+\347\230\241XLkJ\246e\224U\213\031\264H\227V\037\254\336\230\2753+)z^2\330[\246Z\246d\3329USL\223\231R\265 \345\354\262f\225u\311j\326\2309%-\027\244f\325\226t\306\362\222U\225jX\367\351\006\253\304t\311d\026\r\244\253\212\256W-\305*Wu\031\333\313z\361\252\224/\0338\244\274\311h\367\317\212f\262\251\311\033?\r(\371\274\214\265L\321\312E\275\302tK\252\332V\315\266`T\335\306\026\023\203\0023\230\2562\250\257\33340%2\013\347\224\365<k\250E\340\240\232h\362eS\311i\214)jI\312)\026Z\034Y5\362R\3056-)\307$E\262\354\232\306nje\314\341\"\300\322\230\202\361\267\272Ra\327\351\200\357\356JLSj&\274d:i+(e-v\271Z\203\213]\353\n\3708/}&\203uF\363\200h\313(#2\353\231\025\251\304\224<3>\227T\224Z\r\363\256bawQ\025\236Q\010\201\215\244U\261\017\316\305\006\345_\321\216\346\233\256\213\2733\265Z\201k\326\276\270fT\213\300\317\024\323\251Z\263\241W\221\020\005\305\326,I\226\r\226\267U&\313R\336\026\021\321\253\372\r$\310fY\321 \305\371eK\226\347I\t\360&4\200\245\2227\357\356\232\033Oo\342\303\203\307\031\351\036%\227^4\253\266\241\262\373V\211\204X\024[H; \354B\262'$\234>\223\335ET\215\252],\021\022Vm>3\277*\332u\313D;)\332\033\242\235\262\005\026d\271\242iU\025)\376\331i9\273\200\2741\277\260n\317\202\335\245@\t\240`\251i\327jU\303\332\217F\241jT\024k^\312Pv2\243\333M\355\301\247\212R\223\345}\001J\300D\346\037\024\341\260O\206\2620\366\323\017\004\307\356\034y\230\331\255\207\275\001\224\027\031\2022u\217\374\320\314\373\030(\225\\^\271\377\351\222/\031\326\025\0350meieIF\344\036\255\310\362j\263\201\377%0\204\374\2105\2545Vx,`Z\0200~:>x\310g\322\003\347\354\325\266\251h\272b6u\265""\\\235Ba\002\344\262\316\314\234\300\002\210\200G\342\241^\215{\221c9fZ\262\216 \3529\340\202\260\346\266r[\262V\325\213*SK\266\276!\307)\031\217\365\270\303JS-\027\025C4\344\244\252!\255\211\254\010E\324]\205\2468^.\203\243\014Ee9E\335P\265\252\t\312\250\220\261TP\n\340\330\330\035\030Dh{\023Vc\212e\252\370\023\332\255b\036\033\363\254K\036\335\016v\2502\253\240\226v\253\021\374E\253P\336\226\002\234\rE.hJ\321,\200\205\032\302_\312\203BYW\264\202f\233\245\202^\320\345r\276\001+\273\003\200&\307i)\347m#\346X\271`\353\252,\213\004\211\241\227K%\324\242Y\226\313\246\274\2074\3065\243\\Q\214&\371onl\230\332n\n\001\030\341\223\310~\215\025\025\265\251U\267\230\001\224*\n\020\"\214\367\322v7]\251\257\326\254\030~A3h\352\025\245!\253%\332dn\224k4+\030JQF\374*\370\326\225\300&&\246\272E]\276\266\367\311\266\230Y\301b\034Y\315\333\032\\\321\343Su\330W4u\n-\"&R\316$\332\306\002\321\212N\014s\324\232:\340\255\026\n\310Fx/P\253\305U-\347\272=E\242;\214\021\355Nj\212U\252)\205\032\270\032kl\035\227f\255Z\253\341\"*7\320B#`\324\255=n\334\215\355n/\263M\\\004\262\014\316\225\273\341\240\341\246ET$\313u\344f\335V\220\217\324\306\306\213\253C\316\305\035\235o\030*y(w\223Q0\226!|\226a\027\345\225!~\270\336\314}6?P\232{\037XC\026\370\001c\004\000\254\327%=\203mRJ#C\364\274i*\025S\225\221\021e\212\006\021:S\251\036H\304\212H?\223i\000\024S\270\300\352\323\362n\203\237\234\023\215]0i.X\240\033\030\214\272\367\316'\334 \177\201'03,\321\310V\031\021\204\3204-\362\033\025\206\207\212\331\204^\213\350\240\033\3778:\335\\\330\277:h\264E\032,<B\264\230EH\201\250T\350\001A\350\325-}sS\321l&\032\023\001\313\241\364e\031\003S\224\324\326V\331*\211\010\211kZ6\324\006?4\342\244\377\352\211\372\023\255\276V\272\225\211\372\217\264\346\234kn\306}\342]\367\325\340t\010\331\031\367\274W\367\373\3744-\353i\r\267n;cn\332]t\267\375\244?\341/\370\305 \033\213\222\264?\375\327 ):\374\227\321\032i\375\354\\v\352Q\177\222''\274\224\227\346\3757\371\315\005\276\360\224?}\315_\027xa\373\343\241C\357zVz\321""\255\364\276\242\356Uo\205\272J\357\007\352>\364f\373\320e\373\212\324\025\373J}Q\342\206\237\215\022W\275\372Nb:H\355$\306\335\314\307\257\017\rH\374\002\246A:J\234u\323\037\207\017\r\\p\0251\216\0228:J\234s\263\037\023\207\006\006[\263\255Mg\335\355\211\006\207\205\243\320u\264\365\330\031uO\271\2067\356?\t.\005,\274\335\036n\247\367V\354$\216\264\346\261\347+w\335\373\006\036g\242\301Q(H\234vl7\023Ax\3171\335\313\256\t\310r\001\024\217\271\251\177\376\372\223{\021\340^\364\344`!P\242\301s\244~\330\271\344($\374\321=\354nz\317\370\365{aW\361\226[\360\036\372?\004{\347\244\242\301\021\347\007\234{\364\214;\202\256;\2034\375\2051\351\236\202\321)\377^\360\276=\323V\332\357\370\332\013\376\342%Y\377\247\227\361\262\264z\316\271\350d\311\335\253n\222\217\315\005\365\260gG\034\327\2005\020\234v>xo\203\236\340\\\250u.v\262\035\215\277T\270\222\213\006O:O\334\224;Ok\216\267\266\034\325MF\247.\t\255C\247\234\242\233\345\347\341H\010\017O8\017\334qo\235\177{?\204\243'\235\307\3569O\331I\014\320\276\367\356\014B5t\226\237\245\000\336\tg\303z44\342\314\010u'\306\334\353\236\202`\017\036\215\206\010\302\241s\356\357~\332\377%Xi\237\355,vL\276\266\316\327\037\323\206[n\237{\313\353\363\356\3703\276\022\2358\031\ra;\360%\035W\275a/\035\215Nx7\203\321p8\234kO\360\245'\374\311\033\376F\346\362\037\321\350e\357\211\010\354\350\004\237\270\037\026\332\231\366\213\216\022\215\236u\357x3\236\022\215Ox\223~\026ZG\317D\251\211H\232\344\223w\303t\270\324>\334\256w\006x\026z\220\314\026\267\354h\374\002B~\021\010HW<M$$mH\363\364b;\335\376\245\263\304W\237\361g\317\371s\000X\341\225M\276\371\001\211\375\257\336L/\355l\372\275~jo\347\316\370$\212n\\\362\276\202u)\014\245\213\336\034\006\323\376\363`-\250G\227f\221\026\343\337\371\311h\374\n\031\371\255\337\263\003%uZ7\357\257\371\377\016\327\333\307;\026_\207\217*Wq\\\215\327\260\215`\276\033\226\332\025!)\361\222\301\215m\276\375N(\334\371\2776\027y\261\024o\303\301\r\317\204\365\227\257D\327\310\327\345\0160\270\206\017@=\265sf,:\177;P""\202\315\020\361@U\356 \360\266\263\010r8y*\032#\245\267\303\344~\026!}\024G\244\301\034\352E\2040\205R\376,\313v\013\363\230\247\372c\301\014\325\023\255\273\353\225\374Jx\257\335\3504\371\363\337\371\357\362\316?|\246\374;\003m\2038-\032<\353\316\272\177\372\213\276\021$E]\272oAz\263\376\237\341bh\360L\226g_\361Wq\302\344y\036\250\331\334n\360F\314`\017\211\254\036\366.S\267\334\273J\335jo\266W\350\241\372\001Y\035o\325y\377%\357W>\005\002|\314\037C\t\213\022c\356%WA\310\022\02227\355e\004\263E1\263\t\306 \005\020\016\"9\023`\235\217'\376\306a\240\357\377\302_Bz\004|=\342\010\242H\377oT\003[\371\361\213\336m\320\373U`\221\030\346\303S~!\310\004\317\342\245\267\234>Qlqm\014\0169=Nr\257\033v&\001]\\\333'\234\214\363\324\235\356B\340~\355\346\274\036Z\370\225\240\2154E\231\341&\311P\234g\235m/\351]\361\017\373[\201\032\216\2006\236\264'\332\031\212\374\265\230QN\023\373\305\273\220\002D\005g\334Qo\014d\360sp=T\333\311\366\345\366\026\252vh\024\256\321\335t\331\177\037\316\204Jh\265\347:X}\322\311\322q$\357qO\022\345\220}k \271\372\356pk\377k\263\033\217\203\213\336\341:\331_O\211\274\r&~\340\215x\277\n\246\037\032'Z>\013.\352\211\222\303\202\330P\307\376Rp\030\304:\320>\325\266;\017\371zL\240\307[\246\340^\370\244\321\005\271\003\374R\177\203\210* \345\316\362\0133A:x\010\322Y\010\213\355g\235Lg\215\322\370\017\376\007\0241\316\336\362\267(\321:\257\307Y\331\214\303\r\375\rqgP\221\221\202e\240\232\212\2114\016\030\357\037w\177\363\266\2033\3415\276\004Z\202\236\rz\020|\323\232t\262`\366u\277\007H\246P\007F0\036f\201f\275\335\303\373\257x\033A\222\256\335\335\\\374\232n\333/'\342\255N\217\310!z\001\314z[~>\270\032\236\010\237\265\037t\222\035q%N\267\326\221Qs\224\355x:\264\326\240\360\245[\007\376\363\340\334\\\320\213\365\311X\204R\2402:\364S\370\241\243\363\327o\242\376c\255\274s\003\214;\201P\365'\3610\231v_\371\211\356\036<B\336#\261\336\ti\202R\260\317\275\347\031 \314\3041~\354<\no\333\037\006\257&F\234i$\307\006\022\020ew\254\245\320\227\031\301@P\201rL\"\263""\007\222\316\t\347\205[\244+\023\357\231T\274\230$\375\003x\371$\216\360#\027\370\005\\\236\374\316r'\311\177}\311_\2020^\323m\227u\336r\211\340\317\020F\353\016\360\300!\0043\266\343\205d\213w\010\216j\264\014\350\203\217\350\3502\216\372\217\266\236:\267\221\355 A\227!!\177\363\353\007\026~'^cuz|\315\243\336\322\3562l\354'\\\263\255\"\016/\272O\261s\321\253\377\007k\030\305\262";
-    PyObject *data = __Pyx_DecompressString(cstring, 2939, 1);
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (3709 bytes) */
+const char* const cstring = "x\332\235W\313\177\323V\026&\017\212S\002\304I\200\020\002\310\t\217\226G\030'\341\321@\351\230\004(\355\244\203\023^\205RU\226e[D\226m=\342\030\332\241K/\265\324RK-\265\324\322K/\357RK\377\t\374\t\363\235+\333I\010\235\337\314\374\010\272\357s\317=\347;\3379\276\376\267\205\374|\272\2600\277\370\267\371\205\302\332\352\362\253\345\265\307\253?m|\377\344\333\227\367\177\252X\212`\225$KXiX\245\212.\250\246\220W45\247\030\222\245h\r\301\264\014U\266\024\2036\351\302\223\007O\256-\335^\022$=/\030\312[E\266L\301\264s\262&\231\246b\n\225\202\220\263U\315Ru\301jT\025s^x\\\020\032\025[\320\025%/X\025\241\212}\273\017X%E\027L\305\242\216pI\322\365\212%YjE\027q\\\325\213\227\204\274j\340\022uK\241\323\017%\315T\346\257\\\373nD\312\347E\354U$M-\352eE\267\204\212mUm\013J\325l\0341\321)(\206\242\313\n\304\327l\352\230\002\251\205{T=\257l\313E\330A6\361\311\253\246\224\323\024E\222KBN\262\360\305\225\025#/\224m\323\022r\212 \t\226]\325\224\353\232\2121\236\010ci\212\204\376W\272TV\256\322\005_\337\021\024M\252\232x\245\242\223\264\202\244j\361\223\013\252\016-\337)\2734\2220\3230UsgS\245\n;t\237P\300\344\262\360\311\032\236`4\366-\325\r\025\356\333\310\254\t%E\312+\306\247+e\251Z\305\270+\230?\356\323-\373\265\352n7\21327\024!\002\246\026\264\nn\200\255\342\367\345_\223\354\306\233\256\305z#\271R\206\245\254\235\345\252Q)\302\035&\037\316W\033\333z\005\370*H\266f\t\242h(y[VDQ\310\333\334\301zE\277\006\274m\251\222\206U\334\257Z\242\270LB\340>2.\324\225\362\346\235\336\303\342\341uL<x\232\371\334S\342\327~f\341\277\306\311]\n\000\275hVlCV\356Y%\272\0217\307\317&5\260\330\275\246\277Hn\372d\355\016$\032\025\273X\"GX\325\345\314\362\023\376\335\260L|\257\360\3575\376\235\267\271\201\311\034\222\246Ud\204\341'\267\345\354\002t6?\263\257\257Ao+^\010K\357\332J&U\377\n\217p\237\246!\334*\206\255\233v\265Z1\254\035\364\024*FY\262\226\205\014\205\234bt\233\371\276\023e\316\037\242\270\263\200\2706\021\316\373\227\240\335\256\256\310_\267{\202\354\327\033CK\261\247\337\236\005\270+\323""\213\376~\007\267\026\025`f\376.YD3\357\241#\225sy\351\336\356-\237\323\270\273\264O\347\265\325\265U\021\030\370iM\024\2374\266\361\177\025|(\376\244l[\353J\341)7\370}\356\220\335\375\375\227|\262\272\357\236>\223\231\222\246K\225\252%\231\r]V+\363\240\"x@\325\025S\332*\212$D\254\331\222\226\343V\203\355@\243qW\257\304-\217\211\234bZ\242\016\247\3539\030\n\210\311\325suQ\253\350EY\221K\266\276)\306!\024\367\365\270\301NSV\213\222\301?b>n\224Z\334\252q\243\307\rL\022w\266e\r\241J|N\246\007\245\224i\010}E\0254nH\262\222\223\344MY\253\230`\3252\275\220HB\202\r7{\035\2038\277?P\252\212d\231rE\007\325\230\266)\306\032\365\207\340 ~B\331\231\302+w\006x\204\\\261u+\266\203\010\330\212\212%\311\225-d\264\242\"\346h\332*\361\261\222\217\355'\343\037\177\220U\314C,\002H\001\211Q\032\342\313]f\3576\270@\026\2252\224\350q\033\335\236W\024\260\205%\001\026\206$\0264\251\010v7\255m\256\005\301\226\247\201\202f\233\245\202^\320E5\277\r\373t;\360\257\030\207\227\230\267\2711t\014\353\222\221\307\035jY2\032\242X\260uY\0249\274c\340\210\245\0228\311TU<\334\330QVD\230\364!\203~W\000\371\305\334\3344\265^<\300a\334\326<\3065\245(\311\r\255RW\014x\257,\301s\204\217~p\366\202\222Z@3\206\016\247t|jei[\224Kt\310\334T\2534*\300\324\344\025\352s\304R_\221t1\257T\255\022\357\251y A\265\032|\300\245Pg\317f\263R\260\200\244\252\270X\335;\276\201q^\335\021\307\373;\002\3710\026\311\273}\241\320\020\301\325\353vU\206\261\024>\324-j\362\325\235).C\335#\300\266\024\263\254\"\235\365\203\257\214\005X\253\222\26758E\217\rFg\212\246N`D\020\360\3207\251X\300\006\376\345\r\357\346\350k\352\300M\245P\000+\300q\034\016\325\230v\305\\\267%\210u\2731T\272\203\252d\225\252R\241\212\344/r\334+F\265R\255\2026\325\355\370+\346\320Br\017Jq\\X\250\264\264\275S6\320\215\031\335\352\347\333\036\302{\255\250 j\000F\344q\261\213B\352nY\224^D\261\006\376 n\0229C\305/\345\205\213\230\213\033R\3260dn\317.\031\360\204e\304\n\340\021\024]\006\377C\005f\356T\010\373\370\264?\241lSwW\222\330\025\375\373\222\307\236\211]x""\3307O\256\3373\t\330\357\031\307\266\3353\005\373\361\207\323d7\223R\267+\236\314Am\317)\324\217\3233A\005\200\003\032\221\2621\325M\332\206\262E\234h\220\315!\271\353+D\266\2367*u\3234\245\262)\213\210f\225\000K5\212\"\023\307\352yr\351N>\211\347\320\024\021# 3\240\014C\270J\251-\210\275\017\376\304\034\377\330\005\223\306<Eu\321\212^\267f\333\225\270\304\317$1\212\377j\217U\261dX\374#Z*0\216\235\230#g\203j\361\003\202*\014P\nT$}\253\252B\230k\340b\213rW7jbov#h\247\204\242^\235\244r\030\307\316&\241\234\306!\033\331L\257\324\365\236G\266\266$\315V\370\307\2045s\310E\242Hf%\332\024\353u\325*\361}\274$\026\ry\233\035\230p\322\177\016D\303\211\346P3\335\314D\303\207\233\267\234\313n\306}\346]\365\345\340d\210\265S\356Y\257\346\017\371i\3326\320\034o\336t\246\335\264\273\342\276\363\223\376\254\177\337/\006\331x)I\347\323lx\221-\256\264\356\266?\260_\337~<p`s\340\301 \232\007\203\017\007;\211\245 \363\361\313\003#\323n\262\2238\334\\jn9\033\356@4:\316/\315F\211#\315\247\316\224{\3025\274\031\377Yp>P\302\233\255\361Vz\327\216\303\315e\2349\350nx_\342\366L4:\345\016t\216^\202\212\003~2J\2146\377\001\201h\376\351\246\343\321A\367W\237\272lt\316\273\301\276\312\264\260k\334\231\307\361\224\1777\370\275\265\330\222Z\357\331\372\317\354\347W\235\304\004\233\370\n\202&\375\027\301\3430\033\346[\227\333\017X\366\027\366\313\033\366Ffr\236\345\025Ra\261);IR\352\252+\271\265Nb$\032=\326\254;%\267\340e\242\261\323\356\262\367\312\257\005\211p\264\265\322\252\265\017\265\353\354\371\013\314\263\323\351 \031\\\010j\321\330\204\263\350\310n2\232\234v\257z\222W#\001\026\346\244h\354\244Ss\277ps\336\220\227\216\306&\235\007\356q\\bz\251h\022O\305 \317f\357\206\031h'\267\216Cw\034\205\027;\375\363'n\004\331@\372s\224\334y\350O\2439\321|\350\\pj\321p\222%g\275\224\007\007]g\327\357\263\373\317\331s<\254\300\n\357\340\236\367\003k\344\245\265\301\327\324\274\036,SS\036\374@\315\207\301\354\020\232\354P\221\232\342Pf\030Mf\370\r5o\206\033\3244\206\327\017\242Y?X\243\246v\3208\030%\256""\371p\027\034\323I,\004\251\217_\034\030\271\027b\342N\010g\314\270\231\217\211\003#\002;\207\245\000\023\247\335\364\307\361\003#\347\\\211\367\243\0044\215\022g\334,m\033\375?\200\322\371,P\242\304I\307v3\344\302\273\216\351^\200Y\257\372\271\000\202\247\335\324_\317~\347\316!\"\346<1\270\037H\321\350\031\022?\356\234\207\261\261\370\255{\310\335\362^\260\253pJ,\242\016\030<\362\277\t\372\367\244\310E\337\340\336#\247\334\t4\335\021V\323\237\351Cuv\370\234\273\355m\301\200\343W\374\264\237Agt\306\375\207?@\315?\001g>:\310\256}\337\246)6\263\030\334`\267\237\023\312F\005&|\313\241{\251\235l\247\010W\277\273\213\260\353\330\tg\323Kz\335\231\005\030\361\304\355p <\323\222:\375\316_\005\006\331\355\017/\343\361\370\273\345\3149Y2\364%7\311\246o\005\265p\240\303\037\272\r;`\341\244\363\301{\033\014\004gB\255=\327\316\2665\366JbR.\032=\356<sS\210\215l\034-\004\377\023\347\271T\350Vt\263\354,\307u'A\240\237\3616\330W\367B\230\370\270\363\324=\343I\335(\353>\006\261D\320\271\035.\205\237\211\246\316\350\221h\214\2347v\206\242\337\377>Xk\235n\257\264M\266\276\3016\236\322\201\033\356\220{\0031v\333_\364\245h\362x4\206\343\360,\311\270\344\215#\366\246f\275\353\301T8\036\336j\315\262\325g\354\0318@d\342o\321\324\005\357\031\207\324\324,\233\275\027\026Z\231\326\317m)\232:\355\336\366\026=)\232\231\365\256\370YH\235:\025\245f#\341\n\273\002\324\207\253\255C \203\021\226\205\034D\235\305,;\2329\007\260\315\301\002\302EO\343\241@\007\322,\275\322J\267\276o\257\262'/\330\213\227\354%\014Xf\345-\266\365\001\341\365\367\301\314 \235l\370\203~\252\177\2623\003\250D3\202w\020\332\245\320\025\346\274[\350,\370/\203uP\316yp/\315\335\365\315 \025]\376.\254\265\216\300;o\331Kx\030*\021\2671\245\310\212UV\255\263\3726\333~\307\336\275\217f\276\006\255\316\\\244g\201\031;\270\266FR\226\375u\377_\341F\353X\333b\033\260\n\310\021\n\342(.\"\307\334\tK\2552_)\261\222\301\014.\213T\350\374O\207\241N)>6C\021a\342\275\027.F\227\311:\217\333\260\332eL\300O\251\316\251\351\350\354\315@\n\266\3001""\223`\220\316\036\250,\207\251\360\333\366@\033\200\243M@\314YZ\351\303\346\244\363\236{\341,E\216D\016\316\35603\266\335qe\017\333\346\330\334rx\271\225a\017^\261Wp\241\312\324\267\354\355\277\210\"\007\036\022S>\034|4\030M\236c\347\210\203\265V*\232\376&L\206`\356\224\307o1A$\331h\352\254\253\221\207HG\333Y\0017\037?\021M\323\303o\206\311\235\330@PH\016\277\376\026?\006\205R\240\306Oc\007\343\367|=&\376\235\030\211\237\332#\302\243\236\354O\007\213\264\201\344\334\361J~9\274\333\332n7\330\313_\331\257b\347/\246)\352N\341\266Qh\023\215\236v\227\334?\374\025\337\010\222\234\007\335\267\250\014\226\374?\302\225\320`\231,\313\276f\257\3430\001\234\340y\233\331\004$\236`\036\221\205\036\r>\246\346\361\340\023j\236\014f\007\271\034b\r$\2629/\335I\034k\326\330\360y\357\0076\217$\365\224=\215\223\356\264{\236rm\224\020(1\"\315Rj\211(\265t\022\234\246I\n\026G\021\227\tP\375\307\311=\211\003)\362?$\r\276z\030\225\315\204\223\211\323\351\177\305\357\320\225\035\233\363n\242\020\272\024PY\301\306\347\375B\220\t^\304[o8C\234gbZ\030\035s\006\250j\3506\343\316\025\330/\246\265I'\343<\347\234<\332\313\376\003\264\361 g\3144AAA\315\225!0,9\357@\343\027\375C~=\220\303\t0\346\263\326l+C\360\270\034\223)\341\254{\n8!\026<\345Ny\323\340\301\207\301UT\r\311\326\205V\035\20456\205\247Q\025w\301\377=\\\014\245\320j\335B\306\030;\356d\351:Z\247zC\242*$\343\254\203\337k\275n}g\266\321\365\307\376M\357\221lv\366\023\332\337!\375=\360&\274\037xz\035\233\241\\x\0324<\020%\307y\240R\266[\r\016!\247\214\264N\264\354\366#\266\021\347\216cM\223\247\035\274I\243\"\246\003\373\245\366\230\210\302$\345.\261s\213A:x\004\276\275\037\026[/\332\231\366:a\3717\366\033\004\201\340\020\260\340\232\032\253\305\320l\364\253\247m\236\250)\022I\300cX5\025\347\220\330alx\306\375\321{\027\234\n/\263U02\344lR\351\374e\363\212\223ER\333\240\372\023Q\275\204\330\230!\026\001\277\016\260\341\213\336f\220\244\342\247\207\305/\250\304\371<\020o \231\023\206\250J[\362\352~>\270\024N\206/Z\017x\"\007\236\026\232\033@""\324-B;\312\273\346:\004\276rk\260\3772\322M.\030\304\376d\274\204P\2400:\360]\370\241\255\243z\215\206\2176\363\3165$\233Y\270j8\211\022~\301}\355'\272gP(\376\016`\275\347\253\t\202\340\220{\3273\250\240>\312\216\202+\001\223q\252\242'\234\005\200\203\327\021\235\304\321\246D3\213\234\246 \002\341\230\004\262G\222\316\244\363\263[\244j\0015g*\336L+\303#\370\215\300\253\033v\016u\003\273\375\270\235d?\200K\301\032\277P\242\317:o\231@\346\317\220\2156\034\330\003\227\220\231q\034U\254\315\213?\\\265\3354 \017oDCuH4|\244\371\334\271\t\264\203\t]\005\200\374\321\257\355\333\3705\377\335R\243\237)\313\210\267\264\373\030:\016\223]\263\315\"./\272\317qr\305\253\375\033\342v\220\272";
+    PyObject *data = __Pyx_DecompressString(cstring, 3709, 1);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (4975 bytes) */
-const char* const bytes = "/02d.1f2.30.2fMD:Z:MIDNSHP=XBNote that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.+-?\tadd_notealignment output requires reference sequences in the indexcg:Z:cs:Z:disableeach batch record must be a tuple/list of at least (name, seq); elapsed enablefailed to open output file: failed to open query file: failed to write SAM headerfailed to write mapped output batchgcindex is not loadedisenabled[mappy] batch [mappy] completed[mappy] progressmappy.pyxno default __reduce__ due to non-trivial __cinit__: processed  reads; mapped  reads/s; ETA <stringsource>threaded batch mapping failedthreaded file mapping failed; throughput tp:A:Ptp:A:Sts:A:+ts:A:-ts:A:.unable to allocate batch mapping buffersunable to allocate threaded mapping resultsunsupported output format: AlignerAligner.__reduce_cython__Aligner.__setstate_cython__Aligner.mapAligner.map_batchAligner.map_fileAligner.seqAlignmentAlignment.__get__.<locals>.<lambda>Alignment.__reduce_cython__Alignment.__setstate_cython__MDMD_strNM__Pyx_PyDict_NextRefThreadBufferThreadBuffer.__reduce_cython__ThreadBuffer.__setstate_cython__alignmentsalnasyncio.coroutinesbbatch_basesbatch_nobatch_readsbest_nblenbseqbufbwbw_longcechunk_mappedchunk_nchunk_seqscigarcigar_strcl__class_getitem__cline_in_tracebackclosecommentcompact_kcompact_ratiocompact_repeatscscs_strctgdecodeelapsedelapsed_sec_emit_progressencodeendetaextra_flagsfastx_readfilefinalflushfnfn_idx_infn_idx_out_format_duration__func____getstate__hhoursi_is_coroutineis_primaryitemskksl<lambda>last_reportedlegacylowerm__main__mapmap_batchmap_filemap_optmappedmappymapqmax_chain_skipmax_frag_lenmin_chain_scoremin_cntmin_dp_scoreminutesmlen__module__n_batchn_regsn_seqn_threadsname__name___namename_bnamesnextoffsetoutout_fpoutput_boutput_codeoutput_formatoutput_pathpafperf_counterpopprefixpresetprintprocessedprogressprogress_every__pyx_state__pyx_vtable__qeqsqual""__qualname__query_bquery_pathrrcread_commentreaderreads_per_secrecrecords__reduce____reduce_cython____reduce_ex__regsremainingresultsrevcomproundssamsc_ambiscoringsecsecondsseg_idselfsendseqseq2_seq2_seqseq_bseq_bufsseqs__set_name__setdefault__setstate____setstate_cython__startstart_timestatsstderrstrandsys__test__thread_countthreadsthroughputthrowtimetotal_readstrans_strandunknownvvaluevaluesverbose__version__wwith_qualwrite_rcx\320\000\023\2201\200\001\330\004\010\210\003\2101\210A\330\004\013\2107\220*\230A\230U\240,\250c\260\027\270\001\330\004\031\230\036\240q\250\003\2501\330\004\010\210\001\210\022\2106\220\032\2301\230C\230z\250\021\250\"\250B\250g\260Q\330\004\010\210\001\210\021\330\004\013\2101\200\014\210A\330\004\007\200r\210\023\210F\220%\220q\330\004\021\320\021\"\240!\2401\320\004/\320/B\320BV\320V\\\320\\f\320fz\360\000\000{\001M\002\360\000\000M\002[\002\360\000\000[\002m\002\360\000\000m\002\177\002\360\000\000\177\002Q\003\360\000\000Q\003g\003\360\000\000g\003h\003\330\010-\250Q\330\010'\240q\340\0102\260!\340\010\034\230A\360\006\000\t \320\0372\260!\2601\330\010\033\2301\360\022\000\t\037\230a\330\010\033\2301\330\010\"\240!\330\010\035\230Q\360\010\000\t\014\2104\210v\220S\230\001\330\014\022\220*\230A\230Q\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3001\330\014\022\220*\230A\230Q\340\010\013\210:\220S\230\005\230S\240\n\250\"\250A\330\014\030\230\001\330\010\027\220u\230A\330\010\013\210<\220s\230%\230s\240,\250b\260\001\330\014\032\230!\330\010\013\210<\220s\230%\230s\240,\250b\260\001\330\014\032\230!\330\010\013\210?\230#\230U\240#\240_\260B\260a\330\014\035\230Q\340\010\022\220$\220a\330\010\013\210=\230\007\230v\240W\320,<\270A\330\010\013\210<\220w\230f\240G\2509\260A\330\010\013\210<\220s\230!\330\014\023\2209\230A\330\r\031\230\023\230A\330\014\023\2209\230A\330\010\013\2101\330\014\023\2209\230A\330\010\013\2101\330\014\023\2209\230A\340\010\022\220.\240\n\250!\250<\260|\3003\300a\300{\320RY\320YZ\330""\010\027\220}\240A\240Q\330\010\013\2107\220#\220Q\330\014\022\220'\230\021\320\0327\260q\270\001\340\010\013\210<\220x\230v\240Q\330\014\027\220\177\240j\260\001\260\035\270l\310#\310Q\310l\320Za\320ab\330\014\025\220U\230!\230:\240Q\330\014\017\210w\220c\230\021\330\026$\240A\240Q\330\020\026\220g\230Q\320\036<\270A\270Q\340\010\024\220E\230\034\240S\320(>\270a\330\010\025\220T\230\035\240a\340\010\t\330\014\017\210|\2303\230a\330\020\033\320\0332\260!\2608\2704\270q\330\020\023\2203\220c\230\021\330\024\032\230,\240a\240q\340\014\r\330\020\032\230!\330\020\035\230^\2501\250H\260M\300\033\310C\310s\320RS\320ST\330\020\023\2205\230\003\2305\240\003\2408\2503\250a\330\024\025\330\020\021\330\024\035\230Q\330\024\032\230'\240\022\2401\330\030\"\240/\260\030\270\022\2707\300\"\320DU\320U]\320]_\320_`\330\030%\240U\250\"\250A\330\030\"\320\">\270f\300A\300Y\310a\330\030\033\2308\2403\240a\330\034\"\240+\250Q\250a\330\030\031\330!\"\330 +\320+;\2701\270D\300\007\300q\310\t\320Q]\320]f\320ft\320tu\330\034\037\230s\240#\240Q\330 &\240l\260!\2601\330!\"\330 1\3201C\3001\300H\310D\320PW\320WX\320Xa\320am\320mv\320v\177\360\000\000@\002A\002\330\034\037\230y\250\002\250!\330 &\240l\260!\2601\340\034+\2501\330\034 \240\005\240U\250!\2501\330 #\2407\250!\2502\250X\260R\260q\330$4\260A\330\034)\250\021\330\034&\240a\330\034(\250\001\340\034\037\230q\330 #\240:\250R\250~\270S\300\017\310t\320S_\320_c\320cm\320mp\320pq\330$2\260!\260;\270h\300m\320S_\320_h\320hr\320rz\320z{\330$4\260A\340 #\240:\250R\250~\270S\300\017\310t\320S_\320_c\320cm\320mp\320pq\330$2\260!\260;\270h\300m\320S_\320_g\320gh\330$4\260A\340\034\037\230x\240s\250!\330%&\330*C\3001\300I\310Q\330 *\250!\330\030\"\240!\340\031\032\330\0366\260a\260v\270Q\330\024\033\2301\340\014\017\210u\220C\220q\330\025\026\330\0322\260!\2606\270\021\330\014\017\210w\220c\230\021\330\020\026\220a\220q\330\020\023\2207\230#\230Q\330\024\032\230!\2301\330\014\017\210w\220c\230\021\330\026$\240A\240Q\340\010\013\210:\220S\230\016""\240c\250\032\2603\260a\330\014\032\230!\230;\240h\250m\270<\300x\310y\320X^\320^_\340\014\032\230!\230;\240h\250m\270<\300x\310y\320X^\320^_\340\010\t\330\014\031\230\021\330\014\026\220a\330\014\033\2304\230}\250C\250r\260\021\330\014\035\230Q\230j\250\003\2504\250}\270C\270r\320AQ\320Q[\320[]\320]_\320_d\320dh\320hu\320ux\320xz\360\000\000{\001G\002\360\000\000G\002I\002\360\000\000I\002P\002\360\000\000P\002Q\002\330\014\035\230Q\330\014\027\220q\340\010\017\210q\320\004$\240J\320.B\320BT\320Td\320de\330\010\032\230$\230a\230q\330\010 \240\003\2401\240A\330\010'\240q\330\0102\260!\340\010\032\230!\330\010\035\230Q\330\010 \240\014\250A\330\010\030\230\001\360\024\000\t\014\2104\210v\220S\230\001\330\014\023\2201\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3001\330\014\023\2201\330\010\013\2106\220\023\220A\330\014\023\2201\340\010\022\220$\220a\330\010\013\210=\230\007\230v\240W\320,<\270A\330\010\013\210<\220w\230f\240G\2509\260A\340\010\017\320\017#\2406\250\021\250'\260\021\330\010\022\320\022.\250f\260A\260W\270A\330\010\013\2105\220\003\2205\230\003\2308\2403\240a\330\014\020\220\001\220\021\330\014\020\220\001\220\021\330\014\022\220+\230Q\230a\340\010\t\330\014\024\220A\220V\2302\230Q\330\014\027\220q\230\006\230b\240\001\330\014\020\220\005\220U\230!\2301\330\020\026\220e\2301\230A\330\020\023\2204\220z\240\021\240&\250\007\250w\260c\270\023\270A\270U\300\"\300A\330\024\032\230*\240A\240Q\330\020\027\220s\230!\2301\330\020\026\220c\230\021\230!\330\020\031\230\030\240\032\2501\250F\260,\270c\300\021\300%\300w\310a\330\020\030\230\007\230z\250\021\250%\250|\2703\270a\270t\3007\310!\330\020\025\220Q\220e\2301\330\020\030\230\001\230\025\230a\330\020\024\220A\220R\220x\230q\330\020\024\220A\220R\220w\230a\330\020\024\220A\220R\220y\240\003\2401\240A\330\020\024\220A\220R\220x\230q\330\020\024\220A\220R\220{\240!\330\020\024\220A\220R\220w\230a\340\014\017\210z\230\023\230E\240\023\240J\250b\260\001\330\020\034\230A\330\014\033""\2305\240\001\330\021\022\330\020\033\320\033+\2501\250D\260\007\260q\270\t\300\026\300u\310G\320Sa\320ab\330\014\017\210s\220#\220Q\330\020\026\220l\240!\2401\340\014\022\220!\330\014\020\220\005\220U\230!\2301\330\020\023\2207\230!\2304\320\0373\2601\260G\2701\270B\270g\300W\310A\310R\310y\320X`\320`a\320ae\320ej\320jm\320mq\320qu\320ux\320xy\330\014\023\2201\340\014\017\210x\220s\230!\330\025\026\330\0323\2601\260I\270U\300!\330\020\032\230!\330\014\020\220\001\220\021\320\004\034\230K\240z\260\031\270*\320DX\320Xj\320jk\200\001\330\004\n\210+\220Q\230:\240S\250\001\250\021\250!\2504\250r\260\034\270Q\270a\270q\300\001\320\004&\240k\260\021\360\006\000\t\014\2104\210v\220S\230\006\230a\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3005\310\001\330\010\022\320\022\"\240!\2404\240w\250d\260'\270\024\270W\300E\310\021\310!\330\010\013\2102\210S\220\003\2207\230!\330\010\014\210A\210R\210v\220Z\230q\240\003\240:\250Q\250b\260\002\260'\270\021\330\010\014\210A\210Q\330\010\017\210q\320\000?\270\177\310n\320\\]\330\004\016\210d\220-\230s\240\"\240A\330\004\021\220\032\2302\230[\250\010\260\002\260'\270\021\330\004\007\200|\2204\220{\240\"\240A\330\010\027\220q\230\003\230<\240r\250\021\330\010\016\320\016\036\230a\230z\250\022\2501\330\010\023\2202\220Q\220k\240\021\240!\340\010\016\210a\330\010\023\2203\220a\220q\330\004\007\200q\330\010\021\220\021\330\t\021\220\024\220Y\230g\240Q\330\010\021\320\021!\240\021\240!\340\010\021\220\021\330\004\t\210\021\330\010\013\320\013\037\320\0377\260q\3208I\310\021\320JZ\320Z[\320[\\\330\010\025\220Q\220j\320 3\2601\260A\330\010\r\210S\220\001\330\010\016\210a\200\001\330\004\021\220\021\220%\220u\230A\230Q\330\004\007\200x\210r\220\021\330\010\017\210r\220\021\220'\230\021\330\004\r\210V\2206\230\021\230#\230Q\230e\2401\240K\250q\330\004\007\200x\210r\220\021\330\010\017\210r\220\021\220)\2301\230C\230q\330\004\013\210:\220V\2301\230I\240Q\330\004\013\2102\210Q\210g\220Q\220g\230V\2401\240C\240q";
+    #else /* compression: none (6733 bytes) */
+const char* const bytes = "/02d.1f2.30.2fMD:Z:MIDNSHP=XBNote that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.+-?\tadd_notealignment output requires reference sequences in the indexcg:Z:cs:Z:disableeach batch record must be a tuple/list of at least (name, seq); elapsed enablefailed to finalize reference analysisfailed to open output file: failed to open query file: failed to write SAM headerfailed to write mapped output batchfailed to write reference analysis outputsgcindex is not loadedisenabled[mappy] batch [mappy] completed[mappy] progressmappy.pyxno default __reduce__ due to non-trivial __cinit__: processed  reads; mapped  reads/s; ETA reference analysis failedreference analysis requires reference sequences in the index<stringsource>threaded batch mapping failedthreaded file mapping failed; throughput tp:A:Ptp:A:Sts:A:+ts:A:-ts:A:.unable to allocate batch mapping buffersunable to allocate threaded mapping resultsunable to initialize reference analysis collectorunsupported output format: AlignerAligner.__reduce_cython__Aligner.__setstate_cython__Aligner.mapAligner.map_batchAligner.map_fileAligner.ref_analysis_fileAligner.seqAlignmentAlignment.__get__.<locals>.<lambda>Alignment.__reduce_cython__Alignment.__setstate_cython__MDMD_strNM__Pyx_PyDict_NextRefThreadBufferThreadBuffer.__reduce_cython__ThreadBuffer.__setstate_cython__alignmentsalnaoptasyncio.coroutinesavg_read_qualbbatch_basesbatch_nobatch_readsbest_nblenbseqbufbwbw_longcechunk_mappedchunk_nchunk_seqscigarcigar_dcigar_eqcigar_icigar_ncigar_strcigar_xcl__class_getitem__cline_in_tracebackclosecommentcompact_kcompact_ratiocompact_repeatsconsensus_cigarconsensus_edit_rateconsensus_lenconsensus_seqcount_reads_for_etacoverage_breadthcovered_basescscs_strctgdecodedeletion_baseselapsedelapsed_sec_emit_progressencodeendetaextra_flagsfastx_readfilefinalflushfnfn_idx_infn_idx_out_format_durationforward_primary__func____g""etstate__hhoursiinsertion_bases_is_coroutineis_primaryitemskksl<lambda>last_reportedlegacylowerm__main__mapmap_batchmap_filemap_optmappedmappymapqmax_chain_skipmax_frag_lenmax_read_lenmean_depthmean_identitymean_mapqmean_read_lenmean_softclip_3pmean_softclip_5pmedian_depthmedian_identitymedian_mapqmedian_read_lenmin_aln_lenmin_chain_scoremin_cntmin_dp_scoremin_mapqmin_read_lenminutesmismatch_basesmlen__module__n_batchn_regsn_seqn_threadsname__name___namename_bnamesnextoffsetoutout_fpoutput_boutput_codeoutput_formatoutput_pathpafperf_counterpopprefixprefix_bpresetprimary_reads_totalprimary_reads_usedprintprocessedprogressprogress_every__pyx_state__pyx_vtable__qeqsqual__qualname__query_bquery_pathrrcread_commentreaderreads_per_secrecrecords__reduce____reduce_cython____reduce_ex__ref_analysis_count_readsref_analysis_fileref_analysis_min_aln_lenref_analysis_min_mapqref_analysis_optref_analysis_prefixref_analysis_use_qualref_collectref_lenref_nameref_prefix_bref_resultregsremainingresresultsrevcompreverse_primaryroundrowsssamsc_ambiscoringsecsecondary_alignmentssecondsseg_idselfsendseqseq2_seq2_seqseq_bseq_bufsseqs__set_name__setdefault__setstate____setstate_cython__skipped_basesstartstart_timestatsstderrstrandsupplementary_piecessys__test__thread_countthreadsthroughputthrowtimetotal_readstrans_strandunknownuse_qualvvaluevaluesverbose__version__wwith_qualwrite_rcx\320\000\023\2201\200\001\330\004\010\210\003\2101\210A\330\004\013\2107\220*\230A\230U\240,\250c\260\027\270\001\330\004\031\230\036\240q\250\003\2501\330\004\010\210\001\210\022\2106\220\032\2301\230C\230z\250\021\250\"\250B\250g\260Q\330\004\010\210\001\210\021\330\004\013\2101\320\0043\3203C\300<\310\177\320^j\360\000\000k\001E\002\360\000\000E\002F\002\340\0104\260A\360\n\000\t\032\230\021\340\010\013\2104\210v\220S\230\001\330\014\022\220*\230A\230Q\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3001\330\014\022\220*\230A\230Q\330\010\013\210:\220S\230\005\230S\240\n\250\"\250A""\330\014\030\230\001\340\016'\240q\250\001\250\021\330\010\014\210L\230\001\330\010\014\210O\2301\330\010\014\210L\230\005\230^\2501\330\010\014\320\014#\2405\320(A\300\021\330\010\022\220.\240\n\250!\250<\260|\3003\300a\300{\320RY\320YZ\340\010\023\320\023(\250\001\250\024\250W\260I\270Q\270d\300*\310E\320Q\\\320\\]\320]c\320cd\320de\330\010\013\2103\210c\220\021\330\014\022\220,\230a\230q\340\010\t\330\014\017\210w\220h\230f\240A\330\020\033\230:\240Z\250q\260\010\270\014\300C\300q\310\007\310w\320VW\330\020\033\320\0331\260\021\260%\260q\330\020\023\2203\220c\230\021\330\024\032\230,\240a\240q\330\014\017\210t\2203\220a\330\020\027\220q\230\006\230b\240\003\2401\330\020\024\220E\230\025\230a\230s\240!\330\024\030\230\001\230\025\230d\320\"<\270A\270Q\270c\300\025\300a\300q\330\014\023\2201\340\014\017\210t\2203\220a\330\0265\260Q\260a\200\014\210A\330\004\007\200r\210\023\210F\220%\220q\330\004\021\320\021\"\240!\2401\320\004/\320/B\320BV\320V\\\320\\f\320fz\360\000\000{\001M\002\360\000\000M\002[\002\360\000\000[\002m\002\360\000\000m\002\177\002\360\000\000\177\002Q\003\360\000\000Q\003g\003\360\000\000g\003A\004\360\000\000A\004]\004\360\000\000]\004y\004\360\000\000y\004R\005\360\000\000R\005q\005\360\000\000q\005r\005\330\010-\250Q\330\010'\240q\340\0102\260!\360\006\000\t>\270Q\330\010;\2701\330\010\034\230A\360\010\000\t \320\0372\260!\2601\330\010\033\2301\360\022\000\t\037\230a\330\010\033\2301\330\010\"\240!\330\010\035\230Q\360\010\000\t\014\2104\210v\220S\230\001\330\014\022\220*\230A\230Q\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3001\330\014\022\220*\230A\230Q\340\010\013\210:\220S\230\005\230S\240\n\250\"\250A\330\014\030\230\001\330\010\027\220u\230A\330\010\013\210<\220s\230%\230s\240,\250b\260\001\330\014\032\230!\330\010\013\210<\220s\230%\230s\240,\250b\260\001\330\014\032\230!\330\010\013\210?\230#\230U\240#\240_\260B\260a\330\014\035\230Q\340\010\022\220$\220a\330\010\013\210=\230\007\230v\240W\320,<\270A\330""\010\013\210<\220w\230f\240G\2509\260A\330\010\013\210<\220s\230!\330\014\023\2209\230A\330\r\031\230\023\230A\330\014\023\2209\230A\330\010\013\2101\330\014\023\2209\230A\330\010\013\2101\330\014\023\2209\230A\340\010\013\320\013\037\230x\240v\250Q\330\022+\2501\250A\250Q\330\014\034\230L\250\001\330\014\034\230O\2501\330\014\034\230L\250\005\320-H\310\001\330\014\034\320\0343\2605\3208V\320VW\330\014 \320 =\270Q\270d\300'\310\021\310!\330\014\017\210|\2303\230a\330\020\026\220k\240\021\240!\330\014\017\210|\2302\230Q\330\0268\270\001\270\035\300a\340\0268\270\001\270\035\300a\340\010\022\220.\240\n\250!\250<\260|\3003\300a\300{\320RY\320YZ\330\010\027\220}\240A\240Q\330\010\013\2107\220#\220Q\330\014\022\220'\230\021\320\0327\260q\270\001\340\010\013\210<\220x\230v\240Q\330\014\027\220\177\240j\260\001\260\035\270l\310#\310Q\310l\320Za\320ab\330\014\025\220U\230!\230:\240Q\330\014\017\210w\220c\230\021\330\026$\240A\240Q\330\020\026\220g\230Q\320\036<\270A\270Q\340\010\024\220E\230\034\240S\320(>\270a\330\010\025\220T\230\035\240a\340\010\t\330\014\017\210|\2303\230a\330\020\033\320\0332\260!\2608\2704\270q\330\020\023\2203\220c\230\021\330\024\032\230,\240a\240q\340\014\r\330\020\032\230!\330\020\035\230^\2501\250H\260M\300\033\310C\310s\320RS\320ST\330\020\023\2205\230\003\2305\240\003\2408\2503\250a\330\024\025\330\020\021\330\024\035\230Q\330\024\032\230'\240\022\2401\330\030\"\240/\260\030\270\022\2707\300\"\320DU\320U]\320]_\320_`\330\030%\240U\250\"\250A\330\030\"\320\">\270f\300A\300Y\310a\330\030\033\2308\2403\240a\330\034\"\240+\250Q\250a\330\030\031\330!\"\330 +\320+;\2701\270D\300\007\300q\310\t\320Q]\320]f\320ft\320tu\330\034\037\230s\240#\240Q\330 &\240l\260!\2601\330!\"\330 1\3201C\3001\300H\310D\320PW\320WX\320Xa\320am\320mv\320v\177\360\000\000@\002A\002\330\034\037\230y\250\002\250!\330 &\240l\260!\2601\340\034+\2501\330\034 \240\005\240U\250!\2501\330 #\2407\250!\2502\250X\260R\260q\330$4\260A\330 #\240<\250s\260!\330*?\270q\300\r\310Q\310j\320X""Y\320Y]\320]d\320de\320eg\320gp\320pw\320wx\320xz\320z{\330\034)\250\021\330\034&\240a\330\034(\250\001\340\034\037\230q\330 #\240:\250R\250~\270S\300\017\310t\320S_\320_c\320cm\320mp\320pq\330$2\260!\260;\270h\300m\320S_\320_h\320hr\320rz\320z{\330$4\260A\340 #\240:\250R\250~\270S\300\017\310t\320S_\320_c\320cm\320mp\320pq\330$2\260!\260;\270h\300m\320S_\320_g\320gh\330$4\260A\340\034\037\230x\240s\250!\330%&\330*C\3001\300I\310Q\330 *\250!\330\030\"\240!\340\031\032\330\0366\260a\260v\270Q\330\024\033\2301\340\014\017\210|\2303\230a\330\020\033\320\033:\270!\270=\310\001\310\021\330\0266\260a\260q\330\020\036\230a\330\020\023\2203\220c\230\021\330\024\027\220{\240#\240Q\330\036=\270Q\270a\330\030%\240Q\330\024\032\230,\240a\240q\330\020\023\220;\230c\240\021\330\024#\320#:\270*\300A\320EZ\320Zf\320fi\320ij\320j~\360\000\000\177\001F\002\360\000\000F\002G\002\330\024\037\320\0375\260Q\260l\300!\330\0329\270\021\270!\330\024!\240\021\330\024\027\220s\230#\230Q\330\030\036\230l\250!\2501\340\014\017\210u\220C\220q\330\025\026\330\0322\260!\2606\270\021\330\014\017\210w\220c\230\021\330\020\026\220a\220q\330\020\023\2207\230#\230Q\330\024\032\230!\2301\330\014\017\210w\220c\230\021\330\026$\240A\240Q\330\014\017\210{\230#\230Q\330\0265\260Q\260a\330\014\017\210|\2303\230a\330\0266\260a\260q\340\010\013\210:\220S\230\016\240c\250\032\2603\260a\330\014\032\230!\230;\240h\250m\270<\300x\310y\320X^\320^_\340\014\032\230!\230;\240h\250m\270<\300x\310y\320X^\320^_\340\010\t\330\014\031\230\021\330\014\026\220a\330\014\033\2304\230}\250C\250r\260\021\330\014\035\230Q\230j\250\003\2504\250}\270C\270r\320AQ\320Q[\320[]\320]_\320_d\320dh\320hu\320ux\320xz\360\000\000{\001G\002\360\000\000G\002I\002\360\000\000I\002P\002\360\000\000P\002Q\002\330\014\035\230Q\330\014\027\220q\330\014#\2401\340\010\017\210q\320\004$\240J\320.B\320BT\320Td\320de\330\010\032\230$\230a\230q\330\010 \240\003\2401\240A\330\010'\240q\330\0102\260!\340\010\032\230!\330\010\035\230Q\330\010 \240\014\250A""\330\010\030\230\001\360\024\000\t\014\2104\210v\220S\230\001\330\014\023\2201\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3001\330\014\023\2201\330\010\013\2106\220\023\220A\330\014\023\2201\340\010\022\220$\220a\330\010\013\210=\230\007\230v\240W\320,<\270A\330\010\013\210<\220w\230f\240G\2509\260A\340\010\017\320\017#\2406\250\021\250'\260\021\330\010\022\320\022.\250f\260A\260W\270A\330\010\013\2105\220\003\2205\230\003\2308\2403\240a\330\014\020\220\001\220\021\330\014\020\220\001\220\021\330\014\022\220+\230Q\230a\340\010\t\330\014\024\220A\220V\2302\230Q\330\014\027\220q\230\006\230b\240\001\330\014\020\220\005\220U\230!\2301\330\020\026\220e\2301\230A\330\020\023\2204\220z\240\021\240&\250\007\250w\260c\270\023\270A\270U\300\"\300A\330\024\032\230*\240A\240Q\330\020\027\220s\230!\2301\330\020\026\220c\230\021\230!\330\020\031\230\030\240\032\2501\250F\260,\270c\300\021\300%\300w\310a\330\020\030\230\007\230z\250\021\250%\250|\2703\270a\270t\3007\310!\330\020\025\220Q\220e\2301\330\020\030\230\001\230\025\230a\330\020\024\220A\220R\220x\230q\330\020\024\220A\220R\220w\230a\330\020\024\220A\220R\220y\240\003\2401\240A\330\020\024\220A\220R\220x\230q\330\020\024\220A\220R\220{\240!\330\020\024\220A\220R\220w\230a\340\014\017\210z\230\023\230E\240\023\240J\250b\260\001\330\020\034\230A\330\014\033\2305\240\001\330\021\022\330\020\033\320\033+\2501\250D\260\007\260q\270\t\300\026\300u\310G\320Sa\320ab\330\014\017\210s\220#\220Q\330\020\026\220l\240!\2401\340\014\022\220!\330\014\020\220\005\220U\230!\2301\330\020\023\2207\230!\2304\320\0373\2601\260G\2701\270B\270g\300W\310A\310R\310y\320X`\320`a\320ae\320ej\320jm\320mq\320qu\320ux\320xy\330\014\023\2201\340\014\017\210x\220s\230!\330\025\026\330\0323\2601\260I\270U\300!\330\020\032\230!\330\014\020\220\001\220\021\320\004\034\230K\240z\260\031\270*\320DX\320Xj\320jk\200\001\330\004\n\210+\220Q\230:\240S\250\001\250\021\250!\2504\250r\260\034\270Q\270a\270q\300\001\320\004&\240k\260""\021\360\006\000\t\014\2104\210v\220S\230\006\230a\330\010\r\210T\220\030\230\026\230r\240\034\250U\260$\260e\2706\300\022\3005\310\001\330\010\022\320\022\"\240!\2404\240w\250d\260'\270\024\270W\300E\310\021\310!\330\010\013\2102\210S\220\003\2207\230!\330\010\014\210A\210R\210v\220Z\230q\240\003\240:\250Q\250b\260\002\260'\270\021\330\010\014\210A\210Q\330\010\017\210q\320\000?\270\177\310n\320\\]\330\004\016\210d\220-\230s\240\"\240A\330\004\021\220\032\2302\230[\250\010\260\002\260'\270\021\330\004\007\200|\2204\220{\240\"\240A\330\010\027\220q\230\003\230<\240r\250\021\330\010\016\320\016\036\230a\230z\250\022\2501\330\010\023\2202\220Q\220k\240\021\240!\340\010\016\210a\330\010\023\2203\220a\220q\330\004\007\200q\330\010\021\220\021\330\t\021\220\024\220Y\230g\240Q\330\010\021\320\021!\240\021\240!\340\010\021\220\021\330\004\t\210\021\330\010\013\320\013\037\320\0377\260q\3208I\310\021\320JZ\320Z[\320[\\\330\010\025\220Q\220j\320 3\2601\260A\330\010\r\210S\220\001\330\010\016\210a\200\001\330\004\021\220\021\220%\220u\230A\230Q\330\004\007\200x\210r\220\021\330\010\017\210r\220\021\220'\230\021\330\004\r\210V\2206\230\021\230#\230Q\230e\2401\240K\250q\330\004\007\200x\210r\220\021\330\010\017\210r\220\021\220)\2301\230C\230q\330\004\013\210:\220V\2301\230I\240Q\330\004\013\2102\210Q\210g\220Q\220g\230V\2401\240C\240q";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
     PyObject **stringtab = __pyx_mstate->__pyx_string_tab;
     Py_ssize_t pos = 0;
-    for (int i = 0; i < 237; i++) {
+    for (int i = 0; i < 297; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyUnicode_DecodeUTF8(bytes + pos, bytes_length, NULL);
-      if (likely(string) && i >= 48) PyUnicode_InternInPlace(&string);
+      if (likely(string) && i >= 53) PyUnicode_InternInPlace(&string);
       if (unlikely(!string)) {
         Py_XDECREF(data);
         __PYX_ERR(0, 1, __pyx_L1_error)
@@ -17877,7 +19952,7 @@ const char* const bytes = "/02d.1f2.30.2fMD:Z:MIDNSHP=XBNote that Cython is deli
       stringtab[i] = string;
       pos += bytes_length;
     }
-    for (int i = 237; i < 249; i++) {
+    for (int i = 297; i < 310; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyBytes_FromStringAndSize(bytes + pos, bytes_length);
       stringtab[i] = string;
@@ -17888,15 +19963,15 @@ const char* const bytes = "/02d.1f2.30.2fMD:Z:MIDNSHP=XBNote that Cython is deli
       }
     }
     Py_XDECREF(data);
-    for (Py_ssize_t i = 0; i < 249; i++) {
+    for (Py_ssize_t i = 0; i < 310; i++) {
       if (unlikely(PyObject_Hash(stringtab[i]) == -1)) {
         __PYX_ERR(0, 1, __pyx_L1_error)
       }
     }
     #if CYTHON_IMMORTAL_CONSTANTS
     {
-      PyObject **table = stringtab + 237;
-      for (Py_ssize_t i=0; i<12; ++i) {
+      PyObject **table = stringtab + 297;
+      for (Py_ssize_t i=0; i<13; ++i) {
         #if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
         #if PY_VERSION_HEX < 0x030E0000
         if (_Py_IsOwnedByCurrentThread(table[i]) && Py_REFCNT(table[i]) == 1)
@@ -17956,7 +20031,7 @@ const char* const bytes = "/02d.1f2.30.2fMD:Z:MIDNSHP=XBNote that Cython is deli
 }
 /* #### Code section: init_codeobjects ### */
 typedef struct {
-    unsigned int argcount : 4;
+    unsigned int argcount : 5;
     unsigned int num_posonly_args : 1;
     unsigned int num_kwonly_args : 1;
     unsigned int nlocals : 6;
@@ -17988,7 +20063,7 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
     __pyx_mstate_global->__pyx_codeobj_tab[1] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_map, __pyx_mstate->__pyx_kp_b_iso88591_Kz_DXXjjk, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[1])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 7, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS|CO_GENERATOR), 582};
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 7, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS|CO_GENERATOR), 706};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_fn, __pyx_mstate->__pyx_n_u_read_comment, __pyx_mstate->__pyx_n_u_ks, __pyx_mstate->__pyx_n_u_qual, __pyx_mstate->__pyx_n_u_name, __pyx_mstate->__pyx_n_u_seq, __pyx_mstate->__pyx_n_u_comment};
     __pyx_mstate_global->__pyx_codeobj_tab[2] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_fastx_read, __pyx_mstate->__pyx_kp_b_iso88591_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[2])) goto bad;
   }
@@ -18028,34 +20103,39 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
     __pyx_mstate_global->__pyx_codeobj_tab[9] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_map_batch, __pyx_mstate->__pyx_kp_b_iso88591_J_BBTTdde_aq_1A_q_2_Q_A_4vS_1_T, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[9])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {14, 0, 0, 38, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 401};
-    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_query_path, __pyx_mstate->__pyx_n_u_output_path, __pyx_mstate->__pyx_n_u_output_format, __pyx_mstate->__pyx_n_u_n_threads, __pyx_mstate->__pyx_n_u_cs, __pyx_mstate->__pyx_n_u_MD, __pyx_mstate->__pyx_n_u_max_frag_len, __pyx_mstate->__pyx_n_u_extra_flags, __pyx_mstate->__pyx_n_u_verbose, __pyx_mstate->__pyx_n_u_total_reads, __pyx_mstate->__pyx_n_u_progress_every, __pyx_mstate->__pyx_n_u_batch_bases, __pyx_mstate->__pyx_n_u_batch_reads, __pyx_mstate->__pyx_n_u_reader, __pyx_mstate->__pyx_n_u_seqs, __pyx_mstate->__pyx_n_u_chunk_seqs, __pyx_mstate->__pyx_n_u_results, __pyx_mstate->__pyx_n_u_map_opt, __pyx_mstate->__pyx_n_u_out_fp, __pyx_mstate->__pyx_n_u_query_b, __pyx_mstate->__pyx_n_u_output_b, __pyx_mstate->__pyx_n_u_output_code, __pyx_mstate->__pyx_n_u_n_batch, __pyx_mstate->__pyx_n_u_chunk_n, __pyx_mstate->__pyx_n_u_offset, __pyx_mstate->__pyx_n_u_rc, __pyx_mstate->__pyx_n_u_thread_count, __pyx_mstate->__pyx_n_u_write_rc, __pyx_mstate->__pyx_n_u_with_qual, __pyx_mstate->__pyx_n_u_chunk_mapped, __pyx_mstate->__pyx_n_u_i, __pyx_mstate->__pyx_n_u_processed, __pyx_mstate->__pyx_n_u_mapped, __pyx_mstate->__pyx_n_u_last_reported, __pyx_mstate->__pyx_n_u_batch_no, __pyx_mstate->__pyx_n_u_start_time, __pyx_mstate->__pyx_n_u_stats};
-    __pyx_mstate_global->__pyx_codeobj_tab[10] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_map_file, __pyx_mstate->__pyx_kp_b_iso88591_BBVV_ffz_M_M_m_m_Q_Q_g_g_h_Q_q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[10])) goto bad;
+    const __Pyx_PyCode_New_function_description descr = {19, 0, 0, 47, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 401};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_query_path, __pyx_mstate->__pyx_n_u_output_path, __pyx_mstate->__pyx_n_u_output_format, __pyx_mstate->__pyx_n_u_n_threads, __pyx_mstate->__pyx_n_u_cs, __pyx_mstate->__pyx_n_u_MD, __pyx_mstate->__pyx_n_u_max_frag_len, __pyx_mstate->__pyx_n_u_extra_flags, __pyx_mstate->__pyx_n_u_verbose, __pyx_mstate->__pyx_n_u_total_reads, __pyx_mstate->__pyx_n_u_progress_every, __pyx_mstate->__pyx_n_u_batch_bases, __pyx_mstate->__pyx_n_u_batch_reads, __pyx_mstate->__pyx_n_u_ref_analysis_prefix, __pyx_mstate->__pyx_n_u_ref_analysis_min_mapq, __pyx_mstate->__pyx_n_u_ref_analysis_min_aln_len, __pyx_mstate->__pyx_n_u_ref_analysis_use_qual, __pyx_mstate->__pyx_n_u_ref_analysis_count_reads, __pyx_mstate->__pyx_n_u_reader, __pyx_mstate->__pyx_n_u_seqs, __pyx_mstate->__pyx_n_u_chunk_seqs, __pyx_mstate->__pyx_n_u_results, __pyx_mstate->__pyx_n_u_map_opt, __pyx_mstate->__pyx_n_u_ref_analysis_opt, __pyx_mstate->__pyx_n_u_ref_collect, __pyx_mstate->__pyx_n_u_ref_result, __pyx_mstate->__pyx_n_u_out_fp, __pyx_mstate->__pyx_n_u_query_b, __pyx_mstate->__pyx_n_u_output_b, __pyx_mstate->__pyx_n_u_ref_prefix_b, __pyx_mstate->__pyx_n_u_output_code, __pyx_mstate->__pyx_n_u_n_batch, __pyx_mstate->__pyx_n_u_chunk_n, __pyx_mstate->__pyx_n_u_offset, __pyx_mstate->__pyx_n_u_rc, __pyx_mstate->__pyx_n_u_thread_count, __pyx_mstate->__pyx_n_u_write_rc, __pyx_mstate->__pyx_n_u_with_qual, __pyx_mstate->__pyx_n_u_chunk_mapped, __pyx_mstate->__pyx_n_u_i, __pyx_mstate->__pyx_n_u_processed, __pyx_mstate->__pyx_n_u_mapped, __pyx_mstate->__pyx_n_u_last_reported, __pyx_mstate->__pyx_n_u_batch_no, __pyx_mstate->__pyx_n_u_start_time, __pyx_mstate->__pyx_n_u_stats};
+    __pyx_mstate_global->__pyx_codeobj_tab[10] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_map_file, __pyx_mstate->__pyx_kp_b_iso88591_BBVV_ffz_M_M_m_m_Q_Q_g_g_A_A_y, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[10])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {4, 0, 0, 7, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 550};
+    const __Pyx_PyCode_New_function_description descr = {8, 0, 0, 15, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 632};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_query_path, __pyx_mstate->__pyx_n_u_prefix, __pyx_mstate->__pyx_n_u_n_threads, __pyx_mstate->__pyx_n_u_min_mapq, __pyx_mstate->__pyx_n_u_min_aln_len, __pyx_mstate->__pyx_n_u_use_qual, __pyx_mstate->__pyx_n_u_count_reads_for_eta, __pyx_mstate->__pyx_n_u_aopt, __pyx_mstate->__pyx_n_u_res, __pyx_mstate->__pyx_n_u_query_b, __pyx_mstate->__pyx_n_u_prefix_b, __pyx_mstate->__pyx_n_u_rc, __pyx_mstate->__pyx_n_u_i, __pyx_mstate->__pyx_n_u_rows};
+    __pyx_mstate_global->__pyx_codeobj_tab[11] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_ref_analysis_file, __pyx_mstate->__pyx_kp_b_iso88591_33C_j_k_E_E_F_4A_4vS_AQ_T_r_U_e, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[11])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {4, 0, 0, 7, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 674};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_name, __pyx_mstate->__pyx_n_u_start, __pyx_mstate->__pyx_n_u_end, __pyx_mstate->__pyx_n_u_l, __pyx_mstate->__pyx_n_u_s, __pyx_mstate->__pyx_n_u_r};
-    __pyx_mstate_global->__pyx_codeobj_tab[11] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_seq, __pyx_mstate->__pyx_kp_b_iso88591_k_4vS_a_T_r_U_e6_5_4wd_WE_2S_7, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[11])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[12] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_seq, __pyx_mstate->__pyx_kp_b_iso88591_k_4vS_a_T_r_U_e6_5_4wd_WE_2S_7, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[12])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 1};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self};
-    __pyx_mstate_global->__pyx_codeobj_tab[12] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[12])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[13] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[13])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 3};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_pyx_state};
-    __pyx_mstate_global->__pyx_codeobj_tab[13] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[13])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[14] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[14])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 5, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 600};
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 5, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 724};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_seq, __pyx_mstate->__pyx_n_u_l, __pyx_mstate->__pyx_n_u_bseq, __pyx_mstate->__pyx_n_u_s, __pyx_mstate->__pyx_n_u_r};
-    __pyx_mstate_global->__pyx_codeobj_tab[14] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_revcomp, __pyx_mstate->__pyx_kp_b_iso88591_1A_7_AU_c_q_1_6_1Cz_BgQ_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[14])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[15] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_revcomp, __pyx_mstate->__pyx_kp_b_iso88591_1A_7_AU_c_q_1_6_1Cz_BgQ_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[15])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 609};
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 733};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_v};
-    __pyx_mstate_global->__pyx_codeobj_tab[15] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_verbose, __pyx_mstate->__pyx_kp_b_iso88591_A_r_F_q_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[15])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[16] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_mappy_pyx, __pyx_mstate->__pyx_n_u_verbose, __pyx_mstate->__pyx_kp_b_iso88591_A_r_F_q_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[16])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
   return 0;
@@ -22305,6 +24385,39 @@ static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObje
     return __Pyx_SetItemInt_Generic(o, PyLong_FromSsize_t(i), v);
 }
 
+/* decode_c_string */
+static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
+         const char* cstring, Py_ssize_t start, Py_ssize_t stop,
+         const char* encoding, const char* errors,
+         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
+    Py_ssize_t length;
+    if (unlikely((start < 0) | (stop < 0))) {
+        size_t slen = strlen(cstring);
+        if (unlikely(slen > (size_t) PY_SSIZE_T_MAX)) {
+            PyErr_SetString(PyExc_OverflowError,
+                            "c-string too long to convert to Python");
+            return NULL;
+        }
+        length = (Py_ssize_t) slen;
+        if (start < 0) {
+            start += length;
+            if (start < 0)
+                start = 0;
+        }
+        if (stop < 0)
+            stop += length;
+    }
+    if (unlikely(stop <= start))
+        return __Pyx_NewRef(__pyx_mstate_global->__pyx_empty_unicode);
+    length = stop - start;
+    cstring += start;
+    if (decode_func) {
+        return decode_func(cstring, length, errors);
+    } else {
+        return PyUnicode_Decode(cstring, length, encoding, errors);
+    }
+}
+
 /* ArgTypeTestFunc (used by ArgTypeTest) */
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
 {
@@ -22351,39 +24464,6 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
     __Pyx_DECREF_TypeName(type_name);
     __Pyx_DECREF_TypeName(obj_type_name);
     return 0;
-}
-
-/* decode_c_string */
-static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
-         const char* cstring, Py_ssize_t start, Py_ssize_t stop,
-         const char* encoding, const char* errors,
-         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
-    Py_ssize_t length;
-    if (unlikely((start < 0) | (stop < 0))) {
-        size_t slen = strlen(cstring);
-        if (unlikely(slen > (size_t) PY_SSIZE_T_MAX)) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "c-string too long to convert to Python");
-            return NULL;
-        }
-        length = (Py_ssize_t) slen;
-        if (start < 0) {
-            start += length;
-            if (start < 0)
-                start = 0;
-        }
-        if (stop < 0)
-            stop += length;
-    }
-    if (unlikely(stop <= start))
-        return __Pyx_NewRef(__pyx_mstate_global->__pyx_empty_unicode);
-    length = stop - start;
-    cstring += start;
-    if (decode_func) {
-        return decode_func(cstring, length, errors);
-    } else {
-        return PyUnicode_Decode(cstring, length, encoding, errors);
-    }
 }
 
 /* AllocateExtensionType */
@@ -25321,6 +27401,75 @@ raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
         "can't convert negative value to int64_t");
     return (int64_t) -1;
+}
+
+/* CIntToPy */
+static CYTHON_INLINE PyObject* __Pyx_PyLong_From_uint64_t(uint64_t value) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const uint64_t neg_one = (uint64_t) -1, const_zero = (uint64_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(uint64_t) < sizeof(long)) {
+            return PyLong_FromLong((long) value);
+        } else if (sizeof(uint64_t) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#if !CYTHON_COMPILING_IN_PYPY
+        } else if (sizeof(uint64_t) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(uint64_t) <= sizeof(long)) {
+            return PyLong_FromLong((long) value);
+        } else if (sizeof(uint64_t) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+        }
+    }
+    {
+        unsigned char *bytes = (unsigned char *)&value;
+#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4
+        if (is_unsigned) {
+            return PyLong_FromUnsignedNativeBytes(bytes, sizeof(value), -1);
+        } else {
+            return PyLong_FromNativeBytes(bytes, sizeof(value), -1);
+        }
+#elif !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        return _PyLong_FromByteArray(bytes, sizeof(uint64_t),
+                                     little, !is_unsigned);
+#else
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        PyObject *from_bytes, *result = NULL, *kwds = NULL;
+        PyObject *py_bytes = NULL, *order_str = NULL;
+        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
+        if (!from_bytes) return NULL;
+        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(uint64_t));
+        if (!py_bytes) goto limited_bad;
+        order_str = PyUnicode_FromString(little ? "little" : "big");
+        if (!order_str) goto limited_bad;
+        {
+            PyObject *args[3+(CYTHON_VECTORCALL ? 1 : 0)] = { NULL, py_bytes, order_str };
+            if (!is_unsigned) {
+                kwds = __Pyx_MakeVectorcallBuilderKwds(1);
+                if (!kwds) goto limited_bad;
+                if (__Pyx_VectorcallBuilder_AddArgStr("signed", __Pyx_NewRef(Py_True), kwds, args+3, 0) < 0) goto limited_bad;
+            }
+            result = __Pyx_Object_Vectorcall_CallFromBuilder(from_bytes, args+1, 2 | __Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET, kwds);
+        }
+        limited_bad:
+        Py_XDECREF(kwds);
+        Py_XDECREF(order_str);
+        Py_XDECREF(py_bytes);
+        Py_XDECREF(from_bytes);
+        return result;
+#endif
+    }
 }
 
 /* CIntFromPy */

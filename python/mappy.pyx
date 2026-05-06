@@ -398,15 +398,19 @@ cdef class Aligner:
                 results = NULL
             free(seqs)
 
-    def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096):
+    def map_file(self, query_path, output_path='-', output_format='legacy', n_threads=1, cs=False, MD=False, max_frag_len=None, extra_flags=None, verbose=True, total_reads=0, progress_every=1000, batch_bases=33554432, batch_reads=4096, ref_analysis_prefix=None, ref_analysis_min_mapq=0, ref_analysis_min_aln_len=0, ref_analysis_use_qual=True, ref_analysis_count_reads=False):
         cdef cmappy.mm_bseq_file_t *reader = NULL
         cdef cmappy.mm_bseq1_t *seqs = NULL
         cdef cmappy.mm_bseq1_t *chunk_seqs
         cdef cmappy.mappy_map_result_t *results = NULL
         cdef cmappy.mm_mapopt_t map_opt
+        cdef cmappy.mm_ref_analysis_opt_t ref_analysis_opt
+        cdef cmappy.mm_ref_analysis_collect_t *ref_collect = NULL
+        cdef cmappy.mm_ref_analysis_result_t *ref_result = NULL
         cdef FILE *out_fp = stdout
         cdef bytes query_b
         cdef bytes output_b
+        cdef bytes ref_prefix_b
         cdef int output_code = _output_format_code(output_format)
         cdef int n_batch = 0
         cdef int chunk_n
@@ -450,6 +454,20 @@ cdef class Aligner:
             map_opt.flag |= MM_F_OUT_CS
         if MD:
             map_opt.flag |= MM_F_OUT_MD
+
+        if ref_analysis_prefix not in (None, ''):
+            cmappy.mm_ref_analysis_opt_init(&ref_analysis_opt)
+            ref_analysis_opt.min_mapq = ref_analysis_min_mapq
+            ref_analysis_opt.min_aln_len = ref_analysis_min_aln_len
+            ref_analysis_opt.use_qual = 1 if ref_analysis_use_qual else 0
+            ref_analysis_opt.count_reads_for_eta = 1 if ref_analysis_count_reads else 0
+            ref_collect = cmappy.mm_ref_analysis_collect_init(self._idx, &ref_analysis_opt)
+            if ref_collect == NULL:
+                raise MemoryError('unable to initialize reference analysis collector')
+            if total_reads > 0:
+                cmappy.mm_ref_analysis_collect_set_total(ref_collect, total_reads)
+            else:
+                cmappy.mm_ref_analysis_collect_set_total(ref_collect, 0)
 
         query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
         reader = cmappy.mm_bseq_open(query_b)
@@ -499,6 +517,8 @@ cdef class Aligner:
                             for i in range(chunk_n):
                                 if results[i].n_regs > 0:
                                     chunk_mapped += 1
+                                if ref_collect != NULL:
+                                    cmappy.mm_ref_analysis_step(ref_collect, &chunk_seqs[i], results[i].n_regs, results[i].regs)
                             processed += chunk_n
                             mapped += chunk_mapped
                             batch_no += 1
@@ -521,6 +541,23 @@ cdef class Aligner:
                     with nogil:
                         cmappy.mappy_bseq_free_records(seqs, n_batch)
                     seqs = NULL
+
+            if ref_collect != NULL:
+                rc = cmappy.mm_ref_analysis_collect_finish(ref_collect, &ref_result)
+                cmappy.mm_ref_analysis_collect_destroy(ref_collect)
+                ref_collect = NULL
+                if rc != 0:
+                    if ref_result != NULL:
+                        cmappy.mm_ref_analysis_result_destroy(ref_result)
+                        ref_result = NULL
+                    raise RuntimeError('failed to finalize reference analysis')
+                if ref_result != NULL:
+                    ref_prefix_b = ref_analysis_prefix if isinstance(ref_analysis_prefix, bytes) else str(ref_analysis_prefix).encode()
+                    rc = cmappy.mm_ref_analysis_write(ref_result, ref_prefix_b)
+                    cmappy.mm_ref_analysis_result_destroy(ref_result)
+                    ref_result = NULL
+                    if rc != 0:
+                        raise RuntimeError('failed to write reference analysis outputs')
         finally:
             if seqs != NULL:
                 with nogil:
@@ -531,6 +568,10 @@ cdef class Aligner:
                     fclose(out_fp)
             if reader != NULL:
                 cmappy.mm_bseq_close(reader)
+            if ref_result != NULL:
+                cmappy.mm_ref_analysis_result_destroy(ref_result)
+            if ref_collect != NULL:
+                cmappy.mm_ref_analysis_collect_destroy(ref_collect)
 
         if processed != last_reported or processed == 0:
             _emit_progress(processed, mapped, total_reads, start_time, verbose=verbose, final=True)
@@ -544,8 +585,91 @@ cdef class Aligner:
             'reads_per_sec': (processed / (time.perf_counter() - start_time)) if processed > 0 and (time.perf_counter() - start_time) > 0 else 0.0,
             'output_format': output_format,
             'threads': n_threads,
+            'ref_analysis_prefix': ref_analysis_prefix,
         }
         return stats
+
+    cdef dict _ref_analysis_row_to_dict(self, cmappy.mm_ref_analysis_row_t *row):
+        return {
+            'ref_name': row.ref_name.decode() if row.ref_name != NULL else None,
+            'ref_len': row.ref_len,
+            'primary_reads_total': row.primary_reads_total,
+            'primary_reads_used': row.primary_reads_used,
+            'supplementary_pieces': row.supplementary_pieces,
+            'secondary_alignments': row.secondary_alignments,
+            'min_read_len': row.min_read_len,
+            'max_read_len': row.max_read_len,
+            'median_read_len': row.median_read_len,
+            'mean_read_len': row.mean_read_len,
+            'avg_read_qual': row.avg_read_qual,
+            'mean_mapq': row.mean_mapq,
+            'median_mapq': row.median_mapq,
+            'mean_identity': row.mean_identity,
+            'median_identity': row.median_identity,
+            'forward_primary': row.forward_primary,
+            'reverse_primary': row.reverse_primary,
+            'covered_bases': row.covered_bases,
+            'coverage_breadth': row.coverage_breadth,
+            'mean_depth': row.mean_depth,
+            'median_depth': row.median_depth,
+            'mean_softclip_5p': row.mean_softclip_5p,
+            'mean_softclip_3p': row.mean_softclip_3p,
+            'mismatch_bases': row.mismatch_bases,
+            'insertion_bases': row.insertion_bases,
+            'deletion_bases': row.deletion_bases,
+            'skipped_bases': row.skipped_bases,
+            'consensus_seq': row.consensus_seq.decode() if row.consensus_seq != NULL else None,
+            'consensus_len': row.consensus_len,
+            'consensus_cigar': row.consensus_cigar.decode() if row.consensus_cigar != NULL else None,
+            'cigar_eq': row.cigar_eq,
+            'cigar_x': row.cigar_x,
+            'cigar_i': row.cigar_i,
+            'cigar_d': row.cigar_d,
+            'cigar_n': row.cigar_n,
+            'consensus_edit_rate': row.consensus_edit_rate,
+        }
+
+    def ref_analysis_file(self, query_path, prefix=None, n_threads=1, min_mapq=0, min_aln_len=0, use_qual=True, count_reads_for_eta=False):
+        cdef cmappy.mm_ref_analysis_opt_t aopt
+        cdef cmappy.mm_ref_analysis_result_t *res = NULL
+        cdef bytes query_b
+        cdef bytes prefix_b
+        cdef int rc
+        cdef int i
+        cdef list rows = []
+
+        if self._idx == NULL:
+            raise ValueError('index is not loaded')
+        if ((self.map_opt.flag & MM_F_CIGAR) and (self._idx.flag & 2)):
+            raise ValueError('reference analysis requires reference sequences in the index')
+        if n_threads is None or n_threads < 1:
+            n_threads = 1
+
+        cmappy.mm_ref_analysis_opt_init(&aopt)
+        aopt.min_mapq = min_mapq
+        aopt.min_aln_len = min_aln_len
+        aopt.use_qual = 1 if use_qual else 0
+        aopt.count_reads_for_eta = 1 if count_reads_for_eta else 0
+        query_b = query_path if isinstance(query_path, bytes) else str(query_path).encode()
+
+        rc = cmappy.mm_ref_analysis_file(self._idx, query_b, &self.map_opt, <int>n_threads, &aopt, &res)
+        if rc != 0:
+            raise RuntimeError('reference analysis failed')
+
+        try:
+            if prefix not in (None, ''):
+                prefix_b = prefix if isinstance(prefix, bytes) else str(prefix).encode()
+                rc = cmappy.mm_ref_analysis_write(res, prefix_b)
+                if rc != 0:
+                    raise RuntimeError('failed to write reference analysis outputs')
+            if res != NULL:
+                rows = [None] * res.n_rows
+                for i in range(res.n_rows):
+                    rows[i] = self._ref_analysis_row_to_dict(&res.rows[i])
+            return rows
+        finally:
+            if res != NULL:
+                cmappy.mm_ref_analysis_result_destroy(res)
 
     def seq(self, str name, int start=0, int end=0x7fffffff):
         cdef int l

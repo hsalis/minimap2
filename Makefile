@@ -1,7 +1,7 @@
 CFLAGS=		-g -Wall -O2 -Wc++-compat #-Wextra
 CPPFLAGS=	-DHAVE_KALLOC
 INCLUDES=
-OBJS=		kthread.o kalloc.o misc.o bseq.o sketch.o sdust.o options.o index.o \
+OBJS=		kthread.o kalloc.o misc.o bseq.o sketch.o sdust.o options.o index.o ref_analysis.o \
 			lchain.o align.o hit.o seed.o jump.o map.o format.o pe.o esterr.o splitidx.o \
 			ksw2_ll_sse.o
 PROG=		minimap2
@@ -38,7 +38,7 @@ ifneq ($(tsan),)
 	LIBS+=-fsanitize=thread -ldl
 endif
 
-.PHONY:all extra clean depend test test-compact bench-compact bench-combinatorial
+.PHONY:all extra clean depend test test-compact test-ref-analysis bench-compact bench-combinatorial
 .SUFFIXES:.c .o
 
 .c.o:
@@ -113,6 +113,9 @@ test: minimap2
 test-compact: minimap2
 		python3 bench/compact_regress.py --minimap2 ./minimap2 --dataset-dir bench/generated/compact-regression --refs 128 --reads 48 --threads 1 2
 
+test-ref-analysis: minimap2
+		python3 bench/ref_analysis_smoke.py --minimap2 ./minimap2
+
 bench-compact: minimap2
 		python3 bench/compact_bench.py --minimap2 ./minimap2 --dataset-dir bench/generated/compact-bench --refs 256 --reads 128 --threads 1 --repeats 3 --output bench/results/compact-bench.json
 
@@ -143,6 +146,7 @@ map.o: khash.h ksort.h
 misc.o: mmpriv.h minimap.h bseq.h kseq.h ksort.h
 options.o: mmpriv.h minimap.h bseq.h kseq.h
 pe.o: mmpriv.h minimap.h bseq.h kseq.h kvec.h kalloc.h ksort.h
+ref_analysis.o: mmpriv.h minimap.h bseq.h kseq.h kalloc.h khash.h ksw2.h
 sdust.o: kalloc.h kdq.h kvec.h sdust.h
 seed.o: mmpriv.h minimap.h bseq.h kseq.h kalloc.h ksort.h
 sketch.o: kvec.h kalloc.h mmpriv.h minimap.h bseq.h kseq.h

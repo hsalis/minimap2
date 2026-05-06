@@ -68,6 +68,13 @@ void mm_mapopt_init(mm_mapopt_t *opt)
 	opt->jump_min_match = 3;
 }
 
+void mm_ref_analysis_opt_init(mm_ref_analysis_opt_t *opt)
+{
+	memset(opt, 0, sizeof(mm_ref_analysis_opt_t));
+	opt->use_qual = 1;
+	opt->count_reads_for_eta = 0;
+}
+
 void mm_mapopt_update(mm_mapopt_t *opt, const mm_idx_t *mi)
 {
 	if ((opt->flag & MM_F_SPLICE_FOR) || (opt->flag & MM_F_SPLICE_REV))
@@ -217,6 +224,11 @@ int mm_check_opt(const mm_idxopt_t *io, const mm_mapopt_t *mo)
 		if (mm_verbose >= 1)
 			fprintf(stderr, "[ERROR]\033[1;31m --cs or --MD doesn't work with --split-prefix\033[0m\n");
 		return -6;
+	}
+	if (mo->split_prefix && (mo->flag & MM_F_REF_ANALYSIS)) {
+		if (mm_verbose >= 1)
+			fprintf(stderr, "[ERROR]\033[1;31m --ref-analysis-prefix doesn't work with --split-prefix in v1\033[0m\n");
+		return -9;
 	}
 	if (io->k <= 0 || io->w <= 0) {
 		if (mm_verbose >= 1)

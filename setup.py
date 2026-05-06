@@ -33,7 +33,7 @@ else:
     extra_compile_args.append("-msse4.1")
 
 sources = [
-    module_source,
+    module_source, "ref_analysis.c",
     "align.c", "bseq.c", "lchain.c", "seed.c", "format.c", "hit.c",
     "index.c", "pe.c", "jump.c", "options.c", "ksw2_extd2_sse.c",
     "ksw2_exts2_sse.c", "ksw2_extz2_sse.c", "ksw2_ll_sse.c", "kalloc.c",

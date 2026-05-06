@@ -90,6 +90,11 @@ static ko_longopt_t long_options[] = {
 	{ "compact-repeats",ko_optional_argument, 365 },
 	{ "compact-k",      ko_required_argument, 366 },
 	{ "compact-ratio",  ko_required_argument, 367 },
+	{ "ref-analysis-prefix", ko_required_argument, 368 },
+	{ "ref-analysis-min-mapq", ko_required_argument, 369 },
+	{ "ref-analysis-min-aln-len", ko_required_argument, 370 },
+	{ "ref-analysis-qual", ko_required_argument, 371 },
+	{ "ref-analysis-count-reads", ko_required_argument, 372 },
 	{ "dbg-seed-occ",   ko_no_argument,       501 },
 	{ "help",           ko_no_argument,       'h' },
 	{ "max-intron-len", ko_required_argument, 'G' },
@@ -141,14 +146,17 @@ int main(int argc, char *argv[])
 	int i, c, n_threads = 3, n_parts, old_best_n = -1;
 	float spsc_scale = 0.7f;
 	char *fnw = 0, *rg = 0, *fn_bed_junc = 0, *fn_bed_jump = 0, *fn_bed_pass1 = 0, *fn_spsc = 0, *s, *alt_list = 0;
+	char *ref_analysis_prefix = 0;
 	FILE *fp_help = stderr;
 	mm_idx_reader_t *idx_rdr;
 	mm_idx_t *mi;
+	mm_ref_analysis_opt_t ref_analysis_opt;
 
 	mm_verbose = 3;
 	liftrlimit();
 	mm_realtime0 = realtime();
 	mm_set_opt(0, &ipt, &opt);
+	mm_ref_analysis_opt_init(&ref_analysis_opt);
 
 	while ((c = ketopt(&o, argc, argv, 1, opt_str, long_options)) >= 0) { // test command line options and apply option -x/preset first
 		if (c == 'x') {
@@ -280,6 +288,23 @@ int main(int argc, char *argv[])
 			ipt.compact_k = atoi(o.arg);
 		} else if (c == 367) { // --compact-ratio
 			ipt.compact_ratio = atof(o.arg);
+		} else if (c == 368) { // --ref-analysis-prefix
+			ref_analysis_prefix = o.arg;
+			opt.flag |= MM_F_REF_ANALYSIS | MM_F_CIGAR;
+		} else if (c == 369) { // --ref-analysis-min-mapq
+			ref_analysis_opt.min_mapq = atoi(o.arg);
+		} else if (c == 370) { // --ref-analysis-min-aln-len
+			ref_analysis_opt.min_aln_len = atoi(o.arg);
+		} else if (c == 371) { // --ref-analysis-qual
+			if (strcmp(o.arg, "yes") == 0 || strcmp(o.arg, "y") == 0) ref_analysis_opt.use_qual = 1;
+			else if (strcmp(o.arg, "no") == 0 || strcmp(o.arg, "n") == 0) ref_analysis_opt.use_qual = 0;
+			else if (mm_verbose >= 2)
+				fprintf(stderr, "[WARNING]\033[1;31m --ref-analysis-qual only accepts 'yes' or 'no'. Invalid values are assumed to be 'yes'.\033[0m\n");
+		} else if (c == 372) { // --ref-analysis-count-reads
+			if (strcmp(o.arg, "yes") == 0 || strcmp(o.arg, "y") == 0) ref_analysis_opt.count_reads_for_eta = 1;
+			else if (strcmp(o.arg, "no") == 0 || strcmp(o.arg, "n") == 0) ref_analysis_opt.count_reads_for_eta = 0;
+			else if (mm_verbose >= 2)
+				fprintf(stderr, "[WARNING]\033[1;31m --ref-analysis-count-reads only accepts 'yes' or 'no'. Invalid values are assumed to be 'no'.\033[0m\n");
 		}
 		else if (c == 330) {
 			fprintf(stderr, "[WARNING] \033[1;31m --lj-min-ratio has been deprecated.\033[0m\n");
@@ -418,6 +443,11 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    --cs[=STR]   output the cs tag; STR is 'short' (if absent) or 'long' [none]\n");
 		fprintf(fp_help, "    --ds         output the ds tag, which is an extension to cs\n");
 		fprintf(fp_help, "    --MD         output the MD tag\n");
+		fprintf(fp_help, "    --ref-analysis-prefix STR write per-reference consensus/statistics files using STR as the prefix []\n");
+		fprintf(fp_help, "    --ref-analysis-min-mapq INT   minimum MAPQ to include a primary read in consensus/statistics [%d]\n", ref_analysis_opt.min_mapq);
+		fprintf(fp_help, "    --ref-analysis-min-aln-len INT minimum aligned query span to include a primary read [%d]\n", ref_analysis_opt.min_aln_len);
+		fprintf(fp_help, "    --ref-analysis-qual yes|no    include quality-weighted support/statistics when FASTQ qualities are available [%s]\n", ref_analysis_opt.use_qual? "yes" : "no");
+		fprintf(fp_help, "    --ref-analysis-count-reads yes|no pre-count query reads for ref-analysis ETA [%s]\n", ref_analysis_opt.count_reads_for_eta? "yes" : "no");
 		fprintf(fp_help, "    --eqx        write =/X CIGAR operators\n");
 		fprintf(fp_help, "    -Y           use soft clipping for supplementary alignments\n");
 		fprintf(fp_help, "    -y           copy FASTA/Q comments to output SAM\n");
@@ -442,6 +472,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[ERROR] incorrect input: in the sr mode, please specify no more than two query files.\n");
 		return 1;
 	}
+	if (ref_analysis_prefix && opt.split_prefix) {
+		fprintf(stderr, "[ERROR] --ref-analysis-prefix does not support --split-prefix in v1.\n");
+		return 1;
+	}
 	idx_rdr = mm_idx_reader_open(argv[o.ind], &ipt, fnw);
 	if (idx_rdr == 0) {
 		fprintf(stderr, "[ERROR] failed to open file '%s': %s\n", argv[o.ind], strerror(errno));
@@ -456,8 +490,16 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[WARNING]\033[1;31m `-N 0' reduces alignment accuracy. Please use --secondary=no to suppress secondary alignments.\033[0m\n");
 	while ((mi = mm_idx_reader_read(idx_rdr, n_threads)) != 0) {
 		int ret;
+		mm_ref_analysis_collect_t *ra_collect = 0;
+		mm_ref_analysis_result_t *ra_result = 0;
 		if ((opt.flag & MM_F_CIGAR) && (mi->flag & MM_I_NO_SEQ)) {
 			fprintf(stderr, "[ERROR] the prebuilt index doesn't contain sequences.\n");
+			mm_idx_destroy(mi);
+			mm_idx_reader_close(idx_rdr);
+			return 1;
+		}
+		if (ref_analysis_prefix && idx_rdr->n_parts > 1) {
+			fprintf(stderr, "[ERROR] --ref-analysis-prefix does not support multi-part indexes in v1.\n");
 			mm_idx_destroy(mi);
 			mm_idx_reader_close(idx_rdr);
 			return 1;
@@ -510,13 +552,53 @@ int main(int argc, char *argv[])
 			continue; // no query files
 		}
 		ret = 0;
+		if (ref_analysis_prefix) {
+			int64_t ra_total_reads = -1;
+			if (ref_analysis_opt.count_reads_for_eta) {
+				if (!(opt.flag & MM_F_FRAG_MODE)) {
+					ra_total_reads = 0;
+					for (i = o.ind + 1; i < argc; ++i) {
+						int64_t n_reads = mm_ref_analysis_count_reads(1, (const char**)&argv[i]);
+						if (n_reads < 0) {
+							ra_total_reads = -1;
+							break;
+						}
+						ra_total_reads += n_reads;
+					}
+				} else {
+					ra_total_reads = mm_ref_analysis_count_reads(argc - (o.ind + 1), (const char**)&argv[o.ind + 1]);
+				}
+			}
+			ra_collect = mm_ref_analysis_collect_init(mi, &ref_analysis_opt);
+			if (ra_collect == 0) {
+				fprintf(stderr, "[ERROR] failed to initialize per-reference analysis.\n");
+				mm_idx_destroy(mi);
+				mm_idx_reader_close(idx_rdr);
+				return 1;
+			}
+			mm_ref_analysis_collect_set_total(ra_collect, ra_total_reads);
+		}
 		if (!(opt.flag & MM_F_FRAG_MODE)) {
 			for (i = o.ind + 1; i < argc; ++i) {
-				ret = mm_map_file(mi, argv[i], &opt, n_threads);
+				if (ref_analysis_prefix)
+					ret = mm_map_file_frag_collect(mi, 1, (const char**)&argv[i], &opt, n_threads, &ref_analysis_opt, ra_collect);
+				else
+					ret = mm_map_file(mi, argv[i], &opt, n_threads);
 				if (ret < 0) break;
 			}
 		} else {
-			ret = mm_map_file_frag(mi, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &opt, n_threads);
+			if (ref_analysis_prefix)
+				ret = mm_map_file_frag_collect(mi, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &opt, n_threads, &ref_analysis_opt, ra_collect);
+			else
+				ret = mm_map_file_frag(mi, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &opt, n_threads);
+		}
+		if (ret == 0 && ref_analysis_prefix) {
+			ret = mm_ref_analysis_collect_finish(ra_collect, &ra_result);
+			if (ret == 0)
+				ret = mm_ref_analysis_write(ra_result, ref_analysis_prefix);
+			mm_ref_analysis_result_destroy(ra_result);
+			mm_ref_analysis_collect_destroy(ra_collect);
+			ra_collect = 0;
 		}
 		mm_idx_destroy(mi);
 		if (ret < 0) {

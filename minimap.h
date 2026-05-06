@@ -48,6 +48,8 @@
 #define MM_F_WEAK_PAIRING  (0x4000000000LL)
 #define MM_F_SR_RNA        (0x8000000000LL)
 #define MM_F_OUT_JUNC      (0x10000000000LL)
+#define MM_F_REF_ANALYSIS  (0x20000000000LL)
+#define MM_F_NO_PRINT      (0x40000000000LL)
 
 #define MM_I_HPC          0x1
 #define MM_I_NO_SEQ       0x2
@@ -194,6 +196,57 @@ typedef struct {
 	const char *split_prefix;
 } mm_mapopt_t;
 
+typedef struct {
+	int32_t min_mapq;
+	int32_t min_aln_len;
+	int32_t use_qual;
+	int32_t count_reads_for_eta;
+} mm_ref_analysis_opt_t;
+
+typedef struct {
+	char *ref_name;
+	uint32_t ref_len;
+	uint32_t primary_reads_total;
+	uint32_t primary_reads_used;
+	uint32_t supplementary_pieces;
+	uint32_t secondary_alignments;
+	uint32_t min_read_len;
+	uint32_t max_read_len;
+	double median_read_len;
+	double mean_read_len;
+	double avg_read_qual;
+	double mean_mapq;
+	double median_mapq;
+	double mean_identity;
+	double median_identity;
+	uint32_t forward_primary;
+	uint32_t reverse_primary;
+	uint32_t covered_bases;
+	double coverage_breadth;
+	double mean_depth;
+	double median_depth;
+	double mean_softclip_5p;
+	double mean_softclip_3p;
+	uint64_t mismatch_bases;
+	uint64_t insertion_bases;
+	uint64_t deletion_bases;
+	uint64_t skipped_bases;
+	char *consensus_seq;
+	uint32_t consensus_len;
+	char *consensus_cigar;
+	uint64_t cigar_eq;
+	uint64_t cigar_x;
+	uint64_t cigar_i;
+	uint64_t cigar_d;
+	uint64_t cigar_n;
+	double consensus_edit_rate;
+} mm_ref_analysis_row_t;
+
+typedef struct {
+	uint32_t n_rows;
+	mm_ref_analysis_row_t *rows;
+} mm_ref_analysis_result_t;
+
 // index reader
 typedef struct {
 	int is_idx, n_parts;
@@ -229,6 +282,7 @@ extern double mm_realtime0; // wall-clock timer
  */
 int mm_set_opt(const char *preset, mm_idxopt_t *io, mm_mapopt_t *mo);
 int mm_check_opt(const mm_idxopt_t *io, const mm_mapopt_t *mo);
+void mm_ref_analysis_opt_init(mm_ref_analysis_opt_t *opt);
 
 /**
  * Update mm_mapopt_t::mid_occ via mm_mapopt_t::mid_occ_frac
@@ -396,6 +450,9 @@ void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **
 int mm_map_file(const mm_idx_t *idx, const char *fn, const mm_mapopt_t *opt, int n_threads);
 
 int mm_map_file_frag(const mm_idx_t *idx, int n_segs, const char **fn, const mm_mapopt_t *opt, int n_threads);
+int mm_ref_analysis_file(const mm_idx_t *idx, const char *fn, const mm_mapopt_t *opt, int n_threads, const mm_ref_analysis_opt_t *aopt, mm_ref_analysis_result_t **out);
+int mm_ref_analysis_write(const mm_ref_analysis_result_t *res, const char *prefix);
+void mm_ref_analysis_result_destroy(mm_ref_analysis_result_t *res);
 
 /**
  * Generate the cs tag (new in 2.12)

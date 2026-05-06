@@ -62,6 +62,8 @@ typedef struct {
 	uint16_t flag;
 } mm_idx_jjump1_t;
 
+typedef struct mm_ref_analysis_collect_s mm_ref_analysis_collect_t;
+
 double cputime(void);
 double realtime(void);
 long peakrss(void);
@@ -131,6 +133,14 @@ FILE *mm_split_init(const char *prefix, const mm_idx_t *mi);
 mm_idx_t *mm_split_merge_prep(const char *prefix, int n_splits, FILE **fp, uint32_t *n_seq_part);
 int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_split_idx);
 void mm_split_rm_tmp(const char *prefix, int n_splits);
+
+mm_ref_analysis_collect_t *mm_ref_analysis_collect_init(const mm_idx_t *mi, const mm_ref_analysis_opt_t *opt);
+void mm_ref_analysis_collect_destroy(mm_ref_analysis_collect_t *c);
+void mm_ref_analysis_collect_set_total(mm_ref_analysis_collect_t *c, int64_t total_reads);
+void mm_ref_analysis_step(mm_ref_analysis_collect_t *c, const mm_bseq1_t *t, int n_reg, mm_reg1_t *regs);
+int mm_ref_analysis_collect_finish(mm_ref_analysis_collect_t *c, mm_ref_analysis_result_t **out);
+int64_t mm_ref_analysis_count_reads(int n_segs, const char **fn);
+int mm_map_file_frag_collect(const mm_idx_t *idx, int n_segs, const char **fn, const mm_mapopt_t *opt, int n_threads, const mm_ref_analysis_opt_t *ra_opt, mm_ref_analysis_collect_t *ra_collect);
 
 void mm_err_puts(const char *str);
 void mm_err_fwrite(const void *p, size_t size, size_t nitems, FILE *fp);

@@ -66,7 +66,8 @@ setup(
     author_email='lh3@me.com',
     license='MIT',
     keywords='sequence-alignment',
-    scripts=[str(HERE / 'minimap2.py')],
+    scripts=[str(HERE / 'minimap2.py'), str(HERE / 'AutoAlign.py')],
+    install_requires=['numpy', 'biopython'],
     ext_modules=cythonize([extension], compiler_directives={'language_level': '3'}),
     classifiers=[
         'Development Status :: 5 - Production/Stable',

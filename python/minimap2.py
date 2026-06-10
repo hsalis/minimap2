@@ -476,12 +476,7 @@ def analyze_mappings(raw_path, fmt, ref_path, aligner, out_dir, nm_threshold=20,
     return _write_analysis_outputs(Path(out_dir), ref_names, ref_lengths, parsed)
 
 
-def build_parser():
-    parser = argparse.ArgumentParser(
-        prog="minimap2.py",
-        description="Map query sequences with the Python mappy interface using shared-index multithreaded batch mapping, then parse the mappings into summary arrays and tables.")
-    parser.add_argument("ref", help="reference FASTA/FASTQ or prebuilt .mmi index")
-    parser.add_argument("query", help="query FASTA/FASTQ (use '-' for stdin when supported by minimap2)")
+def add_mapping_arguments(parser):
     parser.add_argument("-x", dest="preset", help="preset: sr, map-pb, map-ont, asm5, asm10 or splice")
     parser.add_argument("-n", dest="min_cnt", type=int, help="minimum number of minimizers")
     parser.add_argument("-m", dest="min_chain_score", type=int, help="minimum chaining score")
@@ -523,10 +518,16 @@ def build_parser():
     return parser
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
-    args = build_parser().parse_args(argv[1:])
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog="minimap2.py",
+        description="Map query sequences with the Python mappy interface using shared-index multithreaded batch mapping, then parse the mappings into summary arrays and tables.")
+    parser.add_argument("ref", help="reference FASTA/FASTQ or prebuilt .mmi index")
+    parser.add_argument("query", help="query FASTA/FASTQ (use '-' for stdin when supported by minimap2)")
+    return add_mapping_arguments(parser)
+
+
+def run_with_args(args):
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -629,7 +630,15 @@ def main(argv=None):
             file=sys.stderr,
             flush=True,
         )
+    return 0
+
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+    args = build_parser().parse_args(argv[1:])
+    return run_with_args(args)
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    raise SystemExit(main(sys.argv))

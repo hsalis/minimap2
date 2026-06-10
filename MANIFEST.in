@@ -11,6 +11,7 @@ include python/cmappy.pxd
 include python/mappy.pyx
 include python/mappy.c
 include python/minimap2.py
+include python/AutoAlign.py
 include python/README.rst
 recursive-include test *
 recursive-include bench *

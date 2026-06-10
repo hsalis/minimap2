@@ -75,15 +75,16 @@ setup(
     author_email="lh3@me.com",
     license="MIT",
     keywords="sequence-alignment bioinformatics minimap2",
-    py_modules=["minimap2"],
+    py_modules=["minimap2", "AutoAlign"],
     package_dir={"": "python"},
     entry_points={
         "console_scripts": [
             "minimap2py=minimap2:main",
+            "AutoAlign=AutoAlign:main",
         ]
     },
     ext_modules=ext_modules,
-    install_requires=["numpy"],
+    install_requires=["numpy", "biopython"],
     python_requires=">=3.9",
     include_package_data=True,
     classifiers=[
